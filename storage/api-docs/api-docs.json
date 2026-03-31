@@ -1,0 +1,36 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "API Laravel 13",
+        "description": "Documentation API Laravel 13",
+        "contact": {
+            "email": "admin@tonsite.com"
+        },
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/aboutGetAllData": {
+            "get": {
+                "tags": [
+                    "About"
+                ],
+                "summary": "Récupère les informations About",
+                "operationId": "90995f04464471d92157d12b785a31a5",
+                "responses": {
+                    "200": {
+                        "description": "Données récupérées avec succès"
+                    },
+                    "422": {
+                        "description": "Aucune donnée trouvée"
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "About",
+            "description": "About"
+        }
+    ]
+}
