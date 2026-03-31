@@ -643,9 +643,12 @@ class ComposerStaticInitc57754c93ae34ac3b9b716a0fd2f2149
     );
 
     public static $classMap = array (
-        'App\\Http\\Controllers\\Api\\AboutController' => __DIR__ . '/../..' . '/app/Http/Controllers/Api/AboutController.php',
+        'App\\Http\\Controllers\\Api\\Company\\CompanyController' => __DIR__ . '/../..' . '/app/Http/Controllers/Api/Company/CompanyController.php',
+        'App\\Http\\Controllers\\Api\\Swagger\\SwaggerInfo' => __DIR__ . '/../..' . '/app/Http/Controllers/Api/Swagger/SwaggerInfo.php',
+        'App\\Http\\Controllers\\Api\\Users\\UserController' => __DIR__ . '/../..' . '/app/Http/Controllers/Api/Users/UserController.php',
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
         'App\\Http\\Requests\\AboutRequest' => __DIR__ . '/../..' . '/app/Http/Requests/AboutRequest.php',
+        'App\\Http\\Resources\\UserResource' => __DIR__ . '/../..' . '/app/Http/Resources/UserResource.php',
         'App\\Models\\About' => __DIR__ . '/../..' . '/app/Models/About.php',
         'App\\Models\\User' => __DIR__ . '/../..' . '/app/Models/User.php',
         'App\\Providers\\AppServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AppServiceProvider.php',

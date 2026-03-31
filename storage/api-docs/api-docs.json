@@ -15,7 +15,7 @@
                     "About"
                 ],
                 "summary": "Récupère les informations About",
-                "operationId": "d51a104f437b418dc89c2fd86831bcc0",
+                "operationId": "8240c15daf9de64d7b6b992d4a4ade0a",
                 "responses": {
                     "200": {
                         "description": "Données récupérées avec succès"
@@ -32,7 +32,7 @@
                     "About"
                 ],
                 "summary": "Créer ou mettre à jour les informations About",
-                "operationId": "431f1c1417c709d6865ae3fb7c0f41f9",
+                "operationId": "921ee414ccdca3253be944e920d7ee24",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -101,12 +101,331 @@
                     }
                 }
             }
+        },
+        "/api/v1/userGetAllData": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Récupère les informations User",
+                "operationId": "8892c6d102f04a002c13510abb6462aa",
+                "responses": {
+                    "200": {
+                        "description": "Données récupérées avec succès"
+                    },
+                    "422": {
+                        "description": "Aucune donnée trouvée"
+                    }
+                }
+            }
+        },
+        "/api/v1/userGetOptionsData": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Récupère les informations User",
+                "operationId": "bd2252cf40de530b52dce035aa4b9a4c",
+                "responses": {
+                    "200": {
+                        "description": "Données récupérées avec succès"
+                    },
+                    "422": {
+                        "description": "Aucune donnée trouvée"
+                    }
+                }
+            }
+        },
+        "/api/v1/userStoreData": {
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Créer",
+                "operationId": "f459e93bcb1b906658ebe55e841d30d4",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "john@example.com"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+243990000000",
+                                        "nullable": true
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "secret123"
+                                    },
+                                    "active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "example": "created"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Données créées avec succès"
+                    },
+                    "200": {
+                        "description": "Données mises à jour avec succès"
+                    },
+                    "422": {
+                        "description": "Validation des données échouée"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/userUpdateData/{id}": {
+            "put": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Mettre à jour un utilisateur",
+                "operationId": "66ff05b10ca8b5907aec7b022bbb7f2c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "active": {
+                                        "type": "boolean"
+                                    },
+                                    "status": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Utilisateur mis à jour"
+                    },
+                    "404": {
+                        "description": "Utilisateur non trouvé"
+                    },
+                    "422": {
+                        "description": "Validation échouée"
+                    }
+                }
+            }
+        },
+        "/api/v1/userDestroyData/{id}": {
+            "delete": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Supprimer un utilisateur",
+                "operationId": "649d5266e6592393c53dc7ad86fa8ec7",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Utilisateur supprimé avec succès"
+                    },
+                    "404": {
+                        "description": "Utilisateur non trouvé"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/userActivate/{id}": {
+            "put": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Activer un utilisateur",
+                "operationId": "9a0bfc5206f5f5e0d0eb58cf0e9635e3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de l'utilisateur à activer",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Utilisateur activé avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Utilisateur activé avec succès"
+                                        },
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 201
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Utilisateur non trouvé",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Utilisateur non trouvé"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/userDisable/{id}": {
+            "put": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Désactiver un utilisateur",
+                "operationId": "b751bb6999233bcb1e755f64cdc78c3d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de l'utilisateur à désactiver",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Utilisateur désactivé avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Utilisateur désactivé avec succès"
+                                        },
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 201
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Utilisateur non trouvé",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Utilisateur non trouvé"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "tags": [
         {
             "name": "About",
             "description": "About"
+        },
+        {
+            "name": "Users",
+            "description": "Users"
         }
     ]
 }
