@@ -1,27 +1,103 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "API Laravel 13",
-        "description": "Documentation API Laravel 13",
+        "title": "API AFRIGAZ",
+        "description": "Documentation API AFRIGAZ",
         "contact": {
-            "email": "admin@tonsite.com"
+            "email": "winnersthec001.com"
         },
         "version": "1.0.0"
     },
     "paths": {
-        "/api/aboutGetAllData": {
+        "/api/v1/aboutGetAllData": {
             "get": {
                 "tags": [
                     "About"
                 ],
                 "summary": "Récupère les informations About",
-                "operationId": "90995f04464471d92157d12b785a31a5",
+                "operationId": "d51a104f437b418dc89c2fd86831bcc0",
                 "responses": {
                     "200": {
                         "description": "Données récupérées avec succès"
                     },
                     "422": {
                         "description": "Aucune donnée trouvée"
+                    }
+                }
+            }
+        },
+        "/api/v1/aboutStoreData": {
+            "post": {
+                "tags": [
+                    "About"
+                ],
+                "summary": "Créer ou mettre à jour les informations About",
+                "operationId": "431f1c1417c709d6865ae3fb7c0f41f9",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "denomination",
+                                    "details"
+                                ],
+                                "properties": {
+                                    "denomination": {
+                                        "type": "string",
+                                        "example": "Afrigaz Express"
+                                    },
+                                    "details": {
+                                        "type": "string",
+                                        "example": "Détails de la société"
+                                    },
+                                    "register": {
+                                        "type": "string",
+                                        "example": "RC12345"
+                                    },
+                                    "national_id": {
+                                        "type": "string",
+                                        "example": "123456789"
+                                    },
+                                    "tax_number": {
+                                        "type": "string",
+                                        "example": "TAX123456"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+243990000000"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "Kinshasa, RDC"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "contact@afrigaz.com"
+                                    },
+                                    "logo": {
+                                        "description": "Fichier image",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Données créées avec succès"
+                    },
+                    "200": {
+                        "description": "Données mises à jour avec succès"
+                    },
+                    "422": {
+                        "description": "Validation des données échouée"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
                     }
                 }
             }

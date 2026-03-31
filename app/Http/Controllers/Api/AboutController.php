@@ -12,14 +12,14 @@ use OpenApi\Attributes as OA;
 
 #[OA\Info(
     version: '1.0.0',
-    title: 'API Laravel 13',
+    title: 'API AFRIGAZ',
     description: 'Documentation API AFRIGAZ',
-    contact: new OA\Contact(email: 'admin@admin.com')
+    contact: new OA\Contact(email: 'winnersthec001.com')
 )]
 class AboutController extends Controller
 {
    #[OA\Get(
-        path: '/api/aboutGetAllData',
+        path: '/api/v1/aboutGetAllData',
         summary: 'Récupère les informations About',
         tags: ['About'],
         responses: [
@@ -53,6 +53,47 @@ class AboutController extends Controller
             ], 500);
         }
     }
+
+    #[OA\Post(
+        path: '/api/v1/aboutStoreData',
+        summary: 'Créer ou mettre à jour les informations About',
+        tags: ['About'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['denomination', 'details'],
+                properties: [
+                    new OA\Property(property: 'denomination', type: 'string', example: 'Afrigaz Express'),
+                    new OA\Property(property: 'details', type: 'string', example: 'Détails de la société'),
+                    new OA\Property(property: 'register', type: 'string', example: 'RC12345'),
+                    new OA\Property(property: 'national_id', type: 'string', example: '123456789'),
+                    new OA\Property(property: 'tax_number', type: 'string', example: 'TAX123456'),
+                    new OA\Property(property: 'phone', type: 'string', example: '+243990000000'),
+                    new OA\Property(property: 'address', type: 'string', example: 'Kinshasa, RDC'),
+                    new OA\Property(property: 'email', type: 'string', example: 'contact@afrigaz.com'),
+                    new OA\Property(property: 'logo', type: 'string', format: 'binary', description: 'Fichier image')
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Données créées avec succès'
+            ),
+            new OA\Response(
+                response: 200,
+                description: 'Données mises à jour avec succès'
+            ),
+            new OA\Response(
+                response: 422,
+                description: 'Validation des données échouée'
+            ),
+            new OA\Response(
+                response: 500,
+                description: 'Erreur serveur'
+            )
+        ]
+    )]
 
     public function store(Request $request): JsonResponse
     {
