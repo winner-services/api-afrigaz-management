@@ -9,6 +9,165 @@
         "version": "1.0.0"
     },
     "paths": {
+        "/api/v1/auth/login": {
+            "post": {
+                "tags": [
+                    "Authenticate"
+                ],
+                "summary": "Authentification utilisateur",
+                "description": "Connexion avec email ou téléphone + mot de passe",
+                "operationId": "560784447d90a5d61ebff910ee3f7fca",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "user@example.com ou 0990000000"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "password123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Connexion réussie",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Connexion réussie."
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "token": {
+                                                    "type": "string",
+                                                    "example": "1|abcdefg123456"
+                                                },
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "John Doe"
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "example": "user@example.com"
+                                                        },
+                                                        "phone": {
+                                                            "type": "string",
+                                                            "example": "0990000000"
+                                                        },
+                                                        "active": {
+                                                            "type": "boolean",
+                                                            "example": true
+                                                        },
+                                                        "role": {
+                                                            "type": "string",
+                                                            "example": "Admin"
+                                                        },
+                                                        "permissions": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            },
+                                                            "example": [
+                                                                "Voir_User",
+                                                                "Ajouter_User"
+                                                            ]
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Identifiants incorrects"
+                    },
+                    "403": {
+                        "description": "Compte désactivé"
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/logout": {
+            "post": {
+                "tags": [
+                    "Authenticate"
+                ],
+                "summary": "Déconnexion utilisateur",
+                "description": "Déconnecte l'utilisateur authentifié en supprimant son token actif",
+                "operationId": "edca3a2c3600432ae86186d76cae1088",
+                "responses": {
+                    "200": {
+                        "description": "Déconnexion réussie",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Déconnexion réussie."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Utilisateur non authentifié"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/aboutGetAllData": {
             "get": {
                 "tags": [
@@ -98,6 +257,70 @@
                     },
                     "500": {
                         "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/permissionsGetAllData": {
+            "get": {
+                "tags": [
+                    "Permissions"
+                ],
+                "summary": "Récupère les informations",
+                "operationId": "8e41f7f97bb50f54a27c3b08136323e3",
+                "responses": {
+                    "200": {
+                        "description": "Données récupérées avec succès"
+                    },
+                    "422": {
+                        "description": "Aucune donnée trouvée"
+                    }
+                }
+            }
+        },
+        "/api/v1/getPermissionDataByRole/{id}": {
+            "get": {
+                "tags": [
+                    "Permissions"
+                ],
+                "summary": "Supprimer un utilisateur",
+                "operationId": "f72956bea307226b3ce584fcf2817fb3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "succès"
+                    },
+                    "404": {
+                        "description": "non trouvé"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/rolesGetAllData": {
+            "get": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Récupère les informations",
+                "operationId": "4613d33726b4e945190645e63258df7d",
+                "responses": {
+                    "200": {
+                        "description": "Données récupérées avec succès"
+                    },
+                    "422": {
+                        "description": "Aucune donnée trouvée"
                     }
                 }
             }
@@ -666,8 +889,16 @@
     },
     "tags": [
         {
+            "name": "Authenticate",
+            "description": "Authenticate"
+        },
+        {
             "name": "About",
             "description": "About"
+        },
+        {
+            "name": "Permissions",
+            "description": "Permissions"
         },
         {
             "name": "Roles",

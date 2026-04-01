@@ -12,6 +12,25 @@ use OpenApi\Attributes as OA;
 
 class RoleController extends Controller
 {
+    #[OA\Get(
+        path: '/api/v1/rolesGetAllData',
+        summary: 'Récupère les informations',
+        tags: ['Roles'],
+        responses: [
+            new OA\Response(response: 200, description: 'Données récupérées avec succès'),
+            new OA\Response(response: 422, description: 'Aucune donnée trouvée'),
+        ]
+    )]
+    public function getRole()
+    {
+        $roles = Role::get();
+        $result = [
+            "success" => true,
+            'status' => 200,
+            "data" => $roles
+        ];
+        return response()->json($result);
+    }
 
     #[OA\Post(
         path: "/api/v1/roleStore",
