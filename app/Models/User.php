@@ -12,6 +12,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
+use Laravel\Sanctum\HasApiTokens;
 
 #[Fillable([
     'name',
@@ -30,7 +31,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasRoles, HasApiTokens;
 
     /**
      * Get the attributes that should be cast.
@@ -45,7 +46,7 @@ class User extends Authenticatable
         ];
     }
 
-    public function scopeSearh($query, string $term): void
+    public function scopeSearch($query, string $term): void
     {
         $term = "%$term%";
         $query->where(function ($query) use ($term) {

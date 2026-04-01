@@ -76,7 +76,7 @@ class UserController extends Controller
     public function getAllUsersOptions()
     {
         $q = request("q", "");
-        $data = User::latest()->searh(trim($q))->get();
+        $data = User::latest()->search(trim($q))->get();
         $result = [
             'message' => "OK",
             'success' => true,
@@ -131,7 +131,7 @@ class UserController extends Controller
             'name'     => ['required', 'string', 'max:255', 'unique:users,name'],
             'email'    => ['nullable', 'string', 'email', 'max:255', 'unique:users,email'],
             'phone'    => ['required', 'string', 'max:20', 'unique:users,phone'],
-            'password' => ['required', 'string', 'min:6'],
+            'password' => ['required', 'string'],
             'role_id'  => ['required', 'integer', 'exists:roles,id'],
         ];
 
@@ -247,7 +247,7 @@ class UserController extends Controller
             'name'     => ['required', 'string', 'max:255', "unique:users,name,{$id}"],
             'email'    => ['nullable', 'string', 'email', 'max:255', "unique:users,email,{$id}"],
             'phone'    => ['required', 'string', 'max:20', "unique:users,phone,{$id}"],
-            'password' => ['nullable', 'string', 'min:6'],
+            'password' => ['nullable', 'string'],
             'role_id'  => ['required', 'integer', 'exists:roles,id'],
         ];
 
