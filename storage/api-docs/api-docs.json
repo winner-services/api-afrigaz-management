@@ -168,6 +168,154 @@
                 ]
             }
         },
+        "/api/v1/brancheGetAllData": {
+            "get": {
+                "tags": [
+                    "Branches"
+                ],
+                "summary": "Lister les branches",
+                "operationId": "80624c9b98ff03b4f2127f1b1ddd747f",
+                "responses": {
+                    "200": {
+                        "description": "Liste des branches"
+                    }
+                }
+            }
+        },
+        "/api/v1/brancheStoreData": {
+            "post": {
+                "tags": [
+                    "Branches"
+                ],
+                "summary": "Créer une branche",
+                "operationId": "ca24cc1c94b0130b4ea15043a569be92",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Agence Gombe"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "0999999999"
+                                    },
+                                    "city": {
+                                        "type": "string",
+                                        "example": "Kinshasa"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "Av. de la paix"
+                                    },
+                                    "user_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "example": "created"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Branche créée"
+                    },
+                    "422": {
+                        "description": "Erreur validation"
+                    }
+                }
+            }
+        },
+        "/api/v1/brancheUpdate/{id}": {
+            "put": {
+                "tags": [
+                    "Branches"
+                ],
+                "summary": "Modifier une branche",
+                "operationId": "79a9d7ab88586f309ddea4532bd981ee",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    },
+                                    "city": {
+                                        "type": "string"
+                                    },
+                                    "address": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Branche mise à jour"
+                    },
+                    "404": {
+                        "description": "Non trouvée"
+                    }
+                }
+            }
+        },
+        "/api/v1/brancheDelete/{id}": {
+            "put": {
+                "tags": [
+                    "Branches"
+                ],
+                "summary": "Supprimer une branche",
+                "operationId": "72b32a0d0def57db643650db85ad7245",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Supprimée"
+                    },
+                    "404": {
+                        "description": "Non trouvée"
+                    }
+                }
+            }
+        },
         "/api/v1/aboutGetAllData": {
             "get": {
                 "tags": [
@@ -891,6 +1039,10 @@
         {
             "name": "Authenticate",
             "description": "Authenticate"
+        },
+        {
+            "name": "Branches",
+            "description": "Branches"
         },
         {
             "name": "About",

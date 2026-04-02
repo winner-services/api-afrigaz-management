@@ -10,12 +10,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use OpenApi\Attributes as OA;
 
-// #[OA\Info(
-//     version: '1.0.0',
-//     title: 'API AFRIGAZ',
-//     description: 'Documentation API AFRIGAZ',
-//     contact: new OA\Contact(email: 'winnersthec001.com')
-// )]
 class CompanyController extends Controller
 {
     #[OA\Get(
