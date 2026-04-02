@@ -44,7 +44,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::controller(BrancheController::class)->group(function () {
         Route::get('/brancheGetAllData', 'get');
         Route::post('/brancheStoreData', 'storeData');
-        Route::put('brancheUpdate/{id}', 'update');
-        Route::put('brancheDelete/{id}', 'destroy');
+        Route::put('/brancheUpdate/{id}', 'update');
+        Route::put('/brancheDelete/{id}', 'destroy');
     });
 });

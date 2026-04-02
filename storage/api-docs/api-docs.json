@@ -456,6 +456,59 @@
                 }
             }
         },
+        "/api/v1/categoryGetOptionsData": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Lister",
+                "operationId": "091324e1b18eda5df15e45cef35a2e02",
+                "responses": {
+                    "200": {
+                        "description": "Liste des branches"
+                    }
+                }
+            }
+        },
+        "/api/v1/categoryStoreData": {
+            "post": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Créer",
+                "operationId": "b4ce80834390907be3c1bb58fba8cd11",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "designation"
+                                ],
+                                "properties": {
+                                    "designation": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Données créées avec succès"
+                    },
+                    "422": {
+                        "description": "Validation des données échouée"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
         "/api/v1/rolesGetAllData": {
             "get": {
                 "tags": [
@@ -1051,6 +1104,10 @@
         {
             "name": "Permissions",
             "description": "Permissions"
+        },
+        {
+            "name": "Products",
+            "description": "Products"
         },
         {
             "name": "Roles",
