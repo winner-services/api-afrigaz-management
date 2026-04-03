@@ -316,6 +316,163 @@
                 }
             }
         },
+        "/api/v1/bulkPurchaseStoreData": {
+            "post": {
+                "tags": [
+                    "Bulk"
+                ],
+                "summary": "Créer",
+                "operationId": "e75a2f44e5f158514e7082ff369ad19d",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "supplier_id"
+                                ],
+                                "properties": {
+                                    "supplier_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "invoice_number": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "unit_price_per_kg": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "quantity_kg": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "purchase_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-04-03"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Données créées avec succès"
+                    },
+                    "422": {
+                        "description": "Validation des données échouée"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/bulkPurchaseGetAllData": {
+            "get": {
+                "tags": [
+                    "Bulk"
+                ],
+                "summary": "Lister",
+                "operationId": "1539e6df2d6e2acbd8fdd9bae1fedac8",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/bulkPurchaseUpdate/{id}": {
+            "put": {
+                "tags": [
+                    "Bulk"
+                ],
+                "summary": "Modifier",
+                "operationId": "b456691f41cf1a2eb1fc90b3e016f855",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "supplier_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "invoice_number": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "unit_price_per_kg": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "quantity_kg": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "purchase_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-04-03"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "mise à jour"
+                    },
+                    "404": {
+                        "description": "Non trouvée"
+                    }
+                }
+            }
+        },
+        "/api/v1/bulkPurchaseDelete/{id}": {
+            "put": {
+                "tags": [
+                    "Bulk"
+                ],
+                "summary": "Supprimer",
+                "operationId": "b57a98f0b438d0d49863a076522908aa",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Supprimée"
+                    },
+                    "404": {
+                        "description": "Non trouvée"
+                    }
+                }
+            }
+        },
         "/api/v1/aboutGetAllData": {
             "get": {
                 "tags": [
@@ -1417,6 +1574,10 @@
         {
             "name": "Branches",
             "description": "Branches"
+        },
+        {
+            "name": "Bulk",
+            "description": "Bulk"
         },
         {
             "name": "About",
