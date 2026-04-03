@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Permission\PermissionController;
 use App\Http\Controllers\Api\Products\CategoryController;
 use App\Http\Controllers\Api\Products\ProductController;
 use App\Http\Controllers\Api\Role\RoleController;
+use App\Http\Controllers\Api\Sipplier\SupplierController;
 use App\Http\Controllers\Api\Users\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -61,5 +62,13 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::post('/productStoreData', 'store');
         Route::put('/productUpdate/{id}', 'update');
         Route::put('/productDelete/{id}', 'destroy');
+    });
+
+    Route::controller(SupplierController::class)->group(function () {
+        Route::get('/supplierGetAllData', 'index');
+        Route::get('/suppliersGetOptionsData', 'getSupplierOptions');
+        Route::post('/supplierStoreData', 'store');
+        Route::put('/supplierUpdate/{id}', 'update');
+        Route::get('/supplierDelete/{id}', 'destroy');
     });
 });

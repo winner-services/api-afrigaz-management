@@ -938,6 +938,161 @@
                 }
             }
         },
+        "/api/v1/supplierGetAllData": {
+            "get": {
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Lister",
+                "operationId": "de23f5267a963240ade8334a359e64be",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/suppliersGetOptionsData": {
+            "get": {
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Lister",
+                "operationId": "7051ea26451ebebd8cb5e492932c0351",
+                "responses": {
+                    "200": {
+                        "description": "Liste des branches"
+                    }
+                }
+            }
+        },
+        "/api/v1/supplierStoreData": {
+            "post": {
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Créer",
+                "operationId": "72dac99cbb4291d60f7dbd9f10ddf7d5",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "Dar"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+243990000000",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Données créées avec succès"
+                    },
+                    "422": {
+                        "description": "Validation des données échouée"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/supplierUpdate/{id}": {
+            "put": {
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Modifier",
+                "operationId": "20b79b7442d76e0a141a5a4a6a0c1a97",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "Dar"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+243990000000",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "mise à jour"
+                    },
+                    "404": {
+                        "description": "Non trouvée"
+                    }
+                }
+            }
+        },
+        "/api/v1/supplierDelete/{id}": {
+            "put": {
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Supprimer",
+                "operationId": "8592268d29cea1fe9b0a60785ae70439",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Supprimée"
+                    },
+                    "404": {
+                        "description": "Non trouvée"
+                    }
+                }
+            }
+        },
         "/api/v1/userGetAllData": {
             "get": {
                 "tags": [
@@ -1278,6 +1433,10 @@
         {
             "name": "Roles",
             "description": "Roles"
+        },
+        {
+            "name": "Suppliers",
+            "description": "Suppliers"
         },
         {
             "name": "Users",
