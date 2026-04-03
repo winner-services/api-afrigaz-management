@@ -509,6 +509,172 @@
                 }
             }
         },
+        "/api/v1/productGetAllData": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Lister",
+                "operationId": "726d7b5cf6d18714ab404fb919426cc8",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/productGetOptionsData": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Lister",
+                "operationId": "dafc15b64a11fc819653f50e4c439bbb",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/productStoreData": {
+            "post": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Créer un produit",
+                "operationId": "46093795a53280e87ac16d38a34690a6",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "gaz"
+                                    },
+                                    "category_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "weight_kg": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "wholesale_price": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "retail_price": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "créée"
+                    },
+                    "422": {
+                        "description": "Erreur validation"
+                    }
+                }
+            }
+        },
+        "/api/v1/productUpdate/{id}": {
+            "put": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Modifier",
+                "operationId": "2e73dc411d03629f7f989b1b7978962b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "gaz"
+                                    },
+                                    "category_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "weight_kg": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "wholesale_price": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "retail_price": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "mise à jour"
+                    },
+                    "404": {
+                        "description": "Non trouvée"
+                    }
+                }
+            }
+        },
+        "/api/v1/productDelete/{id}": {
+            "put": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Supprimer",
+                "operationId": "4f004b85bf5654ebd6904e0b34326414",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Supprimée"
+                    },
+                    "404": {
+                        "description": "Non trouvée"
+                    }
+                }
+            }
+        },
         "/api/v1/rolesGetAllData": {
             "get": {
                 "tags": [

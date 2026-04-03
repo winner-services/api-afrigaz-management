@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\Auth\AuthenticationController;
 use App\Http\Controllers\Api\Branches\BrancheController;
 use App\Http\Controllers\Api\Company\CompanyController;
 use App\Http\Controllers\Api\Permission\PermissionController;
+use App\Http\Controllers\Api\Products\ProductController;
 use App\Http\Controllers\Api\Role\RoleController;
 use App\Http\Controllers\Api\Users\UserController;
 use Illuminate\Support\Facades\Route;
@@ -46,5 +47,13 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::post('/brancheStoreData', 'storeData');
         Route::put('/brancheUpdate/{id}', 'update');
         Route::put('/brancheDelete/{id}', 'destroy');
+    });
+
+    Route::controller(ProductController::class)->group(function () {
+        Route::get('/productGetAllData', 'index');
+        Route::get('/productGetOptionsData', 'getProductOptions');
+        Route::post('/productStoreData', 'store');
+        Route::put('/productUpdate/{id}', 'update');
+        Route::put('/productDelete/{id}', 'destroy');
     });
 });
