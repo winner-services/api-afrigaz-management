@@ -92,7 +92,7 @@ class CategoryController extends Controller
             ]);
             return response()->json([
                 'status'  => true,
-                'message' => 'Agent ajouté avec succès.',
+                'message' => 'ajouté avec succès.',
             ], 201);
         } catch (\Throwable $e) {
             return response()->json([
