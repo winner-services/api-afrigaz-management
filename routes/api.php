@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\Branches\BrancheController;
 use App\Http\Controllers\Api\Bulk\Bulk_Purchase;
 use App\Http\Controllers\Api\Bulk\BulkPurchaseController;
 use App\Http\Controllers\Api\Company\CompanyController;
+use App\Http\Controllers\Api\EntryStock\EntryStockController;
 use App\Http\Controllers\Api\Permission\PermissionController;
 use App\Http\Controllers\Api\Products\CategoryController;
 use App\Http\Controllers\Api\Products\ProductController;
@@ -81,5 +82,10 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::put('/bulkPurchaseUpdate/{id}', 'update');
             Route::get('/bulkPurchaseDelete/{id}', 'destroy');
         });
+    });
+
+    Route::controller(EntryStockController::class)->group(function () {
+        Route::get('/stockEntrieGetAllData', 'index');
+        Route::post('/stockEntriesStore', 'store');
     });
 });

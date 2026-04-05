@@ -322,7 +322,7 @@
                     "Bulk"
                 ],
                 "summary": "Créer",
-                "operationId": "e75a2f44e5f158514e7082ff369ad19d",
+                "operationId": "a8526928e09135236eac008e63d3599a",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -378,7 +378,7 @@
                     "Bulk"
                 ],
                 "summary": "Lister",
-                "operationId": "1539e6df2d6e2acbd8fdd9bae1fedac8",
+                "operationId": "1236707efff820d4b114919c1416528c",
                 "responses": {
                     "200": {
                         "description": "Liste"
@@ -392,7 +392,7 @@
                     "Bulk"
                 ],
                 "summary": "Modifier",
-                "operationId": "b456691f41cf1a2eb1fc90b3e016f855",
+                "operationId": "f5c31b352642cbf27b56dbfe8b4e4204",
                 "parameters": [
                     {
                         "name": "id",
@@ -452,7 +452,7 @@
                     "Bulk"
                 ],
                 "summary": "Supprimer",
-                "operationId": "b57a98f0b438d0d49863a076522908aa",
+                "operationId": "a29dfc39421949a3895e8fe4f2d69aff",
                 "parameters": [
                     {
                         "name": "id",
@@ -562,6 +562,82 @@
                     },
                     "500": {
                         "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/stockEntriesStore": {
+            "post": {
+                "tags": [
+                    "Stock Entries"
+                ],
+                "summary": "Créer une entrée de stock",
+                "operationId": "00a03a303dd8c77d4728098449b0ef25",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "transaction_date",
+                                    "branche_id",
+                                    "items"
+                                ],
+                                "properties": {
+                                    "transaction_date": {
+                                        "type": "string",
+                                        "example": "2026-04-05"
+                                    },
+                                    "supplier_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "branche_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "items": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "product_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "quantity": {
+                                                    "type": "integer",
+                                                    "example": 50
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Entrée créée avec succès"
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            }
+        },
+        "/api/v1/stockEntrieGetAllData": {
+            "get": {
+                "tags": [
+                    "Stock Entries"
+                ],
+                "summary": "Lister",
+                "operationId": "28f7b387d512cdeaebeed43cda1d709e",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
                     }
                 }
             }
@@ -1582,6 +1658,10 @@
         {
             "name": "About",
             "description": "About"
+        },
+        {
+            "name": "Stock Entries",
+            "description": "Stock Entries"
         },
         {
             "name": "Permissions",

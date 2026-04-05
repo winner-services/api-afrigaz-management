@@ -11,14 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('stock_by_branches', function (Blueprint $table) {
+        Schema::create('items_stock_entries', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('branche_id')->nullable()->constrained('branches')->nullOnDelete();
+            $table->foreignId('stock_entries_id')->nullable()->constrained('stock_entries')->nullOnDelete();
             $table->foreignId('product_id')->nullable()->constrained('products')->nullOnDelete();
-            $table->integer('stodescriptionck_quantity')->default(0);
-            $table->string('status')->default('created');
+            $table->integer('quantity')->default(0);
             $table->timestamps();
-            $table->unique(['branche_id', 'product_id']);
         });
     }
 
@@ -27,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('stock_by_branches');
+        Schema::dropIfExists('items_stock_entries');
     }
 };

@@ -5,12 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['branche_id', 'product_id', 'stock_quantity', 'status'])]
-class StockByBranch extends Model
+#[Fillable(['quantity', 'supplier_id', 'product_id', 'stock_entries_id'])]
+class ItemsStockEntries extends Model
 {
-    public function branch()
+    public function stockEntry()
     {
-        return $this->belongsTo(Branche::class, 'branche_id');
+        return $this->belongsTo(StockEntry::class, 'stock_entries_id');
     }
 
     public function product()
