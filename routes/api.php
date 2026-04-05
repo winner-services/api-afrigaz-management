@@ -82,16 +82,16 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::put('/bulkPurchaseUpdate/{id}', 'update');
             Route::get('/bulkPurchaseDelete/{id}', 'destroy');
         });
-    });
+        Route::controller(EntryStockController::class)->group(function () {
+            Route::get('/stockEntrieGetAllData', 'index');
+            Route::post('/stockEntriesStore', 'store');
+        });
 
-    Route::controller(EntryStockController::class)->group(function () {
-        Route::get('/stockEntrieGetAllData', 'index');
-        Route::post('/stockEntriesStore', 'store');
-    });
-
-    Route::controller(TransefrController::class)->group(function () {
-        Route::post('/transferStockStoreData', 'transferBatch');
-        Route::post('/adjustStockByBanch', 'adjust');
-        Route::post('/removeQteStockByBanch', 'remove');
+        Route::controller(TransefrController::class)->group(function () {
+            Route::post('/transferStockStoreData', 'transferBatch');
+            Route::post('/adjustStockByBanch', 'adjust');
+            Route::post('/removeQteStockByBanch', 'remove');
+            Route::post('/returnProductStockByBanch', 'returnProduct');
+        });
     });
 });

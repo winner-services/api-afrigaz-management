@@ -178,4 +178,42 @@ class StockService
             return $transfer;
         });
     }
+
+    public static function returnStock(
+        int $branchId,
+        int $productId,
+        int $quantity,
+        ?string $description = null,
+        ?array $reference = null
+    ): StockByBranch {
+        return DB::transaction(function () use ($branchId, $productId, $quantity, $description, $reference): StockByBranch {
+
+            $stock = StockByBranch::firstOrCreate([
+                'branche_id' => $branchId,
+                'product_id' => $productId,
+            ]);
+
+            $before = $stock->stock_quantity;
+            $after = $before + $quantity;
+
+            $stock->update([
+                'stock_quantity' => $after
+            ]);
+
+            StockMovement::create([
+                'branche_id' => $branchId,
+                'product_id' => $productId,
+                'type' => 'return', // 🔥 important
+                'quantity' => $quantity,
+                'stock_before' => $before,
+                'stock_after' => $after,
+                'description' => $description ?? 'Retour client',
+                'reference_id' => $reference['id'] ?? null,
+                'reference' => $reference['type'] ?? 'sale_return',
+                'user_id' => Auth::id(),
+            ]);
+
+            return $stock;
+        });
+    }
 }

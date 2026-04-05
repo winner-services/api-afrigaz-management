@@ -7,6 +7,7 @@ use App\Services\StockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use OpenApi\Attributes as OA;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class TransefrController extends Controller
 {
@@ -171,5 +172,54 @@ class TransefrController extends Controller
                 'error' => $e->getMessage()
             ], 422);
         }
+    }
+
+#[OA\Post(
+        path: "/api/v1/returnProductStockByBanch",
+        summary: "Enlever une quantité du stock",
+        tags: ["Mouvement Stock"],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["branch_id", "product_id", "quantity", "description"],
+                properties: [
+                    new OA\Property(property: "description", type: "string", example: "test"),
+                    new OA\Property(property: "branch_id", type: "integer", example: 1),
+                    new OA\Property(property: "product_id", type: "integer", example: "Kinshasa"),
+                    new OA\Property(property: "quantity", type: "integer", example: "Av. de la paix")
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: "Stock retourné"),
+            new OA\Response(response: 422, description: "Erreur validation")
+        ]
+    )]
+    public function returnProduct(Request $request): JsonResponse
+    {
+        $request->validate([
+            'branch_id' => 'required|integer|exists:branches,id',
+            'product_id' => 'required|integer|exists:products,id',
+            'quantity' => 'required|integer|min:1',
+            'description' => 'nullable|string',
+            'reference' => 'nullable|array'
+        ]);
+
+        $stock = StockService::returnStock(
+            $request->branch_id,
+            $request->product_id,
+            $request->quantity,
+            $request->description,
+            $request->reference
+        );
+
+        return response()->json([
+            'message' => 'Retour produit enregistré avec succès',
+            'stock' => [
+                'branch_id' => $stock->branche_id,
+                'product_id' => $stock->product_id,
+                'stock_quantity' => $stock->stock_quantity
+            ]
+        ]);
     }
 }
