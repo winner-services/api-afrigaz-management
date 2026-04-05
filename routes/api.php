@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Api\Auth\AuthenticationController;
 use App\Http\Controllers\Api\Branches\BrancheController;
-use App\Http\Controllers\Api\Bulk\Bulk_Purchase;
 use App\Http\Controllers\Api\Bulk\BulkPurchaseController;
 use App\Http\Controllers\Api\Company\CompanyController;
 use App\Http\Controllers\Api\EntryStock\EntryStockController;
@@ -11,6 +10,7 @@ use App\Http\Controllers\Api\Products\CategoryController;
 use App\Http\Controllers\Api\Products\ProductController;
 use App\Http\Controllers\Api\Role\RoleController;
 use App\Http\Controllers\Api\Sipplier\SupplierController;
+use App\Http\Controllers\Api\Transfer\TransefrController;
 use App\Http\Controllers\Api\Users\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -87,5 +87,11 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::controller(EntryStockController::class)->group(function () {
         Route::get('/stockEntrieGetAllData', 'index');
         Route::post('/stockEntriesStore', 'store');
+    });
+
+    Route::controller(TransefrController::class)->group(function () {
+        Route::post('/transferStockStoreData', 'transferBatch');
+        Route::post('/adjustStockByBanch', 'adjust');
+        Route::post('/removeQteStockByBanch','remove');
     });
 });

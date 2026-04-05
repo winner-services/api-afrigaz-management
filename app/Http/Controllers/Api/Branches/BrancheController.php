@@ -45,8 +45,7 @@ class BrancheController extends Controller
                     new OA\Property(property: "phone", type: "string", example: "0999999999"),
                     new OA\Property(property: "city", type: "string", example: "Kinshasa"),
                     new OA\Property(property: "address", type: "string", example: "Av. de la paix"),
-                    new OA\Property(property: "user_id", type: "integer", example: 1),
-                    new OA\Property(property: "status", type: "string", example: "created")
+                    new OA\Property(property: "user_id", type: "integer", example: 1)
                 ]
             )
         ),

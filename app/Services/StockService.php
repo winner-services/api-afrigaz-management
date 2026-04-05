@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\StockByBranch;
 use App\Models\StockMovement;
+use App\Models\Transfer;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -76,8 +77,8 @@ class StockService
                 'stock_before' => $before,
                 'stock_after' => $after,
                 'description' => $description,
-                'reference_id' => $reference['id'] ?? null,
-                'reference' => $reference['type'] ?? null,
+                'reference_id' => $stock->id,
+                'reference' => $stock->reference ?? null,
                 'user_id' => Auth::id(),
             ]);
 
@@ -133,6 +134,48 @@ class StockService
             ]);
 
             return $stock;
+        });
+    }
+
+    public static function transferMultipleProductsWithRecord($fromBranch, $toBranch, $productsQuantities, $transfer_date, $userId)
+    {
+        return DB::transaction(function () use ($fromBranch, $toBranch, $productsQuantities, $transfer_date, $userId) {
+
+            $reference = 'TRF-' . date('YmdHis');
+
+            $transfer = Transfer::create([
+                'from_branch_id' => $fromBranch,
+                'to_branch_id' => $toBranch,
+                'user_id' => $userId,
+                'reference' => $reference,
+                'transfer_date' => $transfer_date,
+                'status' => 'created'
+            ]);
+
+            foreach ($productsQuantities as $item) {
+                $productId = $item['product_id'];
+                $quantity  = $item['quantity'];
+
+                $transfer->items()->create([
+                    'product_id' => $productId,
+                    'quantity' => $quantity,
+                    'transfer_id' => $transfer->id
+                ]);
+
+                self::removeStock($fromBranch, $productId, $quantity, "Transfert sortant vers la branche $toBranch", [
+                    'type' => 'transfer',
+                    'reference_id' => $transfer->id,
+                    'user_id' => $userId
+                ]);
+
+                self::addStock($toBranch, $productId, $quantity, "Transfert entrant depuis la branche $fromBranch", [
+                    'type' => 'transfer',
+                    'reference_id' => $transfer->id,
+                    'user_id' => $userId
+                ]);
+            }
+
+            return $transfer;
         });
     }
 }

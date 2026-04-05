@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ItemsStockEntries;
 use App\Models\StockEntry;
 use App\Services\StockService;
+use Illuminate\Container\Attributes\Auth as AttributesAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
