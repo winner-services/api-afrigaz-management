@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\Bulk;
 
 use App\Http\Controllers\Controller;
-use App\Models\BulkPurchase;
+use App\Models\Bulk_Purchase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -11,9 +11,8 @@ use Illuminate\Support\Facades\Validator;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
-class Bulk_Purchase extends Controller
+class BulkPurchaseController extends Controller
 {
-
     #[OA\Post(
         path: '/api/v1/bulkPurchaseStoreData',
         summary: 'Créer',
@@ -79,7 +78,7 @@ class Bulk_Purchase extends Controller
             // 💰 Calcul automatique
             $total_cost = $request->quantity_kg * ($request->unit_price_per_kg ?? 0);
 
-            $purchase = BulkPurchase::create([
+            $purchase = Bulk_Purchase::create([
                 'supplier_id' => $request->supplier_id,
                 'invoice_number' => $request->invoice_number,
                 'quantity_kg' => $request->quantity_kg,
@@ -141,9 +140,8 @@ class Bulk_Purchase extends Controller
             $sort_direction = 'desc';
         }
 
-        $data = DB::query()
-            ->leftJoin('suppliers', 'bulk__purchases.supplier_id', '=', 'suppliers.id')
-            ->leftJoin('users', 'bulk__purchases.addedBy', '=', 'users.id')
+        $data = Bulk_Purchase::join('suppliers', 'bulk__purchases.supplier_id', '=', 'suppliers.id')
+            ->join('users', 'bulk__purchases.addedBy', '=', 'users.id')
             ->select(
                 'bulk__purchases.*',
                 'suppliers.name as supplier',
@@ -195,7 +193,7 @@ class Bulk_Purchase extends Controller
 
     public function update(Request $request, $id): JsonResponse
     {
-        $purchase = BulkPurchase::find($id);
+        $purchase = Bulk_Purchase::find($id);
 
         if (!$purchase) {
             return response()->json([
@@ -259,7 +257,7 @@ class Bulk_Purchase extends Controller
     )]
     public function destroy($id): JsonResponse
     {
-        $purchase = BulkPurchase::find($id);
+        $purchase = Bulk_Purchase::find($id);
 
         if (!$purchase) {
             return response()->json([
