@@ -92,6 +92,6 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::controller(TransefrController::class)->group(function () {
         Route::post('/transferStockStoreData', 'transferBatch');
         Route::post('/adjustStockByBanch', 'adjust');
-        Route::post('/removeQteStockByBanch','remove');
+        Route::post('/removeQteStockByBanch', 'remove');
     });
 });
