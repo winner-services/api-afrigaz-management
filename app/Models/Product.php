@@ -43,4 +43,29 @@ class Product extends Model
                 });
         });
     }
+
+    protected static function booted()
+    {
+        static::created(function ($product) {
+
+            $branches = Branche::pluck('id');
+
+            if ($branches->isEmpty()) {
+                return; 
+            }
+
+            $data = $branches->map(function ($brancheId) use ($product) {
+                return [
+                    'branche_id' => $brancheId,
+                    'product_id' => $product->id,
+                    'stock_quantity' => 0,
+                    'status' => 'created',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            })->toArray();
+
+            StockByBranch::insertOrIgnore($data);
+        });
+    }
 }
