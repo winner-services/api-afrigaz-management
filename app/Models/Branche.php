@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['name', 'phone', 'city', 'address', 'user_id', 'addedBy', 'status'])]
+#[Fillable(['name', 'phone', 'city', 'address', 'user_id', 'addedBy', 'status','reference'])]
 class Branche extends Model
 {
     public function user()

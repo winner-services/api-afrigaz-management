@@ -103,6 +103,7 @@ class BrancheController extends Controller
                 'address' => $request->address,
                 'user_id' => $request->user_id,
                 'addedBy' => $userId,
+                'reference' => fake()->unique()->numerify('BR-#####')
             ]);
 
             DB::commit();
