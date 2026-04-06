@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('cash_transactions', function (Blueprint $table) {
             $table->id();
-            $table->id();
             $table->string('reason')->nullable();
             $table->enum('type', ['Revenue', 'Depense']);
             $table->decimal('amount', 10, 1);
