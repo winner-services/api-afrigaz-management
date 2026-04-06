@@ -133,6 +133,9 @@ class ReturnSaleController extends Controller
             'user'
         ])->orderBy('created_at', 'desc')->paginate(20);
 
-        return response()->json($returns);
+        return response()->json([
+            'status' => 200,
+            'data' => $returns
+        ]);
     }
 }
