@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('phone')->nullable();
             $table->string('address')->nullable();
+            $table->enum('category', ['distributeur', 'consommateur'])->default('consommateur');
             $table->string('status')->default('created');
             $table->foreignId('addedBy')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();

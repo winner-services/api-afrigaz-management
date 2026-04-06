@@ -758,12 +758,17 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "name"
+                                    "name",
+                                    "category"
                                 ],
                                 "properties": {
                                     "name": {
                                         "type": "string",
                                         "example": "John Doe"
+                                    },
+                                    "category": {
+                                        "type": "enum",
+                                        "example": "consommateur ou distributeur"
                                     },
                                     "address": {
                                         "type": "string",
@@ -828,6 +833,10 @@
                                         "type": "string",
                                         "example": "+243990000000",
                                         "nullable": true
+                                    },
+                                    "category": {
+                                        "type": "enum",
+                                        "example": "consommateur ou distributeur"
                                     }
                                 },
                                 "type": "object"

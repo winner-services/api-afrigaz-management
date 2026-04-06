@@ -92,9 +92,10 @@ class CustomerController extends Controller
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['name'],
+                required: ['name', 'category'],
                 properties: [
                     new OA\Property(property: "name", type: "string", example: "John Doe"),
+                    new OA\Property(property: "category", type: "enum", example: "consommateur ou distributeur"),
                     new OA\Property(property: "address", type: "string", example: "Dar"),
                     new OA\Property(property: "phone", type: "string", nullable: true, example: "+243990000000")
                 ]
@@ -121,7 +122,8 @@ class CustomerController extends Controller
         $rules = [
             'name' => ['nullable', 'string', 'max:255', 'unique:customers,name'],
             'address' => ['nullable', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'max:20', 'unique:customers,phone']
+            'phone' => ['required', 'string', 'max:20', 'unique:customers,phone'],
+            'category' => ['required', 'in:distributeur,consommateur']
         ];
 
         $messages = [
@@ -149,6 +151,7 @@ class CustomerController extends Controller
                 'name' => $request->name,
                 'address' => $request->address,
                 'phone' => $request->phone,
+                'category' => $request->category,
                 'addedBy' => $authId
             ]);
 
@@ -183,7 +186,8 @@ class CustomerController extends Controller
                 properties: [
                     new OA\Property(property: "name", type: "string", example: "John Doe"),
                     new OA\Property(property: "address", type: "string", example: "Dar"),
-                    new OA\Property(property: "phone", type: "string", nullable: true, example: "+243990000000")
+                    new OA\Property(property: "phone", type: "string", nullable: true, example: "+243990000000"),
+                    new OA\Property(property: "category", type: "enum", example: "consommateur ou distributeur")
                 ]
             )
         ),
@@ -207,12 +211,14 @@ class CustomerController extends Controller
             'name' => ['nullable', 'string', 'max:255', 'unique:customers,name,' . $customer->id],
             'address' => ['nullable', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:20', 'unique:customers,phone,' . $customer->id],
+            'category' => ['required', 'in:distributeur,consommateur']
         ];
 
         $messages = [
             'phone.required' => 'Le numéro est obligatoire.',
             'phone.unique' => 'Ce numéro existe déjà.',
             'name.unique' => 'Ce nom existe déjà.',
+            'category.required' => 'La catégorie est obligatoire.',
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
@@ -229,6 +235,7 @@ class CustomerController extends Controller
             'name' => $request->name,
             'address' => $request->address,
             'phone' => $request->phone,
+            'category' => $request->category
         ]);
 
         return response()->json([
