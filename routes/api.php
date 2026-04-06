@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\Auth\AuthenticationController;
 use App\Http\Controllers\Api\Branches\BrancheController;
 use App\Http\Controllers\Api\Bulk\BulkPurchaseController;
 use App\Http\Controllers\Api\Company\CompanyController;
+use App\Http\Controllers\Api\Customer\CustomerController;
 use App\Http\Controllers\Api\EntryStock\EntryStockController;
 use App\Http\Controllers\Api\Permission\PermissionController;
 use App\Http\Controllers\Api\Products\CategoryController;
@@ -74,6 +75,14 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/supplierStoreData', 'store');
             Route::put('/supplierUpdate/{id}', 'update');
             Route::get('/supplierDelete/{id}', 'destroy');
+        });
+
+        Route::controller(CustomerController::class)->group(function () {
+            Route::get('/customerGetAllData', 'index');
+            Route::get('/customersGetOptionsData', 'getCustomerOptions');
+            Route::post('/customerStoreData', 'store');
+            Route::put('/customerUpdate/{id}', 'update');
+            Route::get('/customerDelete/{id}', 'destroy');
         });
 
         Route::controller(BulkPurchaseController::class)->group(function () {

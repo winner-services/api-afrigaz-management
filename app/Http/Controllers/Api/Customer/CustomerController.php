@@ -1,22 +1,21 @@
 <?php
 
-namespace App\Http\Controllers\Api\Sipplier;
+namespace App\Http\Controllers\Api\Customer;
 
 use App\Http\Controllers\Controller;
-use App\Models\Supplier;
+use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
-class SupplierController extends Controller
+class CustomerController extends Controller
 {
-
     #[OA\Get(
-        path: "/api/v1/supplierGetAllData",
+        path: "/api/v1/customerGetAllData",
         summary: "Lister",
-        tags: ["Suppliers"],
+        tags: ["Customers"],
         responses: [
             new OA\Response(response: 200, description: "Liste")
         ]
@@ -29,7 +28,7 @@ class SupplierController extends Controller
         $sort_field = request('sort_field', 'id');
 
         // 🔒 Sécurité tri
-        $allowedSortFields = ['id', 'name', 'phone', 'created_at'];
+        $allowedSortFields = ['id', 'name', 'phone', 'address', 'created_at'];
 
         if (!in_array($sort_field, $allowedSortFields)) {
             $sort_field = 'id';
@@ -39,25 +38,25 @@ class SupplierController extends Controller
             $sort_direction = 'desc';
         }
 
-        $data = Supplier::query()
-            ->leftJoin('users', 'suppliers.addedBy', '=', 'users.id')
+        $data = Customer::query()
+            ->leftJoin('users', 'customers.addedBy', '=', 'users.id')
             ->select(
-                'suppliers.*',
+                'customers.*',
                 'users.name as addedBy'
             )
-            ->where('suppliers.status', 'created')
+            ->where('customers.status', 'created')
 
             // 🔍 Recherche
             ->when($q, function ($query) use ($q) {
                 $query->where(function ($sub) use ($q) {
-                    $sub->where('suppliers.name', 'LIKE', "%{$q}%")
-                        ->orWhere('suppliers.phone', 'LIKE', "%{$q}%")
-                        ->orWhere('suppliers.address', 'LIKE', "%{$q}%")
+                    $sub->where('customers.name', 'LIKE', "%{$q}%")
+                        ->orWhere('customers.phone', 'LIKE', "%{$q}%")
+                        ->orWhere('customers.address', 'LIKE', "%{$q}%")
                         ->orWhere('users.name', 'LIKE', "%{$q}%");
                 });
             })
 
-            ->orderBy("suppliers.$sort_field", $sort_direction)
+            ->orderBy("customers.$sort_field", $sort_direction)
             ->paginate($page);
 
         return response()->json([
@@ -68,17 +67,17 @@ class SupplierController extends Controller
     }
 
     #[OA\Get(
-        path: "/api/v1/suppliersGetOptionsData",
+        path: "/api/v1/customersGetOptionsData",
         summary: "Lister",
-        tags: ["Suppliers"],
+        tags: ["Customers"],
         responses: [
-            new OA\Response(response: 200, description: "Liste des branches")
+            new OA\Response(response: 200, description: "Liste des clients")
         ]
     )]
 
-    public function getSupplierOptions()
+    public function getCustomerOptions()
     {
-        $data = Supplier::latest()->get();
+        $data = Customer::latest()->get();
 
         return response()->json([
             'status' => true,
@@ -87,9 +86,9 @@ class SupplierController extends Controller
     }
 
     #[OA\Post(
-        path: '/api/v1/supplierStoreData',
+        path: '/api/v1/customerStoreData',
         summary: 'Créer',
-        tags: ['Suppliers'],
+        tags: ['Customers'],
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
@@ -120,9 +119,9 @@ class SupplierController extends Controller
     public function store(Request $request): JsonResponse
     {
         $rules = [
-            'name' => ['nullable', 'string', 'max:255','unique:suppliers,name'],
+            'name' => ['nullable', 'string', 'max:255', 'unique:customers,name'],
             'address' => ['nullable', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'max:20', 'unique:suppliers,phone']
+            'phone' => ['required', 'string', 'max:20', 'unique:customers,phone']
         ];
 
         $messages = [
@@ -146,7 +145,7 @@ class SupplierController extends Controller
         $authId = auth()->id;
 
         try {
-            $supplier = Supplier::create([
+            $customer = Customer::create([
                 'name' => $request->name,
                 'address' => $request->address,
                 'phone' => $request->phone,
@@ -157,8 +156,8 @@ class SupplierController extends Controller
 
             return response()->json([
                 'status' => true,
-                'message' => 'Fournisseur créé avec succès',
-                'data' => $supplier
+                'message' => 'Client créé avec succès',
+                'data' => $customer
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -172,9 +171,9 @@ class SupplierController extends Controller
     }
 
     #[OA\Put(
-        path: "/api/v1/supplierUpdate/{id}",
+        path: "/api/v1/customerUpdate/{id}",
         summary: "Modifier",
-        tags: ["Suppliers"],
+        tags: ["Customers"],
         parameters: [
             new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer"))
         ],
@@ -195,24 +194,25 @@ class SupplierController extends Controller
     )]
     public function update(Request $request, $id): JsonResponse
     {
-        $supplier = Supplier::find($id);
+        $customer = Customer::find($id);
 
-        if (!$supplier) {
+        if (!$customer) {
             return response()->json([
                 'status' => false,
-                'message' => 'Fournisseur introuvable'
+                'message' => 'Client introuvable'
             ], 404);
         }
 
         $rules = [
-            'name' => ['nullable', 'string', 'max:255'],
+            'name' => ['nullable', 'string', 'max:255', 'unique:customers,name,' . $customer->id],
             'address' => ['nullable', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'max:20', 'unique:suppliers,phone,' . $supplier->id],
+            'phone' => ['required', 'string', 'max:20', 'unique:customers,phone,' . $customer->id],
         ];
 
         $messages = [
             'phone.required' => 'Le numéro est obligatoire.',
             'phone.unique' => 'Ce numéro existe déjà.',
+            'name.unique' => 'Ce nom existe déjà.',
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
@@ -225,7 +225,7 @@ class SupplierController extends Controller
             ], 422);
         }
 
-        $supplier->update([
+        $customer->update([
             'name' => $request->name,
             'address' => $request->address,
             'phone' => $request->phone,
@@ -233,15 +233,15 @@ class SupplierController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'Fournisseur mis à jour',
-            'data' => $supplier
+            'message' => 'Client mis à jour',
+            'data' => $customer
         ]);
     }
 
     #[OA\Put(
-        path: "/api/v1/supplierDelete/{id}",
+        path: "/api/v1/customerDelete/{id}",
         summary: "Supprimer",
-        tags: ["Suppliers"],
+        tags: ["Customers"],
         parameters: [
             new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer"))
         ],
@@ -252,21 +252,21 @@ class SupplierController extends Controller
     )]
     public function destroy($id): JsonResponse
     {
-        $supplier = Supplier::find($id);
+        $customer = Customer::find($id);
 
-        if (!$supplier) {
+        if (!$customer) {
             return response()->json([
                 'status' => false,
-                'message' => 'Fournisseur introuvable'
+                'message' => 'Client introuvable'
             ], 404);
         }
 
-        $supplier->status = 'deleted';
-        $supplier->save();
+        $customer->status = 'deleted';
+        $customer->save();
 
         return response()->json([
             'status' => true,
-            'message' => 'Fournisseur supprimé'
+            'message' => 'Client supprimé'
         ]);
     }
 }

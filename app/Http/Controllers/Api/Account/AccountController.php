@@ -1,26 +1,26 @@
 <?php
 
-namespace App\Http\Controllers\Api\Sipplier;
+namespace App\Http\Controllers\Api\Account;
 
 use App\Http\Controllers\Controller;
-use App\Models\Supplier;
+use App\Models\CashAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
-class SupplierController extends Controller
+class AccountController extends Controller
 {
-
     #[OA\Get(
-        path: "/api/v1/supplierGetAllData",
+        path: "/api/v1/AccountGetAllData",
         summary: "Lister",
-        tags: ["Suppliers"],
+        tags: ["Accounts"],
         responses: [
             new OA\Response(response: 200, description: "Liste")
         ]
     )]
+
     public function index(): JsonResponse
     {
         $page = request('paginate', 10);
@@ -29,7 +29,7 @@ class SupplierController extends Controller
         $sort_field = request('sort_field', 'id');
 
         // 🔒 Sécurité tri
-        $allowedSortFields = ['id', 'name', 'phone', 'created_at'];
+        $allowedSortFields = ['id', 'designation', 'nature', 'reference', 'created_at'];
 
         if (!in_array($sort_field, $allowedSortFields)) {
             $sort_field = 'id';
@@ -39,25 +39,27 @@ class SupplierController extends Controller
             $sort_direction = 'desc';
         }
 
-        $data = Supplier::query()
-            ->leftJoin('users', 'suppliers.addedBy', '=', 'users.id')
+        $data = CashAccount::query()
+            ->leftJoin('users', 'cash_accounts.addedBy', '=', 'users.id')
+            ->leftJoin('branches', 'cash_accounts.branche_id', '=', 'branches.id')
             ->select(
-                'suppliers.*',
-                'users.name as addedBy'
+                'cash_accounts.*',
+                'users.name as addedBy',
+                'branches.name as brancheName'
             )
-            ->where('suppliers.status', 'created')
+            ->where('cash_accounts.status', 'created')
 
             // 🔍 Recherche
             ->when($q, function ($query) use ($q) {
                 $query->where(function ($sub) use ($q) {
-                    $sub->where('suppliers.name', 'LIKE', "%{$q}%")
-                        ->orWhere('suppliers.phone', 'LIKE', "%{$q}%")
-                        ->orWhere('suppliers.address', 'LIKE', "%{$q}%")
-                        ->orWhere('users.name', 'LIKE', "%{$q}%");
+                    $sub->where('cash_accounts.designation', 'LIKE', "%{$q}%")
+                        ->orWhere('cash_accounts.nature', 'LIKE', "%{$q}%")
+                        ->orWhere('cash_accounts.reference', 'LIKE', "%{$q}%")
+                        ->orWhere('branches.name', 'LIKE', "%{$q}%");
                 });
             })
 
-            ->orderBy("suppliers.$sort_field", $sort_direction)
+            ->orderBy("cash_accounts.$sort_field", $sort_direction)
             ->paginate($page);
 
         return response()->json([
@@ -66,19 +68,17 @@ class SupplierController extends Controller
             'data' => $data
         ]);
     }
-
     #[OA\Get(
-        path: "/api/v1/suppliersGetOptionsData",
+        path: "/api/v1/accountGetOptionsData",
         summary: "Lister",
-        tags: ["Suppliers"],
+        tags: ["Accounts"],
         responses: [
-            new OA\Response(response: 200, description: "Liste des branches")
+            new OA\Response(response: 200, description: "Liste")
         ]
     )]
-
-    public function getSupplierOptions()
+    public function getAccountOptions()
     {
-        $data = Supplier::latest()->get();
+        $data = CashAccount::latest()->get();
 
         return response()->json([
             'status' => true,
@@ -87,17 +87,17 @@ class SupplierController extends Controller
     }
 
     #[OA\Post(
-        path: '/api/v1/supplierStoreData',
+        path: '/api/v1/accountStoreData',
         summary: 'Créer',
-        tags: ['Suppliers'],
+        tags: ['Accounts'],
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['name'],
+                required: ['designation', 'branche_id', 'nature'],
                 properties: [
-                    new OA\Property(property: "name", type: "string", example: "John Doe"),
-                    new OA\Property(property: "address", type: "string", example: "Dar"),
-                    new OA\Property(property: "phone", type: "string", nullable: true, example: "+243990000000")
+                    new OA\Property(property: "designation", type: "string", example: "John Doe"),
+                    new OA\Property(property: "branche_id", type: "integer", example: 1),
+                    new OA\Property(property: "nature", type: "string", example: "Nature du compte")
                 ]
             )
         ),
@@ -116,19 +116,18 @@ class SupplierController extends Controller
             )
         ]
     )]
-
     public function store(Request $request): JsonResponse
     {
         $rules = [
-            'name' => ['nullable', 'string', 'max:255','unique:suppliers,name'],
-            'address' => ['nullable', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'max:20', 'unique:suppliers,phone']
+            'designation' => ['nullable', 'string', 'max:255', 'unique:cash_accounts,designation'],
+            'nature' => ['nullable', 'string', 'max:255'],
+            'branche_id' => ['required', 'integer', 'exists:branches,id'],
         ];
 
         $messages = [
-            'phone.required' => 'Le numéro de téléphone est obligatoire.',
-            'phone.unique' => 'Ce numéro existe déjà.',
-            'name.unique' => 'Ce nom existe déjà.',
+            'branche_id.required' => 'La branche est obligatoire.',
+            'branche_id.exists' => 'La branche sélectionnée n\'existe pas.',
+            'designation.unique' => 'Cette désignation existe déjà.',
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
@@ -146,10 +145,11 @@ class SupplierController extends Controller
         $authId = auth()->id;
 
         try {
-            $supplier = Supplier::create([
-                'name' => $request->name,
-                'address' => $request->address,
-                'phone' => $request->phone,
+            $account = CashAccount::create([
+                'designation' => $request->designation,
+                'nature' => $request->nature,
+                'branche_id' => $request->branche_id,
+                'reference' => fake()->unique()->numerify('AC-#####'),
                 'addedBy' => $authId
             ]);
 
@@ -157,8 +157,8 @@ class SupplierController extends Controller
 
             return response()->json([
                 'status' => true,
-                'message' => 'Fournisseur créé avec succès',
-                'data' => $supplier
+                'message' => 'Compte créé avec succès',
+                'data' => $account
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -172,9 +172,9 @@ class SupplierController extends Controller
     }
 
     #[OA\Put(
-        path: "/api/v1/supplierUpdate/{id}",
+        path: "/api/v1/accountUpdate/{id}",
         summary: "Modifier",
-        tags: ["Suppliers"],
+        tags: ["Accounts"],
         parameters: [
             new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer"))
         ],
@@ -182,9 +182,9 @@ class SupplierController extends Controller
             required: true,
             content: new OA\JsonContent(
                 properties: [
-                    new OA\Property(property: "name", type: "string", example: "John Doe"),
-                    new OA\Property(property: "address", type: "string", example: "Dar"),
-                    new OA\Property(property: "phone", type: "string", nullable: true, example: "+243990000000")
+                    new OA\Property(property: "designation", type: "string", example: "John Doe"),
+                    new OA\Property(property: "branche_id", type: "integer", example: 1),
+                    new OA\Property(property: "nature", type: "string", example: "Nature du compte")
                 ]
             )
         ),
@@ -193,26 +193,28 @@ class SupplierController extends Controller
             new OA\Response(response: 404, description: "Non trouvée")
         ]
     )]
+
     public function update(Request $request, $id): JsonResponse
     {
-        $supplier = Supplier::find($id);
+        $account = CashAccount::find($id);
 
-        if (!$supplier) {
+        if (!$account) {
             return response()->json([
                 'status' => false,
-                'message' => 'Fournisseur introuvable'
+                'message' => 'Compte introuvable'
             ], 404);
         }
 
         $rules = [
-            'name' => ['nullable', 'string', 'max:255'],
-            'address' => ['nullable', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'max:20', 'unique:suppliers,phone,' . $supplier->id],
+            'designation' => ['nullable', 'string', 'max:255', 'unique:cash_accounts,designation,' . $account->id],
+            'nature' => ['nullable', 'string', 'max:255'],
+            'branche_id' => ['required', 'integer', 'exists:branches,id'],
         ];
 
         $messages = [
-            'phone.required' => 'Le numéro est obligatoire.',
-            'phone.unique' => 'Ce numéro existe déjà.',
+            'branche_id.required' => 'La branche est obligatoire.',
+            'branche_id.exists' => 'La branche sélectionnée n\'existe pas.',
+            'designation.unique' => 'Cette désignation existe déjà.',
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
@@ -225,23 +227,23 @@ class SupplierController extends Controller
             ], 422);
         }
 
-        $supplier->update([
-            'name' => $request->name,
-            'address' => $request->address,
-            'phone' => $request->phone,
+        $account->update([
+            'designation' => $request->designation,
+            'nature' => $request->nature,
+            'branche_id' => $request->branche_id,
         ]);
 
         return response()->json([
             'status' => true,
-            'message' => 'Fournisseur mis à jour',
-            'data' => $supplier
+            'message' => 'Compte mis à jour',
+            'data' => $account
         ]);
     }
 
     #[OA\Put(
-        path: "/api/v1/supplierDelete/{id}",
+        path: "/api/v1/accountDelete/{id}",
         summary: "Supprimer",
-        tags: ["Suppliers"],
+        tags: ["Accounts"],
         parameters: [
             new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer"))
         ],
@@ -252,21 +254,21 @@ class SupplierController extends Controller
     )]
     public function destroy($id): JsonResponse
     {
-        $supplier = Supplier::find($id);
+        $account = CashAccount::find($id);
 
-        if (!$supplier) {
+        if (!$account) {
             return response()->json([
                 'status' => false,
-                'message' => 'Fournisseur introuvable'
+                'message' => 'Compte introuvable'
             ], 404);
         }
 
-        $supplier->status = 'deleted';
-        $supplier->save();
+        $account->status = 'deleted';
+        $account->save();
 
         return response()->json([
             'status' => true,
-            'message' => 'Fournisseur supprimé'
+            'message' => 'Compte supprimé'
         ]);
     }
 }

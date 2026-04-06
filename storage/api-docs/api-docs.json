@@ -9,6 +9,161 @@
         "version": "1.0.0"
     },
     "paths": {
+        "/api/v1/AccountGetAllData": {
+            "get": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Lister",
+                "operationId": "396377dc81fecbf1a41ed1ef49ee124e",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/accountGetOptionsData": {
+            "get": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Lister",
+                "operationId": "bc01e852a4f440d791e3189e107323cf",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/accountStoreData": {
+            "post": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Créer",
+                "operationId": "457e59b7bc2496b186f8fddb20bd9359",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "designation",
+                                    "branche_id",
+                                    "nature"
+                                ],
+                                "properties": {
+                                    "designation": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "branche_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "nature": {
+                                        "type": "string",
+                                        "example": "Nature du compte"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Données créées avec succès"
+                    },
+                    "422": {
+                        "description": "Validation des données échouée"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/accountUpdate/{id}": {
+            "put": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Modifier",
+                "operationId": "993986a004d952c61a807ac1783f515e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "designation": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "branche_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "nature": {
+                                        "type": "string",
+                                        "example": "Nature du compte"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "mise à jour"
+                    },
+                    "404": {
+                        "description": "Non trouvée"
+                    }
+                }
+            }
+        },
+        "/api/v1/accountDelete/{id}": {
+            "put": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Supprimer",
+                "operationId": "17fae7095e2b1b6f6c0cc5b7d5e0420f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Supprimée"
+                    },
+                    "404": {
+                        "description": "Non trouvée"
+                    }
+                }
+            }
+        },
         "/api/v1/auth/login": {
             "post": {
                 "tags": [
@@ -558,6 +713,161 @@
                     },
                     "500": {
                         "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/customerGetAllData": {
+            "get": {
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Lister",
+                "operationId": "69225d64cee32bc48ebbc3756a7e3b3c",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/customersGetOptionsData": {
+            "get": {
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Lister",
+                "operationId": "bf385e13e790da65c201f1f5071ec13d",
+                "responses": {
+                    "200": {
+                        "description": "Liste des clients"
+                    }
+                }
+            }
+        },
+        "/api/v1/customerStoreData": {
+            "post": {
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Créer",
+                "operationId": "fbd44c92a382878a19f26d58b00ae54d",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "Dar"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+243990000000",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Données créées avec succès"
+                    },
+                    "422": {
+                        "description": "Validation des données échouée"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/customerUpdate/{id}": {
+            "put": {
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Modifier",
+                "operationId": "7192c0b790148741b7ead84b5393618c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "Dar"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+243990000000",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "mise à jour"
+                    },
+                    "404": {
+                        "description": "Non trouvée"
+                    }
+                }
+            }
+        },
+        "/api/v1/customerDelete/{id}": {
+            "put": {
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Supprimer",
+                "operationId": "01d8f3a890b548dd05797da1f9969d9f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Supprimée"
+                    },
+                    "404": {
+                        "description": "Non trouvée"
                     }
                 }
             }
@@ -1858,6 +2168,10 @@
     },
     "tags": [
         {
+            "name": "Accounts",
+            "description": "Accounts"
+        },
+        {
             "name": "Authenticate",
             "description": "Authenticate"
         },
@@ -1872,6 +2186,10 @@
         {
             "name": "About",
             "description": "About"
+        },
+        {
+            "name": "Customers",
+            "description": "Customers"
         },
         {
             "name": "Stock Entries",

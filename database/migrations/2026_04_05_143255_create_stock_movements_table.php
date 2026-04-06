@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('branche_id')->constrained('branches')->cascadeOnDelete();
             $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
 
-            $table->enum('type', ['in', 'out', 'transfer', 'adjustment']);
+            $table->enum('type', ['in', 'out', 'transfer', 'adjustment','return','sale']);
 
             $table->integer('quantity');
 

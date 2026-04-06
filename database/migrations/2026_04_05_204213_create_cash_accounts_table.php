@@ -11,14 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('stock_by_branches', function (Blueprint $table) {
+        Schema::create('cash_accounts', function (Blueprint $table) {
             $table->id();
+            $table->string("designation");
+            $table->string("nature");
+            $table->string("reference")->nullable();
             $table->foreignId('branche_id')->nullable()->constrained('branches')->nullOnDelete();
-            $table->foreignId('product_id')->nullable()->constrained('products')->nullOnDelete();
-            $table->integer('stock_quantity')->default(0);
+            $table->foreignId('addedBy')->nullable()->constrained('users')->nullOnDelete();
             $table->string('status')->default('created');
             $table->timestamps();
-            $table->unique(['branche_id', 'product_id']);
         });
     }
 
@@ -27,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('stock_by_branches');
+        Schema::dropIfExists('cash_accounts');
     }
 };
