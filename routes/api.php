@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\Permission\PermissionController;
 use App\Http\Controllers\Api\Products\CategoryController;
 use App\Http\Controllers\Api\Products\ProductController;
 use App\Http\Controllers\Api\Role\RoleController;
+use App\Http\Controllers\Api\Sale\SaleController;
 use App\Http\Controllers\Api\Sipplier\SupplierController;
 use App\Http\Controllers\Api\Transfer\TransefrController;
 use App\Http\Controllers\Api\Users\UserController;
@@ -110,6 +111,10 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/adjustStockByBanch', 'adjust');
             Route::post('/removeQteStockByBanch', 'remove');
             Route::post('/returnProductStockByBanch', 'returnProduct');
+        });
+
+        Route::controller(SaleController::class)->group(function () {
+            Route::post('/saleStoreData', 'store');
         });
     });
 });

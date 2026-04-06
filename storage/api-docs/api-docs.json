@@ -1640,6 +1640,140 @@
                 }
             }
         },
+        "/api/v1/saleStoreData": {
+            "post": {
+                "tags": [
+                    "Sales"
+                ],
+                "summary": "Créer une vente avec paiement ou dette",
+                "operationId": "e116c7450a1d152a8f99edccedd6cdd1",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "branch_id",
+                                    "products"
+                                ],
+                                "properties": {
+                                    "branch_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "customer_id": {
+                                        "type": "integer",
+                                        "example": 1,
+                                        "nullable": true
+                                    },
+                                    "account_id": {
+                                        "type": "integer",
+                                        "example": 1,
+                                        "nullable": true
+                                    },
+                                    "paid_amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 5000
+                                    },
+                                    "products": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "product_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "quantity": {
+                                                    "type": "integer",
+                                                    "example": 2
+                                                },
+                                                "unit_price": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 1000
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Vente créée avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Vente enregistrée avec paiement/dette"
+                                        },
+                                        "sale_id": {
+                                            "type": "integer",
+                                            "example": 10
+                                        },
+                                        "reference": {
+                                            "type": "string",
+                                            "example": "SALE-20260405120000"
+                                        },
+                                        "total": {
+                                            "type": "number",
+                                            "example": 15000
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Stock insuffisant",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Stock insuffisant pour certains produits"
+                                        },
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "product_id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "message": {
+                                                        "type": "string",
+                                                        "example": "Stock insuffisant"
+                                                    },
+                                                    "available": {
+                                                        "type": "integer",
+                                                        "example": 2
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erreur interne serveur"
+                    }
+                }
+            }
+        },
         "/api/v1/supplierGetAllData": {
             "get": {
                 "tags": [
@@ -2373,6 +2507,10 @@
         {
             "name": "Roles",
             "description": "Roles"
+        },
+        {
+            "name": "Sales",
+            "description": "Sales"
         },
         {
             "name": "Suppliers",

@@ -1,0 +1,137 @@
+<?php
+
+namespace App\Http\Controllers\Api\Sale;
+
+use App\Http\Controllers\Controller;
+use App\Services\SaleService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use OpenApi\Attributes as OA;
+
+class SaleController extends Controller
+{
+    #[OA\Post(
+        path: "/api/v1/saleStoreData",
+        summary: "Créer une vente avec paiement ou dette",
+        tags: ["Sales"],
+
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["branch_id", "products"],
+                properties: [
+
+                    new OA\Property(property: "branch_id", type: "integer", example: 1),
+                    new OA\Property(property: "customer_id", type: "integer", nullable: true, example: 1),
+                    new OA\Property(property: "account_id", type: "integer", nullable: true, example: 1),
+                    new OA\Property(property: "paid_amount", type: "number", format: "float", example: 5000),
+                    new OA\Property(
+                        property: "products",
+                        type: "array",
+                        items: new OA\Items(
+                            properties: [
+                                new OA\Property(property: "product_id", type: "integer", example: 1),
+                                new OA\Property(property: "quantity", type: "integer", example: 2),
+                                new OA\Property(property: "unit_price", type: "number", format: "float", example: 1000),
+                            ]
+                        )
+                    ),
+                ]
+            )
+        ),
+
+        responses: [
+
+            new OA\Response(
+                response: 201,
+                description: "Vente créée avec succès",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "message", type: "string", example: "Vente enregistrée avec paiement/dette"),
+                        new OA\Property(property: "sale_id", type: "integer", example: 10),
+                        new OA\Property(property: "reference", type: "string", example: "SALE-20260405120000"),
+                        new OA\Property(property: "total", type: "number", example: 15000)
+                    ]
+                )
+            ),
+
+            new OA\Response(
+                response: 409,
+                description: "Stock insuffisant",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "message", type: "string", example: "Stock insuffisant pour certains produits"),
+                        new OA\Property(
+                            property: "errors",
+                            type: "array",
+                            items: new OA\Items(
+                                properties: [
+                                    new OA\Property(property: "product_id", type: "integer", example: 1),
+                                    new OA\Property(property: "message", type: "string", example: "Stock insuffisant"),
+                                    new OA\Property(property: "available", type: "integer", example: 2),
+                                ]
+                            )
+                        )
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 500,
+                description: "Erreur interne serveur"
+            )
+        ]
+    )]
+
+    public function store(Request $request): JsonResponse
+    {
+        try {
+
+            $request->validate([
+                'branch_id' => 'required|exists:branches,id',
+                'products' => 'required|array|min:1',
+                'products.*.product_id' => 'required|exists:products,id',
+                'products.*.quantity' => 'required|integer|min:1',
+                'products.*.unit_price' => 'required|integer|min:1',
+                'customer_id' => 'nullable|exists:customers,id',
+                'paid_amount' => 'nullable|numeric|min:0',
+                'account_id' => 'required|exists:cash_accounts,id',
+            ]);
+
+            $sale = SaleService::createSaleWithPayment(
+                $request->branch_id,
+                $request->products,
+                Auth::id(),
+                $request->customer_id,
+                $request->paid_amount ?? 0,
+                $request->unit_price,
+                $request->account_id
+            );
+
+            return response()->json([
+                'message' => 'Vente enregistrée avec paiement/dette',
+                'sale_id' => $sale->id,
+                'reference' => $sale->reference,
+                'total' => $sale->total_amount
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+
+            return response()->json([
+                'message' => 'Erreur de validation',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\App\Services\StockException $e) {
+
+            return response()->json([
+                'message' => 'Erreur de stock',
+                'errors' => $e->getErrors()
+            ], 400);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'message' => 'Erreur lors de la création de la vente',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+}
