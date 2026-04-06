@@ -1640,6 +1640,139 @@
                 }
             }
         },
+        "/api/v1/salesReturn/{id}": {
+            "post": {
+                "tags": [
+                    "Sales"
+                ],
+                "summary": "Retour partiel de produits avec remboursement et restauration du stock",
+                "operationId": "7b03411d9ab71fae95905b7cc3a716fb",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la vente pour laquelle on effectue le retour",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "items"
+                                ],
+                                "properties": {
+                                    "items": {
+                                        "description": "Liste des produits à retourner",
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "product_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "quantity": {
+                                                    "type": "integer",
+                                                    "example": 2
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "reason": {
+                                        "type": "string",
+                                        "example": "Produit endommagé",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Retour produit enregistré avec remboursement",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Retour produit et remboursement enregistré"
+                                        },
+                                        "sale_return_id": {
+                                            "type": "integer",
+                                            "example": 5
+                                        },
+                                        "total_refund": {
+                                            "type": "number",
+                                            "example": 15000
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Erreur métier (quantité retour supérieure, stock insuffisant, etc.)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Quantité de retour supérieure à la vente"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Vente non trouvée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Vente introuvable"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erreur interne serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/returnsGetAllData": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Lister",
+                "operationId": "673a39bc0388232774fa27eb01ae0e46",
+                "responses": {
+                    "200": {
+                        "description": "Liste des branches"
+                    }
+                }
+            }
+        },
         "/api/v1/saleStoreData": {
             "post": {
                 "tags": [
@@ -1761,6 +1894,88 @@
                                                 },
                                                 "type": "object"
                                             }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erreur interne serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/saleCancel/{id}/": {
+            "post": {
+                "tags": [
+                    "Sales"
+                ],
+                "summary": "Annuler une vente et restaurer le stock",
+                "operationId": "5b5a46bda88a219e1f1f55645277912c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la vente à annuler",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Vente annulée avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Vente annulée avec succès"
+                                        },
+                                        "sale_id": {
+                                            "type": "integer",
+                                            "example": 10
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "cancelled"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Erreur métier (ex: déjà annulée)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cette vente est déjà annulée"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Vente non trouvée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Vente introuvable"
                                         }
                                     },
                                     "type": "object"

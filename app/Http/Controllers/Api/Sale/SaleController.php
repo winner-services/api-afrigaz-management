@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api\Sale;
 
 use App\Http\Controllers\Controller;
+use App\Services\cancelSale;
 use App\Services\SaleService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -134,4 +136,83 @@ class SaleController extends Controller
             ], 500);
         }
     }
+
+    #[OA\Post(
+        path: "/api/v1/saleCancel/{id}/",
+        summary: "Annuler une vente et restaurer le stock",
+        tags: ["Sales"],
+
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                in: "path",
+                required: true,
+                description: "ID de la vente à annuler",
+                schema: new OA\Schema(type: "integer", example: 10)
+            )
+        ],
+
+        responses: [
+
+            new OA\Response(
+                response: 200,
+                description: "Vente annulée avec succès",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "message", type: "string", example: "Vente annulée avec succès"),
+                        new OA\Property(property: "sale_id", type: "integer", example: 10),
+                        new OA\Property(property: "status", type: "string", example: "cancelled")
+                    ]
+                )
+            ),
+
+            new OA\Response(
+                response: 400,
+                description: "Erreur métier (ex: déjà annulée)",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "message", type: "string", example: "Cette vente est déjà annulée")
+                    ]
+                )
+            ),
+
+            new OA\Response(
+                response: 404,
+                description: "Vente non trouvée",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "message", type: "string", example: "Vente introuvable")
+                    ]
+                )
+            ),
+
+            new OA\Response(
+                response: 500,
+                description: "Erreur interne serveur"
+            )
+        ]
+    )]
+    public function cancel($id)
+    {
+        try {
+
+            $sale = cancelSale::cancelSale($id, Auth::id());
+
+            return response()->json([
+                'message' => 'Vente annulée avec succès',
+                'status' => 200,
+                'data' => $sale
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Vente introuvable'
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    
 }

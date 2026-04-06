@@ -15,11 +15,13 @@ class CashCategorySeeder extends Seeder
     {
         $categories = [
             'Vente des produits',
+            'Remboursement',
             'Achat des produits'
         ];
 
         $types = [
             'Revenue',
+            'Depense',
             'Depense',
         ];
 

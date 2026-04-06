@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\Permission\PermissionController;
 use App\Http\Controllers\Api\Products\CategoryController;
 use App\Http\Controllers\Api\Products\ProductController;
 use App\Http\Controllers\Api\Role\RoleController;
+use App\Http\Controllers\Api\Sale\ReturnSaleController;
 use App\Http\Controllers\Api\Sale\SaleController;
 use App\Http\Controllers\Api\Sipplier\SupplierController;
 use App\Http\Controllers\Api\Transfer\TransefrController;
@@ -115,6 +116,13 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
         Route::controller(SaleController::class)->group(function () {
             Route::post('/saleStoreData', 'store');
+            Route::post('/saleCancel/{id}/', 'cancel');
+            // Route::get('/saleGetAllData', 'index');
+        });
+
+        Route::controller(ReturnSaleController::class)->group(function () {
+            Route::post('/salesReturn/{id}', 'returnWithRefund');
+            Route::get('/returnsGetAllData', 'getCancellations');
         });
     });
 });
