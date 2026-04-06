@@ -14,7 +14,7 @@ class ReturnSaleController extends Controller
     #[OA\Post(
         path: "/api/v1/salesReturn/{id}",
         summary: "Retour partiel de produits avec remboursement et restauration du stock",
-        tags: ["Sales"],
+        tags: ["ReturnSale"],
 
         parameters: [
             new OA\Parameter(
@@ -120,9 +120,9 @@ class ReturnSaleController extends Controller
     #[OA\Get(
         path: "/api/v1/returnsGetAllData",
         summary: "Lister",
-        tags: ["Products"],
+        tags: ["ReturnSale"],
         responses: [
-            new OA\Response(response: 200, description: "Liste des branches")
+            new OA\Response(response: 200, description: "Liste des retours")
         ]
     )]
     public function getCancellations()

@@ -1643,7 +1643,7 @@
         "/api/v1/salesReturn/{id}": {
             "post": {
                 "tags": [
-                    "Sales"
+                    "ReturnSale"
                 ],
                 "summary": "Retour partiel de produits avec remboursement et restauration du stock",
                 "operationId": "7b03411d9ab71fae95905b7cc3a716fb",
@@ -1762,13 +1762,13 @@
         "/api/v1/returnsGetAllData": {
             "get": {
                 "tags": [
-                    "Products"
+                    "ReturnSale"
                 ],
                 "summary": "Lister",
                 "operationId": "673a39bc0388232774fa27eb01ae0e46",
                 "responses": {
                     "200": {
-                        "description": "Liste des branches"
+                        "description": "Liste des retours"
                     }
                 }
             }
@@ -1985,6 +1985,132 @@
                     },
                     "500": {
                         "description": "Erreur interne serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/salesGetAllData": {
+            "get": {
+                "tags": [
+                    "Sales"
+                ],
+                "summary": "Historique complet des ventes",
+                "operationId": "4fca0b8bd9b0aa7de227c458d5cc2732",
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Nombre de résultats par page",
+                        "schema": {
+                            "type": "integer",
+                            "example": 20
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Numéro de page",
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Liste paginée des ventes",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "reference": {
+                                                        "type": "string"
+                                                    },
+                                                    "transaction_date": {
+                                                        "type": "string",
+                                                        "format": "date"
+                                                    },
+                                                    "customer": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    },
+                                                    "user": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    },
+                                                    "items": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "properties": {
+                                                                "id": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "quantity": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "unit_price": {
+                                                                    "type": "number"
+                                                                },
+                                                                "product": {
+                                                                    "properties": {
+                                                                        "id": {
+                                                                            "type": "integer"
+                                                                        },
+                                                                        "name": {
+                                                                            "type": "string"
+                                                                        }
+                                                                    },
+                                                                    "type": "object"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "total_amount": {
+                                                        "type": "number"
+                                                    },
+                                                    "paid_amount": {
+                                                        "type": "number"
+                                                    },
+                                                    "status": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object"
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -2722,6 +2848,10 @@
         {
             "name": "Roles",
             "description": "Roles"
+        },
+        {
+            "name": "ReturnSale",
+            "description": "ReturnSale"
         },
         {
             "name": "Sales",

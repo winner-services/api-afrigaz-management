@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Sale;
 
 use App\Http\Controllers\Controller;
+use App\Models\Sale;
 use App\Services\cancelSale;
 use App\Services\SaleService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -214,5 +215,98 @@ class SaleController extends Controller
         }
     }
 
-    
+    #[OA\Get(
+        path: "/api/v1/salesGetAllData",
+        summary: "Historique complet des ventes",
+        tags: ["Sales"],
+        parameters: [
+            new OA\Parameter(
+                name: "per_page",
+                in: "query",
+                description: "Nombre de résultats par page",
+                schema: new OA\Schema(type: "integer", example: 20)
+            ),
+            new OA\Parameter(
+                name: "page",
+                in: "query",
+                description: "Numéro de page",
+                schema: new OA\Schema(type: "integer", example: 1)
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Liste paginée des ventes",
+                content: new OA\JsonContent(
+                    type: "object",
+                    properties: [
+                        new OA\Property(
+                            property: "data",
+                            type: "array",
+                            items: new OA\Items(
+                                properties: [
+                                    new OA\Property(property: "id", type: "integer"),
+                                    new OA\Property(property: "reference", type: "string"),
+                                    new OA\Property(property: "transaction_date", type: "string", format: "date"),
+                                    new OA\Property(
+                                        property: "customer",
+                                        type: "object",
+                                        properties: [
+                                            new OA\Property(property: "id", type: "integer"),
+                                            new OA\Property(property: "name", type: "string")
+                                        ]
+                                    ),
+                                    new OA\Property(
+                                        property: "user",
+                                        type: "object",
+                                        properties: [
+                                            new OA\Property(property: "id", type: "integer"),
+                                            new OA\Property(property: "name", type: "string")
+                                        ]
+                                    ),
+                                    new OA\Property(
+                                        property: "items",
+                                        type: "array",
+                                        items: new OA\Items(
+                                            properties: [
+                                                new OA\Property(property: "id", type: "integer"),
+                                                new OA\Property(property: "quantity", type: "integer"),
+                                                new OA\Property(property: "unit_price", type: "number"),
+                                                new OA\Property(
+                                                    property: "product",
+                                                    type: "object",
+                                                    properties: [
+                                                        new OA\Property(property: "id", type: "integer"),
+                                                        new OA\Property(property: "name", type: "string")
+                                                    ]
+                                                )
+                                            ]
+                                        )
+                                    ),
+                                    new OA\Property(property: "total_amount", type: "number"),
+                                    new OA\Property(property: "paid_amount", type: "number"),
+                                    new OA\Property(property: "status", type: "string")
+                                ]
+                            )
+                        ),
+                        new OA\Property(property: "links", type: "object"),
+                        new OA\Property(property: "meta", type: "object")
+                    ]
+                )
+            )
+        ]
+    )]
+    public function index(Request $request)
+    {
+        $perPage = $request->query('per_page', 20);
+
+        $sales = Sale::with(['customer', 'user', 'saleItems.product'])
+            ->orderBy('transaction_date', 'desc')
+            ->paginate($perPage);
+
+        return response()->json([
+            'status' => 200,
+            'data' => $sales
+        ]);
+    }
 }

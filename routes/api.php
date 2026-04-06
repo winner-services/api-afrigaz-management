@@ -117,7 +117,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::controller(SaleController::class)->group(function () {
             Route::post('/saleStoreData', 'store');
             Route::post('/saleCancel/{id}/', 'cancel');
-            // Route::get('/saleGetAllData', 'index');
+            Route::get('/salesGetAllData', 'index');
         });
 
         Route::controller(ReturnSaleController::class)->group(function () {
