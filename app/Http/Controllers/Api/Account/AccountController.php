@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Account;
 use App\Http\Controllers\Controller;
 use App\Models\CashAccount;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use OpenApi\Attributes as OA;
@@ -119,7 +120,7 @@ class AccountController extends Controller
     public function store(Request $request): JsonResponse
     {
         $rules = [
-            'designation' => ['nullable', 'string', 'max:255', 'unique:cash_accounts,designation'],
+            'designation' => ['nullable', 'string', 'max:255'],
             'nature' => ['nullable', 'string', 'max:255'],
             'branche_id' => ['required', 'integer', 'exists:branches,id'],
         ];
@@ -142,7 +143,7 @@ class AccountController extends Controller
 
         DB::beginTransaction();
 
-        $authId = auth()->id;
+        $authId = Auth::id();
 
         try {
             $account = CashAccount::create([

@@ -89,8 +89,8 @@ class TransefrController extends Controller
                 properties: [
                     new OA\Property(property: "description", type: "string", example: "test"),
                     new OA\Property(property: "branch_id", type: "integer", example: 1),
-                    new OA\Property(property: "product_id", type: "integer", example: "Kinshasa"),
-                    new OA\Property(property: "new_quantity", type: "integer", example: "Av. de la paix")
+                    new OA\Property(property: "product_id", type: "integer", example: 1),
+                    new OA\Property(property: "new_quantity", type: "integer", example: 50)
                 ]
             )
         ),
@@ -132,12 +132,12 @@ class TransefrController extends Controller
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ["branch_id", "product_id", "new_quantity", "description"],
+                required: ["branch_id", "product_id", "quantity", "description"],
                 properties: [
                     new OA\Property(property: "description", type: "string", example: "test"),
                     new OA\Property(property: "branch_id", type: "integer", example: 1),
-                    new OA\Property(property: "product_id", type: "integer", example: "Kinshasa"),
-                    new OA\Property(property: "new_quantity", type: "integer", example: "Av. de la paix")
+                    new OA\Property(property: "product_id", type: "integer", example: 1),
+                    new OA\Property(property: "quantity", type: "integer", example: 100)
                 ]
             )
         ),
@@ -192,8 +192,8 @@ class TransefrController extends Controller
                 properties: [
                     new OA\Property(property: "description", type: "string", example: "test"),
                     new OA\Property(property: "branch_id", type: "integer", example: 1),
-                    new OA\Property(property: "product_id", type: "integer", example: "Kinshasa"),
-                    new OA\Property(property: "quantity", type: "integer", example: "Av. de la paix")
+                    new OA\Property(property: "product_id", type: "integer", example: 1),
+                    new OA\Property(property: "quantity", type: "integer", example: 100)
                 ]
             )
         ),

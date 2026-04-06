@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Account\AccountController;
 use App\Http\Controllers\Api\Auth\AuthenticationController;
 use App\Http\Controllers\Api\Branches\BrancheController;
 use App\Http\Controllers\Api\Bulk\BulkPurchaseController;
@@ -94,6 +95,14 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/cashCategoriesStoreData', 'store');
             Route::put('/cashCategoriesUpdate/{id}', 'update');
             Route::put('/cashCategoriesDelete/{id}', 'destroy');
+        });
+
+        Route::controller(AccountController::class)->group(function () {
+            Route::get('/accountGetAllData', 'index');
+            Route::get('/accountGetOptionsData', 'getAccountOptions');
+            Route::post('/accountStoreData', 'store');
+            Route::put('/accountUpdate/{id}', 'update');
+            Route::put('/accountDelete/{id}', 'destroy');
         });
 
         Route::controller(BulkPurchaseController::class)->group(function () {
