@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Auth\AuthenticationController;
 use App\Http\Controllers\Api\Branches\BrancheController;
 use App\Http\Controllers\Api\Bulk\BulkPurchaseController;
+use App\Http\Controllers\Api\CashCategory\CashCategoryController;
 use App\Http\Controllers\Api\Company\CompanyController;
 use App\Http\Controllers\Api\Customer\CustomerController;
 use App\Http\Controllers\Api\EntryStock\EntryStockController;
@@ -83,6 +84,14 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/customerStoreData', 'store');
             Route::put('/customerUpdate/{id}', 'update');
             Route::get('/customerDelete/{id}', 'destroy');
+        });
+
+        Route::controller(CashCategoryController::class)->group(function () {
+            Route::get('/cashCategoriesGetAllData', 'index');
+            Route::get('/cashCategoriesGetOptionsData', 'getCashCategoryOptions');
+            Route::post('/cashCategoriesStoreData', 'store');
+            Route::put('/cashCategoriesUpdate/{id}', 'update');
+            Route::get('/cashCategoriesDelete/{id}', 'destroy');
         });
 
         Route::controller(BulkPurchaseController::class)->group(function () {

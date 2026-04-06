@@ -624,6 +624,160 @@
                 }
             }
         },
+        "/api/v1/cashCategoriesGetAllData": {
+            "get": {
+                "tags": [
+                    "CashCategories"
+                ],
+                "summary": "Lister",
+                "operationId": "5fdbb8515ac5cd0598424505e46179d7",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/cashCategoriesGetOptionsData": {
+            "get": {
+                "tags": [
+                    "CashCategories"
+                ],
+                "summary": "Lister",
+                "operationId": "5d0fce71c1fea903a8a22d4d01a7cb6f",
+                "responses": {
+                    "200": {
+                        "description": "Liste des catégories de trésorerie"
+                    }
+                }
+            }
+        },
+        "/api/v1/cashCategoriesStoreData": {
+            "post": {
+                "tags": [
+                    "CashCategories"
+                ],
+                "summary": "Créer",
+                "operationId": "8dd281e3eacca0cca8a4ffef97155beb",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "designation",
+                                    "type"
+                                ],
+                                "properties": {
+                                    "designation": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "type": {
+                                        "type": "enum",
+                                        "example": "Revenue ou Depense"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Dar"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Données créées avec succès"
+                    },
+                    "422": {
+                        "description": "Validation des données échouée"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/cashCategoryUpdate/{id}": {
+            "put": {
+                "tags": [
+                    "CashCategories"
+                ],
+                "summary": "Modifier",
+                "operationId": "a44e12829deba1e4ff5bbaf98eb4fb3d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "designation": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Dar"
+                                    },
+                                    "type": {
+                                        "type": "enum",
+                                        "example": "Revenue ou Depense"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "mise à jour"
+                    },
+                    "404": {
+                        "description": "Non trouvée"
+                    }
+                }
+            }
+        },
+        "/api/v1/cashCategoryDelete/{id}": {
+            "put": {
+                "tags": [
+                    "CashCategories"
+                ],
+                "summary": "Supprimer",
+                "operationId": "ff671ddf08bb5f2f473896824223ee77",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Supprimée"
+                    },
+                    "404": {
+                        "description": "Non trouvée"
+                    }
+                }
+            }
+        },
         "/api/v1/aboutGetAllData": {
             "get": {
                 "tags": [
@@ -2191,6 +2345,10 @@
         {
             "name": "Bulk",
             "description": "Bulk"
+        },
+        {
+            "name": "CashCategories",
+            "description": "CashCategories"
         },
         {
             "name": "About",
