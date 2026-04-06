@@ -20,12 +20,12 @@ class TransefrController extends Controller
             content: new OA\JsonContent(
                 required: ["from_branch", "to_branch", "product_id", "quantity", "transfer_date", "items"],
                 properties: [
-                    new OA\Property(property: "from_branch", type: "string", example: "2026-04-05"),
-                    new OA\Property(property: "supplier_id", type: "integer", example: 1),
+                    new OA\Property(property: "transfer_date", type: "string", example: "2026-04-05"),
+                    new OA\Property(property: "from_branch", type: "integer", example: 1),
                     new OA\Property(property: "to_branch", type: "integer", example: 1),
 
                     new OA\Property(
-                        property: "items",
+                        property: "products",
                         type: "array",
                         items: new OA\Items(
                             type: "object",
@@ -53,22 +53,29 @@ class TransefrController extends Controller
             'products.*.product_id' => 'required|integer|exists:products,id',
             'products.*.quantity' => 'required|integer|min:1',
         ]);
+        try {
+            $transfer = StockService::transferMultipleProductsWithRecord(
+                $request->from_branch,
+                $request->to_branch,
+                $request->products,
+                $request->transfer_date,
+                Auth::id()
+            );
 
-        $transfer = StockService::transferMultipleProductsWithRecord(
-            $request->from_branch,
-            $request->to_branch,
-            $request->products,
-            $request->transfer_date,
-            Auth::id()
-        );
+            return response()->json([
+                'message' => 'Transfert effectué avec succès',
+                'status' => 201,
+                'transfer_id' => $transfer->id,
+                'reference' => $transfer->reference,
+                'items' => $transfer->items()->with('product:id,name')->get()
+            ]);
+        } catch (\Exception $e) {
 
-        return response()->json([
-            'message' => 'Transfert effectué avec succès',
-            'status' => 201,
-            'transfer_id' => $transfer->id,
-            'reference' => $transfer->reference,
-            'items' => $transfer->items()->with('product:id,name')->get()
-        ]);
+            return response()->json([
+                'message' => 'Erreur transfert',
+                'errors' => json_decode($e->getMessage(), true) ?? $e->getMessage()
+            ], 400);
+        }
     }
 
     #[OA\Post(
@@ -174,7 +181,7 @@ class TransefrController extends Controller
         }
     }
 
-#[OA\Post(
+    #[OA\Post(
         path: "/api/v1/returnProductStockByBanch",
         summary: "Enlever une quantité du stock",
         tags: ["Mouvement Stock"],

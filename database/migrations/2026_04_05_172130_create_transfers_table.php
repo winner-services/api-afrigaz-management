@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('from_branch_id')->nullable()->constrained('branches')->nullOnDelete();
             $table->foreignId('to_branch_id')->nullable()->constrained('branches')->nullOnDelete();
             $table->foreignId('addedBy')->nullable()->constrained('users')->nullOnDelete();
-            $table->string('statuks')->default('created');
+            $table->string('status')->default('created');
             $table->string('reference')->nullable();
             $table->date('transfer_date')->nullable();
             $table->timestamps();

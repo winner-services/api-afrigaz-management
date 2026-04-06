@@ -141,6 +141,27 @@ class StockService
     {
         return DB::transaction(function () use ($fromBranch, $toBranch, $productsQuantities, $transfer_date, $userId) {
 
+            $productsQuantities = $productsQuantities ?? [];
+
+            if (!is_array($productsQuantities) || count($productsQuantities) === 0) {
+                throw new \Exception("Liste des produits invalide ou vide");
+            }
+            foreach ($productsQuantities as $item) {
+
+                $stock = StockByBranch::where([
+                    'branche_id' => $fromBranch,
+                    'product_id' => $item['product_id']
+                ])->first();
+
+                if (!$stock || $stock->stock_quantity < $item['quantity']) {
+                    $errors[] = "Produit ID {$item['product_id']} insuffisant";
+                }
+            }
+
+            if (!empty($errors)) {
+                throw new \Exception(json_encode($errors));
+            }
+
             $reference = 'TRF-' . date('YmdHis');
 
             $transfer = Transfer::create([
@@ -153,6 +174,10 @@ class StockService
             ]);
 
             foreach ($productsQuantities as $item) {
+                if (!isset($item['product_id'], $item['quantity'])) {
+                    throw new \Exception("Format produit invalide");
+                }
+
                 $productId = $item['product_id'];
                 $quantity  = $item['quantity'];
 

@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 #[Fillable(['from_branch_id', 'to_branch_id', 'addedBy', 'reference', 'status', 'transfer_date'])]
 class Transfer extends Model
 {
-    public function details()
+    public function items()
     {
-        return $this->hasMany(ItemsTransfer::class);
+        return $this->hasMany(ItemsTransfer::class, 'transfer_id');
     }
 
     public function fromBranch()

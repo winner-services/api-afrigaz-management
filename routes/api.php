@@ -77,7 +77,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::get('/suppliersGetOptionsData', 'getSupplierOptions');
             Route::post('/supplierStoreData', 'store');
             Route::put('/supplierUpdate/{id}', 'update');
-            Route::get('/supplierDelete/{id}', 'destroy');
+            Route::put('/supplierDelete/{id}', 'destroy');
         });
 
         Route::controller(CustomerController::class)->group(function () {
@@ -85,7 +85,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::get('/customersGetOptionsData', 'getCustomerOptions');
             Route::post('/customerStoreData', 'store');
             Route::put('/customerUpdate/{id}', 'update');
-            Route::get('/customerDelete/{id}', 'destroy');
+            Route::put('/customerDelete/{id}', 'destroy');
         });
 
         Route::controller(CashCategoryController::class)->group(function () {
@@ -93,14 +93,14 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::get('/cashCategoriesGetOptionsData', 'getCashCategoryOptions');
             Route::post('/cashCategoriesStoreData', 'store');
             Route::put('/cashCategoriesUpdate/{id}', 'update');
-            Route::get('/cashCategoriesDelete/{id}', 'destroy');
+            Route::put('/cashCategoriesDelete/{id}', 'destroy');
         });
 
         Route::controller(BulkPurchaseController::class)->group(function () {
             Route::get('/bulkPurchaseGetAllData', 'index');
             Route::post('/bulkPurchaseStoreData', 'store');
             Route::put('/bulkPurchaseUpdate/{id}', 'update');
-            Route::get('/bulkPurchaseDelete/{id}', 'destroy');
+            Route::put('/bulkPurchaseDelete/{id}', 'destroy');
         });
         Route::controller(EntryStockController::class)->group(function () {
             Route::get('/stockEntrieGetAllData', 'index');

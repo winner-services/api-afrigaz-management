@@ -2291,11 +2291,11 @@
                                     "items"
                                 ],
                                 "properties": {
-                                    "from_branch": {
+                                    "transfer_date": {
                                         "type": "string",
                                         "example": "2026-04-05"
                                     },
-                                    "supplier_id": {
+                                    "from_branch": {
                                         "type": "integer",
                                         "example": 1
                                     },
@@ -2303,7 +2303,7 @@
                                         "type": "integer",
                                         "example": 1
                                     },
-                                    "items": {
+                                    "products": {
                                         "type": "array",
                                         "items": {
                                             "properties": {

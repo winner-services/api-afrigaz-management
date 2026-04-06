@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Sipplier;
 use App\Http\Controllers\Controller;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use OpenApi\Attributes as OA;
@@ -120,7 +121,7 @@ class SupplierController extends Controller
     public function store(Request $request): JsonResponse
     {
         $rules = [
-            'name' => ['nullable', 'string', 'max:255','unique:suppliers,name'],
+            'name' => ['nullable', 'string', 'max:255', 'unique:suppliers,name'],
             'address' => ['nullable', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:20', 'unique:suppliers,phone']
         ];
@@ -143,7 +144,7 @@ class SupplierController extends Controller
 
         DB::beginTransaction();
 
-        $authId = auth()->id;
+        $authId = Auth::id();
 
         try {
             $supplier = Supplier::create([
