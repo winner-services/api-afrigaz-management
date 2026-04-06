@@ -1111,6 +1111,157 @@
                 }
             }
         },
+        "/api/v1/stockMovementGetAllData": {
+            "get": {
+                "tags": [
+                    "Stock Movements"
+                ],
+                "summary": "Historique des mouvements de stock",
+                "operationId": "fd12e99d670045a45e08e7db50bb3c5b",
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "example": 20
+                        }
+                    },
+                    {
+                        "name": "branch_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "product_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "Type de mouvement",
+                        "schema": {
+                            "type": "string",
+                            "example": "sale"
+                        }
+                    },
+                    {
+                        "name": "from_date",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2026-04-01"
+                        }
+                    },
+                    {
+                        "name": "to_date",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2026-04-06"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Liste des mouvements de stock",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "type": {
+                                                        "type": "string"
+                                                    },
+                                                    "quantity": {
+                                                        "type": "integer"
+                                                    },
+                                                    "stock_before": {
+                                                        "type": "integer"
+                                                    },
+                                                    "stock_after": {
+                                                        "type": "integer"
+                                                    },
+                                                    "description": {
+                                                        "type": "string"
+                                                    },
+                                                    "branch": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    },
+                                                    "product": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    },
+                                                    "user": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    },
+                                                    "reference_id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "reference": {
+                                                        "type": "string"
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object"
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/permissionsGetAllData": {
             "get": {
                 "tags": [
@@ -1907,88 +2058,6 @@
                 }
             }
         },
-        "/api/v1/saleCancel/{id}/": {
-            "post": {
-                "tags": [
-                    "Sales"
-                ],
-                "summary": "Annuler une vente et restaurer le stock",
-                "operationId": "5b5a46bda88a219e1f1f55645277912c",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "ID de la vente à annuler",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "example": 10
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Vente annulée avec succès",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Vente annulée avec succès"
-                                        },
-                                        "sale_id": {
-                                            "type": "integer",
-                                            "example": 10
-                                        },
-                                        "status": {
-                                            "type": "string",
-                                            "example": "cancelled"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Erreur métier (ex: déjà annulée)",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Cette vente est déjà annulée"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Vente non trouvée",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Vente introuvable"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Erreur interne serveur"
-                    }
-                }
-            }
-        },
         "/api/v1/salesGetAllData": {
             "get": {
                 "tags": [
@@ -2270,6 +2339,254 @@
                 }
             }
         },
+        "/api/v1/stocksByBranchGetAllData": {
+            "get": {
+                "tags": [
+                    "Stocks"
+                ],
+                "summary": "Liste des stocks par branche",
+                "operationId": "1d58517566ece7d4c3663106987e23f3",
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Nombre de résultats par page",
+                        "schema": {
+                            "type": "integer",
+                            "example": 20
+                        }
+                    },
+                    {
+                        "name": "branch_id",
+                        "in": "query",
+                        "description": "Filtrer par branche",
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "product_id",
+                        "in": "query",
+                        "description": "Filtrer par produit",
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Liste paginée des stocks",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "stock_quantity": {
+                                                        "type": "integer"
+                                                    },
+                                                    "status": {
+                                                        "type": "string"
+                                                    },
+                                                    "branch": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    },
+                                                    "product": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object"
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/transfersGetAllData": {
+            "get": {
+                "tags": [
+                    "Transfers"
+                ],
+                "summary": "Historique des transferts entre branches",
+                "operationId": "83a2fe235070c7086aae680753e1cbdb",
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "example": 20
+                        }
+                    },
+                    {
+                        "name": "from_branch_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "to_branch_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "example": 2
+                        }
+                    },
+                    {
+                        "name": "from_date",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2026-04-01"
+                        }
+                    },
+                    {
+                        "name": "to_date",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2026-04-06"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Liste des transferts",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "reference": {
+                                                        "type": "string"
+                                                    },
+                                                    "status": {
+                                                        "type": "string"
+                                                    },
+                                                    "transfer_date": {
+                                                        "type": "string"
+                                                    },
+                                                    "from_branch": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    },
+                                                    "to_branch": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    },
+                                                    "user": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    },
+                                                    "items": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "properties": {
+                                                                "id": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "quantity": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "product": {
+                                                                    "properties": {
+                                                                        "id": {
+                                                                            "type": "integer"
+                                                                        },
+                                                                        "name": {
+                                                                            "type": "string"
+                                                                        }
+                                                                    },
+                                                                    "type": "object"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object"
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/transferStockStoreData": {
             "post": {
                 "tags": [
@@ -2364,11 +2681,11 @@
                                     },
                                     "product_id": {
                                         "type": "integer",
-                                        "example": "Kinshasa"
+                                        "example": 1
                                     },
                                     "new_quantity": {
                                         "type": "integer",
-                                        "example": "Av. de la paix"
+                                        "example": 50
                                     }
                                 },
                                 "type": "object"
@@ -2401,7 +2718,7 @@
                                 "required": [
                                     "branch_id",
                                     "product_id",
-                                    "new_quantity",
+                                    "quantity",
                                     "description"
                                 ],
                                 "properties": {
@@ -2415,11 +2732,11 @@
                                     },
                                     "product_id": {
                                         "type": "integer",
-                                        "example": "Kinshasa"
+                                        "example": 1
                                     },
-                                    "new_quantity": {
+                                    "quantity": {
                                         "type": "integer",
-                                        "example": "Av. de la paix"
+                                        "example": 100
                                     }
                                 },
                                 "type": "object"
@@ -2466,11 +2783,11 @@
                                     },
                                     "product_id": {
                                         "type": "integer",
-                                        "example": "Kinshasa"
+                                        "example": 1
                                     },
                                     "quantity": {
                                         "type": "integer",
-                                        "example": "Av. de la paix"
+                                        "example": 100
                                     }
                                 },
                                 "type": "object"
@@ -2838,6 +3155,10 @@
             "description": "Stock Entries"
         },
         {
+            "name": "Stock Movements",
+            "description": "Stock Movements"
+        },
+        {
             "name": "Permissions",
             "description": "Permissions"
         },
@@ -2860,6 +3181,14 @@
         {
             "name": "Suppliers",
             "description": "Suppliers"
+        },
+        {
+            "name": "Stocks",
+            "description": "Stocks"
+        },
+        {
+            "name": "Transfers",
+            "description": "Transfers"
         },
         {
             "name": "Mouvement Stock",

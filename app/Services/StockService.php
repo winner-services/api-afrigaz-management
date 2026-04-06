@@ -39,7 +39,7 @@ class StockService
                 'description' => $description,
                 'reference_id' => $reference['id'] ?? null,
                 'reference' => $reference['type'] ?? null,
-                'user_id' => Auth::id(),
+                'addedBy' => Auth::id(),
             ]);
 
             return $stock;
@@ -79,7 +79,7 @@ class StockService
                 'description' => $description,
                 'reference_id' => $stock->id,
                 'reference' => $stock->reference ?? null,
-                'user_id' => Auth::id(),
+                'addedBy' => Auth::id(),
             ]);
 
             return $stock;
@@ -130,7 +130,7 @@ class StockService
                 'stock_before' => $before,
                 'stock_after' => $after,
                 'description' => $description,
-                'user_id' => Auth::id(),
+                'addedBy' => Auth::id(),
             ]);
 
             return $stock;
@@ -167,7 +167,7 @@ class StockService
             $transfer = Transfer::create([
                 'from_branch_id' => $fromBranch,
                 'to_branch_id' => $toBranch,
-                'user_id' => $userId,
+                'addedBy' => $userId,
                 'reference' => $reference,
                 'transfer_date' => $transfer_date,
                 'status' => 'created'
@@ -190,13 +190,13 @@ class StockService
                 self::removeStock($fromBranch, $productId, $quantity, "Transfert sortant vers la branche $toBranch", [
                     'type' => 'transfer',
                     'reference_id' => $transfer->id,
-                    'user_id' => $userId
+                    'addedBy' => $userId
                 ]);
 
                 self::addStock($toBranch, $productId, $quantity, "Transfert entrant depuis la branche $fromBranch", [
                     'type' => 'transfer',
                     'reference_id' => $transfer->id,
-                    'user_id' => $userId
+                    'addedBy' => $userId
                 ]);
             }
 
@@ -235,7 +235,7 @@ class StockService
                 'description' => $description ?? 'Retour client',
                 'reference_id' => $reference['id'] ?? null,
                 'reference' => $reference['type'] ?? 'sale_return',
-                'user_id' => Auth::id(),
+                'addedBy' => Auth::id(),
             ]);
 
             return $stock;

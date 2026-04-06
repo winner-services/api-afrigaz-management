@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Transfer;
 
 use App\Http\Controllers\Controller;
+use App\Models\Transfer;
 use App\Services\StockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,6 +12,147 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 class TransefrController extends Controller
 {
+    #[OA\Get(
+        path: "/api/v1/transfersGetAllData",
+        summary: "Historique des transferts entre branches",
+        tags: ["Transfers"],
+        parameters: [
+            new OA\Parameter(
+                name: "per_page",
+                in: "query",
+                schema: new OA\Schema(type: "integer", example: 20)
+            ),
+            new OA\Parameter(
+                name: "from_branch_id",
+                in: "query",
+                schema: new OA\Schema(type: "integer", example: 1)
+            ),
+            new OA\Parameter(
+                name: "to_branch_id",
+                in: "query",
+                schema: new OA\Schema(type: "integer", example: 2)
+            ),
+            new OA\Parameter(
+                name: "from_date",
+                in: "query",
+                schema: new OA\Schema(type: "string", format: "date", example: "2026-04-01")
+            ),
+            new OA\Parameter(
+                name: "to_date",
+                in: "query",
+                schema: new OA\Schema(type: "string", format: "date", example: "2026-04-06")
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Liste des transferts",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(
+                            property: "data",
+                            type: "array",
+                            items: new OA\Items(
+                                properties: [
+                                    new OA\Property(property: "id", type: "integer"),
+                                    new OA\Property(property: "reference", type: "string"),
+                                    new OA\Property(property: "status", type: "string"),
+                                    new OA\Property(property: "transfer_date", type: "string"),
+
+                                    new OA\Property(
+                                        property: "from_branch",
+                                        type: "object",
+                                        properties: [
+                                            new OA\Property(property: "id", type: "integer"),
+                                            new OA\Property(property: "name", type: "string")
+                                        ]
+                                    ),
+
+                                    new OA\Property(
+                                        property: "to_branch",
+                                        type: "object",
+                                        properties: [
+                                            new OA\Property(property: "id", type: "integer"),
+                                            new OA\Property(property: "name", type: "string")
+                                        ]
+                                    ),
+
+                                    new OA\Property(
+                                        property: "user",
+                                        type: "object",
+                                        properties: [
+                                            new OA\Property(property: "id", type: "integer"),
+                                            new OA\Property(property: "name", type: "string")
+                                        ]
+                                    ),
+
+                                    new OA\Property(
+                                        property: "items",
+                                        type: "array",
+                                        items: new OA\Items(
+                                            properties: [
+                                                new OA\Property(property: "id", type: "integer"),
+                                                new OA\Property(property: "quantity", type: "integer"),
+                                                new OA\Property(
+                                                    property: "product",
+                                                    type: "object",
+                                                    properties: [
+                                                        new OA\Property(property: "id", type: "integer"),
+                                                        new OA\Property(property: "name", type: "string")
+                                                    ]
+                                                )
+                                            ]
+                                        )
+                                    )
+                                ]
+                            )
+                        ),
+                        new OA\Property(property: "links", type: "object"),
+                        new OA\Property(property: "meta", type: "object")
+                    ]
+                )
+            )
+        ]
+    )]
+    public function index(Request $request)
+    {
+        $perPage = $request->query('per_page', 20);
+
+        $query = Transfer::with([
+            'fromBranch',
+            'toBranch',
+            'user',
+            'items.product'
+        ])->orderBy('created_at', 'desc');
+
+        // 🔍 Filtre par branche source
+        if ($request->filled('from_branch_id')) {
+            $query->where('from_branch_id', $request->from_branch_id);
+        }
+
+        // 🔍 Filtre par branche destination
+        if ($request->filled('to_branch_id')) {
+            $query->where('to_branch_id', $request->to_branch_id);
+        }
+
+        // 🔍 Filtre par date
+        if ($request->filled('from_date')) {
+            $query->whereDate('transfer_date', '>=', $request->from_date);
+        }
+
+        if ($request->filled('to_date')) {
+            $query->whereDate('transfer_date', '<=', $request->to_date);
+        }
+
+        $transfers = $query->paginate($perPage);
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'succès',
+            'data' => $transfers
+        ]);
+    }
+
     #[OA\Post(
         path: "/api/v1/transferStockStoreData",
         summary: "Créer un transfert de stock",

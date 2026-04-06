@@ -15,10 +15,12 @@ return new class extends Migration
             $table->id();
             $table->string('reference')->unique();
             $table->foreignId('branch_id')->constrained('branches')->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('addedBy')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('customer_id')->nullable()->constrained('customers')->cascadeOnDelete();
             $table->decimal('total_amount', 10, 2)->default(0);
             $table->decimal('paid_amount', 10, 2)->default(0);
             $table->string('status')->default('completed');
+            $table->date('transaction_date');
             $table->timestamps();
         });
     }

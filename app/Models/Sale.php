@@ -5,12 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['reference', 'branch_id', 'user_id', 'total_amount', 'status'])]
+#[Fillable(['reference', 'branch_id', 'addedBy','paid_amount', 'total_amount', 'status','customer_id','transaction_date'])]
 class Sale extends Model
 {
     public function saleItems()
     {
         return $this->hasMany(ItemSale::class);
+    }
+    public function items()
+    {
+        return $this->hasMany(ItemSale::class, 'sale_id');
     }
 
     public function customer()

@@ -11,10 +11,10 @@ use Illuminate\Support\Facades\DB;
 
 class SaleService
 {
-    public static function createSaleWithPayment($branchId, $products, $userId, $customerId = null, $paidAmount = 0, $unit_price, $account_id)
+    public static function createSaleWithPayment($branchId, $products, $userId, $customerId = null, $paidAmount = 0, $account_id)
     {
-        return DB::transaction(function () use ($branchId, $products, $userId, $customerId, $paidAmount, $unit_price, $account_id) {
-
+        return DB::transaction(function () use ($branchId, $products, $userId, $customerId, $paidAmount, $account_id) {
+// dd($paidAmount);
             $errors = [];
 
             foreach ($products as $item) {
@@ -42,9 +42,11 @@ class SaleService
             $sale = Sale::create([
                 'reference' => $reference,
                 'branch_id' => $branchId,
-                'user_id' => $userId,
+                'addedBy' => $userId,
                 'total_amount' => 0,
                 'paid_amount' => 0,
+                'transaction_date' => now(),
+                'customer_id' => $customerId
             ]);
 
             $total = 0;
@@ -54,12 +56,12 @@ class SaleService
                 $product = Product::findOrFail($item['product_id']);
                 $quantity = $item['quantity'];
 
-                $lineTotal = $quantity * $unit_price;
+                $lineTotal = $quantity * $item['unit_price'];
 
                 $sale->items()->create([
                     'product_id' => $product->id,
                     'quantity' => $quantity,
-                    'unit_price' => $unit_price,
+                    'unit_price' => $item['unit_price'],
                     'total_price' => $lineTotal
                 ]);
 

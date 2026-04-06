@@ -146,13 +146,16 @@ class cancelSale
 
                 $saleItem->decrement('quantity', $item['quantity']);
             }
-            $account = CashTransaction::where([
+
+            CashTransaction::where([
                 'reference' => $sale->reference,
                 'reference_id' => $sale->id
             ])->update([
                 'status' => 'cancelled'
             ]);
-            $lastTransaction = CashTransaction::where('cash_account_id', $account->cash_account_id)
+            $cashAccountId = CashTransaction::where('reference_id', $sale->id)
+                ->value('cash_account_id');
+            $lastTransaction = CashTransaction::where('cash_account_id', $cashAccountId)
                 ->latest('id')
                 ->first();
             $solde = $lastTransaction ? $lastTransaction->solde : 0;
@@ -169,7 +172,7 @@ class cancelSale
                     'status' => 'created',
                     'addedBy' => $userId,
                     'cash_categorie_id' => 2,
-                    'cash_account_id' => $account->cash_account_id
+                    'cash_account_id' => $cashAccountId
                 ]);
             }
             if ($sale->customer_id && $sale->paid_amount < $sale->total_amount) {

@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\CashCategory\CashCategoryController;
 use App\Http\Controllers\Api\Company\CompanyController;
 use App\Http\Controllers\Api\Customer\CustomerController;
 use App\Http\Controllers\Api\EntryStock\EntryStockController;
+use App\Http\Controllers\Api\MovementStock\MovementController;
 use App\Http\Controllers\Api\Permission\PermissionController;
 use App\Http\Controllers\Api\Products\CategoryController;
 use App\Http\Controllers\Api\Products\ProductController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\Api\Role\RoleController;
 use App\Http\Controllers\Api\Sale\ReturnSaleController;
 use App\Http\Controllers\Api\Sale\SaleController;
 use App\Http\Controllers\Api\Sipplier\SupplierController;
+use App\Http\Controllers\Api\StockByBranche\StockController;
 use App\Http\Controllers\Api\Transfer\TransefrController;
 use App\Http\Controllers\Api\Users\UserController;
 use Illuminate\Support\Facades\Route;
@@ -117,21 +119,30 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         });
 
         Route::controller(TransefrController::class)->group(function () {
+            Route::get('/transfersGetAllData', 'index');
             Route::post('/transferStockStoreData', 'transferBatch');
             Route::post('/adjustStockByBanch', 'adjust');
             Route::post('/removeQteStockByBanch', 'remove');
             Route::post('/returnProductStockByBanch', 'returnProduct');
         });
 
+        Route::controller(StockController::class)->group(function () {
+            Route::get('/stockByBranchGetAllData', 'index');
+        });
+
         Route::controller(SaleController::class)->group(function () {
             Route::post('/saleStoreData', 'store');
-            Route::post('/saleCancel/{id}/', 'cancel');
+            // Route::post('/saleCancel/{id}/', 'cancel');
             Route::get('/salesGetAllData', 'index');
         });
 
         Route::controller(ReturnSaleController::class)->group(function () {
             Route::post('/salesReturn/{id}', 'returnWithRefund');
             Route::get('/returnsGetAllData', 'getCancellations');
+        });
+
+        Route::controller(MovementController::class)->group(function () {
+            Route::get('/stockMovementGetAllData', 'index');
         });
     });
 });
