@@ -1224,6 +1224,70 @@
                 }
             }
         },
+        "/api/v1/paymentDebtStoreData": {
+            "post": {
+                "tags": [
+                    "payment Debts customers"
+                ],
+                "summary": "Créer",
+                "operationId": "4ae5b6974023980d9de9ff4c313d30be",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "customer_id",
+                                    "paid_amount",
+                                    "cash_account_id"
+                                ],
+                                "properties": {
+                                    "customer_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "paid_amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 100
+                                    },
+                                    "cash_account_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Données créées avec succès"
+                    },
+                    "422": {
+                        "description": "Validation des données échouée"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/customerDebtsGetAllData": {
+            "get": {
+                "tags": [
+                    "payment Debts customers"
+                ],
+                "summary": "Lister",
+                "operationId": "3f39a7ac6365e7651fdd4226ece1f60f",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
         "/api/v1/stockEntriesStore": {
             "post": {
                 "tags": [
@@ -3342,6 +3406,10 @@
         {
             "name": "Customers",
             "description": "Customers"
+        },
+        {
+            "name": "payment Debts customers",
+            "description": "payment Debts customers"
         },
         {
             "name": "Stock Entries",
