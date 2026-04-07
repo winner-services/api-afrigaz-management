@@ -5,15 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['name', 'phone', 'city', 'address', 'user_id', 'addedBy', 'status','reference'])]
+#[Fillable(['name', 'phone', 'city', 'address', 'user_id', 'addedBy', 'status', 'reference'])]
 class Branche extends Model
 {
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function scopeSearh($query, $term)
+    public function addedBy()
+    {
+        return $this->belongsTo(User::class, 'addedBy');
+    }
+
+    public function scopeSearch($query, $term)
     {
         $term = "%$term%";
         $query->where(function ($query) use ($term) {

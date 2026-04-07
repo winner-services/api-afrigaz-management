@@ -23,7 +23,19 @@ class BrancheController extends Controller
     )]
     public function get(): JsonResponse
     {
-        $branches = Branche::with(['user'])->latest()->get();
+        $page = request("paginate", 10);
+        $q = request("q", "");
+        $branches = Branche::leftjoin('users as u', 'branches.user_id', '=', 'u.id')
+            ->leftjoin('users as a', 'branches.addedBy', '=', 'a.id')
+            ->select('branches.*', 'u.name as agent_name', 'a.name as addedBy')
+            ->where('branches.status', '!=', 'deleted')
+            ->orderBy('branches.created_at', 'desc')
+            ->search(trim($q))
+            ->paginate($page);
+        // $branches = Branche::with(['user', 'addedBy'])->where('status', '!=', 'deleted')
+        //     ->orderBy('created_at', 'desc')
+        //     ->search(trim($q))
+        //     ->paginate($page);
 
         return response()->json([
             'status' => true,
