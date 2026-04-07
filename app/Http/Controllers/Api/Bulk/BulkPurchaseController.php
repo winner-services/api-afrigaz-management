@@ -129,6 +129,7 @@ class BulkPurchaseController extends Controller
             'unit_price_per_kg',
             'total_cost',
             'purchase_date',
+            'lost_Quantity_kg',
             'created_at'
         ];
 
@@ -272,6 +273,65 @@ class BulkPurchaseController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Achat supprimé'
+        ]);
+    }
+
+    #[OA\Put(
+        path: "/api/v1/lostQuantityStore/{id}",
+        summary: "Modifier",
+        tags: ["Bulk"],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer"))
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: "lost_Quantity_kg", type: "integer", example: 1)
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: "success"),
+            new OA\Response(response: 404, description: "Non trouvée")
+        ]
+    )]
+    public function lostQuantityStore(Request $request, $id): JsonResponse
+    {
+        $purchase = Bulk_Purchase::find($id);
+
+        if (!$purchase) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Achat introuvable'
+            ], 404);
+        }
+
+        $rules = [
+            'lost_Quantity_kg' => ['required', 'integer', 'min:1']
+        ];
+
+        $messages = [
+            'lost_Quantity_kg.required' => 'La quantité est obligatoire.'
+        ];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $purchase->update([
+            'lost_Quantity_kg' => $request->lost_Quantity_kg
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Success',
+            'data' => $purchase
         ]);
     }
 }

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('unit_price_per_kg', 8, 2)->nullable();
             $table->decimal('total_cost', 8, 2)->nullable();
             $table->string('status')->default('created');
+            $table->unsignedBigInteger('lost_Quantity_kg')->default(0);
             $table->foreignId('addedBy')->nullable()->constrained('users')->nullOnDelete();
             $table->date('purchase_date')->nullable();
             $table->timestamps();

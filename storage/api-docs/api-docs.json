@@ -624,6 +624,49 @@
                 }
             }
         },
+        "/api/v1/lostQuantityStore/{id}": {
+            "put": {
+                "tags": [
+                    "Bulk"
+                ],
+                "summary": "Modifier",
+                "operationId": "552a396967460dbe26a68680da40346a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "lost_Quantity_kg": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "success"
+                    },
+                    "404": {
+                        "description": "Non trouvée"
+                    }
+                }
+            }
+        },
         "/api/v1/cashCategoriesGetAllData": {
             "get": {
                 "tags": [

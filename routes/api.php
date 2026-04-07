@@ -112,6 +112,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/bulkPurchaseStoreData', 'store');
             Route::put('/bulkPurchaseUpdate/{id}', 'update');
             Route::put('/bulkPurchaseDelete/{id}', 'destroy');
+            Route::put('/lostQuantityStore/{id}', 'lostQuantityStore');
         });
         Route::controller(EntryStockController::class)->group(function () {
             Route::get('/stockEntrieGetAllData', 'index');
