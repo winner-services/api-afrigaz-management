@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Branches\BrancheController;
 use App\Http\Controllers\Api\Bulk\BulkPurchaseController;
 use App\Http\Controllers\Api\CashCategory\CashCategoryController;
 use App\Http\Controllers\Api\Company\CompanyController;
+use App\Http\Controllers\Api\Currency\CurrencyController;
 use App\Http\Controllers\Api\Customer\CustomerController;
 use App\Http\Controllers\Api\EntryStock\EntryStockController;
 use App\Http\Controllers\Api\MovementStock\MovementController;
@@ -144,6 +145,13 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
         Route::controller(MovementController::class)->group(function () {
             Route::get('/stockMovementGetAllData', 'index');
+        });
+
+        Route::controller(CurrencyController::class)->group(function () {
+            Route::get('/currencyGetAllData', 'index');
+            Route::post('/currencyStoreData', 'store');
+            Route::put('/currencyUpdate/{id}', 'update');
+            Route::put('/currencyDelete/{id}', 'destroy');
         });
     });
 });

@@ -914,6 +914,152 @@
                 }
             }
         },
+        "/api/v1/currencyGetAllData": {
+            "get": {
+                "tags": [
+                    "Currency"
+                ],
+                "summary": "Lister les devises",
+                "operationId": "e9896a15708fc47b452d7df26a40ad88",
+                "responses": {
+                    "200": {
+                        "description": "Liste des devises"
+                    }
+                }
+            }
+        },
+        "/api/v1/currencyStoreData": {
+            "post": {
+                "tags": [
+                    "Currency"
+                ],
+                "summary": "Créer",
+                "operationId": "1cd78d0a1ebd862276c31d1bfd7bef80",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "designation",
+                                    "currency_type",
+                                    "conversion_amount",
+                                    "symbol"
+                                ],
+                                "properties": {
+                                    "designation": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "currency_type": {
+                                        "type": "enum",
+                                        "example": "devise_principale"
+                                    },
+                                    "conversion_amount": {
+                                        "type": "number",
+                                        "example": 1
+                                    },
+                                    "symbol": {
+                                        "type": "string",
+                                        "example": "$"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Données créées avec succès"
+                    },
+                    "422": {
+                        "description": "Validation des données échouée"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/currencyUpdate/{id}": {
+            "put": {
+                "tags": [
+                    "Currency"
+                ],
+                "summary": "Modifier une devise",
+                "operationId": "41227653721d5298fb7767d1cf51f80c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "designation": {
+                                        "type": "string"
+                                    },
+                                    "currency_type": {
+                                        "type": "enum"
+                                    },
+                                    "conversion_amount": {
+                                        "type": "number"
+                                    },
+                                    "symbol": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Devise mise à jour"
+                    },
+                    "404": {
+                        "description": "Devise non trouvée"
+                    }
+                }
+            }
+        },
+        "/api/v1/currencyDelete/{id}": {
+            "put": {
+                "tags": [
+                    "Currency"
+                ],
+                "summary": "Supprimer une devise",
+                "operationId": "43c1533c64fbf8a09df2068944346cd2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Supprimée"
+                    },
+                    "404": {
+                        "description": "Non trouvée"
+                    }
+                }
+            }
+        },
         "/api/v1/customerGetAllData": {
             "get": {
                 "tags": [
@@ -3188,6 +3334,10 @@
         {
             "name": "About",
             "description": "About"
+        },
+        {
+            "name": "Currency",
+            "description": "Currency"
         },
         {
             "name": "Customers",
