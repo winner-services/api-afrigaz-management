@@ -187,4 +187,71 @@ class CustomerDebtPaymentController extends Controller
             'data' => $customers
         ]);
     }
+
+    #[OA\Get(
+        path: "/api/v1/getAllPayments",
+        summary: "Lister",
+        tags: ["payment Debts customers"],
+        responses: [
+            new OA\Response(response: 200, description: "Liste")
+        ]
+    )]
+    public function getAllPayments(Request $request)
+    {
+        $perPage = $request->get('per_page', 10); // 🔥 dynamique
+
+        $payments = CustomerDebtPayment::with([
+            'debt.customer',
+            'cashAccount',
+            'user'
+        ])
+            ->latest()
+            ->paginate($perPage);
+
+        // ✅ Format propre
+        $data = $payments->getCollection()->map(function ($payment) {
+            return [
+                'id' => $payment->id,
+                'amount' => $payment->paid_amount,
+                'status' => $payment->status,
+                'date' => $payment->created_at,
+
+                'customer' => [
+                    'id' => $payment->debt?->customer?->id,
+                    'name' => $payment->debt?->customer?->name,
+                ],
+
+                'debt' => [
+                    'id' => $payment->debt?->id,
+                    'total' => $payment->debt?->loan_amount,
+                    'paid' => $payment->debt?->paid_amount,
+                ],
+
+                'cash_account' => [
+                    'id' => $payment->cashAccount?->id,
+                    'name' => $payment->cashAccount?->name,
+                ],
+
+                'created_by' => [
+                    'id' => $payment->user?->id,
+                    'name' => $payment->user?->name,
+                ]
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+
+            // 📊 Données
+            'data' => $data,
+
+            // 📌 Pagination meta (TRÈS IMPORTANT pour frontend)
+            'pagination' => [
+                'current_page' => $payments->currentPage(),
+                'last_page' => $payments->lastPage(),
+                'per_page' => $payments->perPage(),
+                'total' => $payments->total(),
+            ]
+        ]);
+    }
 }
