@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\ItemsStockEntries;
 use App\Models\StockEntry;
 use App\Services\StockService;
-use Illuminate\Container\Attributes\Auth as AttributesAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -52,7 +51,7 @@ class EntryStockController extends Controller
         $request->validate([
             'transaction_date' => 'required|date',
             'supplier_id' => 'nullable|exists:suppliers,id',
-            'branche_id' => 'required|exists:branches,id',
+            // 'branche_id' => 'required|exists:branches,id',
 
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
@@ -115,11 +114,10 @@ class EntryStockController extends Controller
             'supplier:id,name',
             'user:id,name',
             'items.product:id,name'
-        ])
+        ])->where('status', '!=', 'deleted')
             ->latest()
             ->paginate(10);
 
-        // 🔥 Transformation des données
         $data = $entries->getCollection()->map(function ($entry) {
             return [
                 'id' => $entry->id,

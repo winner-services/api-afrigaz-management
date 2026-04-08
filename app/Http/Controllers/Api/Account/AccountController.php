@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class AccountController extends Controller
 {
     #[OA\Get(
-        path: "/api/v1/AccountGetAllData",
+        path: "/api/v1/accountGetAllData",
         summary: "Lister",
         tags: ["Accounts"],
         responses: [
@@ -29,7 +29,6 @@ class AccountController extends Controller
         $sort_direction = request('sort_direction', 'desc');
         $sort_field = request('sort_field', 'id');
 
-        // 🔒 Sécurité tri
         $allowedSortFields = ['id', 'designation', 'nature', 'reference', 'created_at'];
 
         if (!in_array($sort_field, $allowedSortFields)) {
@@ -40,27 +39,22 @@ class AccountController extends Controller
             $sort_direction = 'desc';
         }
 
-        $data = CashAccount::query()
-            ->leftJoin('users', 'cash_accounts.addedBy', '=', 'users.id')
-            ->leftJoin('branches', 'cash_accounts.branche_id', '=', 'branches.id')
-            ->select(
-                'cash_accounts.*',
-                'users.name as addedBy',
-                'branches.name as brancheName'
-            )
-            ->where('cash_accounts.status', 'created')
+        $data = CashAccount::with(['branch', 'user'])
+            ->where('status', 'created')
 
             // 🔍 Recherche
             ->when($q, function ($query) use ($q) {
                 $query->where(function ($sub) use ($q) {
-                    $sub->where('cash_accounts.designation', 'LIKE', "%{$q}%")
-                        ->orWhere('cash_accounts.nature', 'LIKE', "%{$q}%")
-                        ->orWhere('cash_accounts.reference', 'LIKE', "%{$q}%")
-                        ->orWhere('branches.name', 'LIKE', "%{$q}%");
+                    $sub->where('designation', 'LIKE', "%{$q}%")
+                        ->orWhere('nature', 'LIKE', "%{$q}%")
+                        ->orWhere('reference', 'LIKE', "%{$q}%")
+                        ->orWhereHas('branch', function ($q2) use ($q) {
+                            $q2->where('name', 'LIKE', "%{$q}%");
+                        });
                 });
             })
 
-            ->orderBy("cash_accounts.$sort_field", $sort_direction)
+            ->orderBy($sort_field, $sort_direction)
             ->paginate($page);
 
         return response()->json([

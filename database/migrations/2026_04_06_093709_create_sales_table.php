@@ -19,6 +19,8 @@ return new class extends Migration
             $table->foreignId('customer_id')->nullable()->constrained('customers')->cascadeOnDelete();
             $table->decimal('total_amount', 10, 2)->default(0);
             $table->decimal('paid_amount', 10, 2)->default(0);
+            $table->string('sale_type');
+            $table->string('sale_category');
             $table->string('status')->default('completed');
             $table->date('transaction_date');
             $table->timestamps();

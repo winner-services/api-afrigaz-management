@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Sale;
 
 use App\Http\Controllers\Controller;
+use App\Models\Product;
 use App\Models\Sale;
 use App\Services\SaleService;
 use Illuminate\Http\Request;
@@ -27,6 +28,9 @@ class SaleController extends Controller
                     new OA\Property(property: "customer_id", type: "integer", nullable: true, example: 1),
                     new OA\Property(property: "account_id", type: "integer", nullable: true, example: 1),
                     new OA\Property(property: "paid_amount", type: "number", format: "float", example: 5000),
+                    new OA\Property(property: "sale_type", type: "string", example: "proforma"),
+                    new OA\Property(property: "sale_category", type: "string", example: "detail"),
+
                     new OA\Property(
                         property: "products",
                         type: "array",
@@ -97,8 +101,38 @@ class SaleController extends Controller
                 'customer_id' => 'nullable|exists:customers,id',
                 'paid_amount' => 'nullable|numeric|min:0',
                 'account_id' => 'required|exists:cash_accounts,id',
+                'sale_type' => 'required|string',
+                'sale_category' => 'required|string',
             ]);
-            
+            $reference1 = 'SALE-' . date('YmdHis');
+            if ('sale_type' === 'Proforma') {
+                $sale = Sale::create([
+                    'reference' => $reference1,
+                    'branch_id' => $request->branch_id,
+                    'addedBy' => Auth::id(),
+                    'total_amount' => 0,
+                    'paid_amount' => $request->paid_amount ?? 0,
+                    'transaction_date' => now(),
+                    'customer_id' => $request->customer_id,
+                    'sale_type' => $request->sale_type,
+                    'sale_category' => $request->sale_category,
+                ]);
+
+                foreach ($request->products as $item) {
+
+                    $product = Product::findOrFail($item['product_id']);
+                    $quantity = $item['quantity'];
+
+                    $lineTotal = $quantity * $item['unit_price'];
+
+                    $sale->items()->create([
+                        'product_id' => $product->id,
+                        'quantity' => $quantity,
+                        'unit_price' => $item['unit_price'],
+                        'total_price' => $lineTotal
+                    ]);
+                }
+            }
 
             $sale = SaleService::createSaleWithPayment(
                 $request->branch_id,
@@ -106,7 +140,9 @@ class SaleController extends Controller
                 Auth::id(),
                 $request->customer_id,
                 $request->paid_amount ?? 0,
-                $request->account_id
+                $request->account_id,
+                $request->sale_type,
+                $request->sale_category
             );
 
             return response()->json([
@@ -222,7 +258,7 @@ class SaleController extends Controller
     {
         $perPage = $request->query('per_page', 20);
 
-        $sales = Sale::with(['customer', 'user', 'saleItems.product'])
+        $sales = Sale::with(['branch', 'customer', 'user', 'saleItems.product'])
             ->orderBy('transaction_date', 'desc')
             ->paginate($perPage);
 

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->foreignId('category_id')->nullable()->constrained('product_categories')->nullOnDelete();
+            $table->foreignId('unit_id')->nullable()->constrained('units')->nullOnDelete();
             $table->integer('weight_kg')->nullable();
             $table->decimal('wholesale_price', 10, 2)->nullable();
             $table->decimal('retail_price', 10, 2)->nullable();

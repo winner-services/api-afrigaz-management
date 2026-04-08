@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\MovementStock\MovementController;
 use App\Http\Controllers\Api\Permission\PermissionController;
 use App\Http\Controllers\Api\Products\CategoryController;
 use App\Http\Controllers\Api\Products\ProductController;
+use App\Http\Controllers\Api\Products\UnitController;
 use App\Http\Controllers\Api\Role\RoleController;
 use App\Http\Controllers\Api\Sale\ReturnSaleController;
 use App\Http\Controllers\Api\Sale\SaleController;
@@ -96,8 +97,8 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::get('/cashCategoriesGetAllData', 'index');
             Route::get('/cashCategoriesGetOptionsData', 'getCashCategoryOptions');
             Route::post('/cashCategoriesStoreData', 'store');
-            Route::put('/cashCategoriesUpdate/{id}', 'update');
-            Route::put('/cashCategoriesDelete/{id}', 'destroy');
+            Route::put('/cashCategoryUpdate/{id}', 'update');
+            Route::put('/cashCategoryDelete/{id}', 'destroy');
         });
 
         Route::controller(AccountController::class)->group(function () {
@@ -152,6 +153,10 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/currencyStoreData', 'store');
             Route::put('/currencyUpdate/{id}', 'update');
             Route::put('/currencyDelete/{id}', 'destroy');
+        });
+        Route::controller(UnitController::class)->group(function () {
+            Route::get('/unitGetOptionsData', 'getUnitsOptions');
+            Route::post('/unitStoreData', 'storeUnit');
         });
     });
 });

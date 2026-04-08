@@ -122,7 +122,6 @@ class BulkPurchaseController extends Controller
         $sort_direction = request('sort_direction', 'desc');
         $sort_field = request('sort_field', 'id');
 
-        // 🔒 Sécurité tri
         $allowedSortFields = [
             'id',
             'quantity_kg',
@@ -141,23 +140,19 @@ class BulkPurchaseController extends Controller
             $sort_direction = 'desc';
         }
 
-        $data = Bulk_Purchase::join('suppliers', 'bulk__purchases.supplier_id', '=', 'suppliers.id')
-            ->join('users', 'bulk__purchases.addedBy', '=', 'users.id')
-            ->select(
-                'bulk__purchases.*',
-                'suppliers.name as supplier',
-                'users.name as addedBy'
-            )
-
+        $data = Bulk_Purchase::with(['supplier', 'user'])
             ->when($q, function ($query) use ($q) {
                 $query->where(function ($sub) use ($q) {
-                    $sub->where('bulk__purchases.invoice_number', 'LIKE', "%{$q}%")
-                        ->orWhere('suppliers.name', 'LIKE', "%{$q}%")
-                        ->orWhere('users.name', 'LIKE', "%{$q}%");
+                    $sub->where('invoice_number', 'LIKE', "%{$q}%")
+                        ->orWhereHas('supplier', function ($q2) use ($q) {
+                            $q2->where('name', 'LIKE', "%{$q}%");
+                        })
+                        ->orWhereHas('user', function ($q3) use ($q) {
+                            $q3->where('name', 'LIKE', "%{$q}%");
+                        });
                 });
-            })
-
-            ->orderBy("bulk__purchases.$sort_field", $sort_direction)
+            })->where('bulk__purchases.status', '!=', 'deleted')
+            ->orderBy($sort_field, $sort_direction)
             ->paginate($page);
 
         return response()->json([

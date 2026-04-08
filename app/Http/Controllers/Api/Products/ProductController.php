@@ -31,9 +31,10 @@ class ProductController extends Controller
 
         $data = Product::join('product_categories', 'products.category_id', '=', 'product_categories.id')
             ->join('users', 'products.addedBy', '=', 'users.id')
-            ->select('products.*', 'users.name as addedBy', 'product_categories.designation as category')
+            ->join('units', 'products.unit_id', '=', 'units.id')
+            ->select('products.*', 'users.name as addedBy', 'product_categories.designation as category', 'units.abreviation as unit_abreviation', 'units.designation as unit_designation')
             ->where('products.status', 'created')
-            ->searh(trim($q))
+            ->search(trim($q))
             ->orderBy($sort_field, $sort_direction)
             ->paginate($page);
         return response()->json([
@@ -73,7 +74,7 @@ class ProductController extends Controller
                 properties: [
                     new OA\Property(property: "name", type: "string", example: "gaz"),
                     new OA\Property(property: "category_id", type: "integer", example: 1),
-                    new OA\Property(property: "weight_kg", type: "integer", example: 1),
+                    new OA\Property(property: "unit_id", type: "integer", example: 1),
                     new OA\Property(property: "wholesale_price", type: "integer", example: 1),
                     new OA\Property(property: "retail_price", type: "integer", example: 1)
                 ]
@@ -90,7 +91,7 @@ class ProductController extends Controller
         $rules = [
             'name' => ['required', 'string', 'max:255', 'unique:products,name'],
             'category_id' => ['nullable', 'exists:product_categories,id'],
-            'weight_kg' => ['nullable', 'integer'],
+            'unit_id' => ['nullable', 'integer'],
             'wholesale_price' => ['nullable', 'numeric'],
             'retail_price' => ['nullable', 'numeric']
         ];
@@ -118,7 +119,7 @@ class ProductController extends Controller
             $product = Product::create([
                 'name' => $request->name,
                 'category_id' => $request->category_id,
-                'weight_kg' => $request->weight_kg,
+                'unit_id' => $request->unit_id,
                 'wholesale_price' => $request->wholesale_price,
                 'retail_price' => $request->retail_price,
                 'addedBy' => $userId
@@ -155,7 +156,7 @@ class ProductController extends Controller
                 properties: [
                     new OA\Property(property: "name", type: "string", example: "gaz"),
                     new OA\Property(property: "category_id", type: "integer", example: 1),
-                    new OA\Property(property: "weight_kg", type: "integer", example: 1),
+                    new OA\Property(property: "unit_id", type: "integer", example: 1),
                     new OA\Property(property: "wholesale_price", type: "integer", example: 1),
                     new OA\Property(property: "retail_price", type: "integer", example: 1)
                 ]
@@ -181,7 +182,7 @@ class ProductController extends Controller
         $rules = [
             'name' => ['sometimes', 'string', 'max:255', 'unique:products,name,' . $product->id],
             'category_id' => ['nullable', 'exists:product_categories,id'],
-            'weight_kg' => ['nullable', 'integer'],
+            'unit_id' => ['nullable', 'integer'],
             'wholesale_price' => ['nullable', 'numeric'],
             'retail_price' => ['nullable', 'numeric'],
         ];
@@ -204,7 +205,7 @@ class ProductController extends Controller
         $product->update($request->only([
             'name',
             'category_id',
-            'weight_kg',
+            'unit_id',
             'wholesale_price',
             'retail_price',
         ]));

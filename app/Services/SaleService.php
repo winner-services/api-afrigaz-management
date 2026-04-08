@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\DB;
 
 class SaleService
 {
-    public static function createSaleWithPayment($branchId, $products, $userId, $customerId = null, $paidAmount = 0, $account_id)
+    public static function createSaleWithPayment($branchId, $products, $userId, $customerId = null, $paidAmount = 0, $account_id, $sale_type, $sale_category)
     {
-        return DB::transaction(function () use ($branchId, $products, $userId, $customerId, $paidAmount, $account_id) {
+        return DB::transaction(function () use ($branchId, $products, $userId, $customerId, $paidAmount, $account_id, $sale_type, $sale_category) {
 // dd($paidAmount);
             $errors = [];
 
@@ -46,7 +46,9 @@ class SaleService
                 'total_amount' => 0,
                 'paid_amount' => 0,
                 'transaction_date' => now(),
-                'customer_id' => $customerId
+                'customer_id' => $customerId,
+                'sale_type' => $sale_type,
+                'sale_category' => $sale_category,
             ]);
 
             $total = 0;

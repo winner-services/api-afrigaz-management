@@ -9,13 +9,13 @@
         "version": "1.0.0"
     },
     "paths": {
-        "/api/v1/AccountGetAllData": {
+        "/api/v1/accountGetAllData": {
             "get": {
                 "tags": [
                     "Accounts"
                 ],
                 "summary": "Lister",
-                "operationId": "396377dc81fecbf1a41ed1ef49ee124e",
+                "operationId": "54a642a88ca1e70dff78d7fda4899dc3",
                 "responses": {
                     "200": {
                         "description": "Liste"
@@ -1288,6 +1288,20 @@
                 }
             }
         },
+        "/api/v1/getAllPayments": {
+            "get": {
+                "tags": [
+                    "payment Debts customers"
+                ],
+                "summary": "Lister",
+                "operationId": "0b19a0ad270cf32032315c0eb0ae535d",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
         "/api/v1/stockEntriesStore": {
             "post": {
                 "tags": [
@@ -1667,7 +1681,7 @@
                                         "type": "integer",
                                         "example": 1
                                     },
-                                    "weight_kg": {
+                                    "unit_id": {
                                         "type": "integer",
                                         "example": 1
                                     },
@@ -1726,7 +1740,7 @@
                                         "type": "integer",
                                         "example": 1
                                     },
-                                    "weight_kg": {
+                                    "unit_id": {
                                         "type": "integer",
                                         "example": 1
                                     },
@@ -1777,6 +1791,63 @@
                     },
                     "404": {
                         "description": "Non trouvée"
+                    }
+                }
+            }
+        },
+        "/api/v1/unitGetOptionsData": {
+            "get": {
+                "tags": [
+                    "Units"
+                ],
+                "summary": "Lister",
+                "operationId": "defa5ed06028550ff44d39200748742a",
+                "responses": {
+                    "200": {
+                        "description": "Liste des unites"
+                    }
+                }
+            }
+        },
+        "/api/v1/unitStoreData": {
+            "post": {
+                "tags": [
+                    "Units"
+                ],
+                "summary": "Créer",
+                "operationId": "7bac743a173f297d4cc093b8c9c9b4eb",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "designation"
+                                ],
+                                "properties": {
+                                    "designation": {
+                                        "type": "string",
+                                        "example": "Cylindre"
+                                    },
+                                    "abreviation": {
+                                        "type": "string",
+                                        "example": "Cl"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Données créées avec succès"
+                    },
+                    "422": {
+                        "description": "Validation des données échouée"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
                     }
                 }
             }
@@ -2212,6 +2283,14 @@
                                         "type": "number",
                                         "format": "float",
                                         "example": 5000
+                                    },
+                                    "sale_type": {
+                                        "type": "string",
+                                        "example": "proforma"
+                                    },
+                                    "sale_category": {
+                                        "type": "string",
+                                        "example": "detail"
                                     },
                                     "products": {
                                         "type": "array",
@@ -3426,6 +3505,10 @@
         {
             "name": "Products",
             "description": "Products"
+        },
+        {
+            "name": "Units",
+            "description": "Units"
         },
         {
             "name": "Roles",

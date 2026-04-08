@@ -12,7 +12,8 @@ use Illuminate\Database\Eloquent\Model;
     'wholesale_price',
     'retail_price',
     'status',
-    'addedBy'
+    'addedBy',
+    'unit_id'
 ])]
 
 class Product extends Model
@@ -22,12 +23,17 @@ class Product extends Model
         return $this->belongsTo(ProductCategory::class, 'category_id');
     }
 
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class, 'unit_id');
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class, 'addedBy');
     }
 
-    public function scopeSearh($query, $term)
+    public function scopeSearch($query, $term)
     {
         $term = "%$term%";
         $query->where(function ($query) use ($term) {
@@ -40,6 +46,8 @@ class Product extends Model
                 })
                 ->orWhereHas('category', function ($q3) use ($term) {
                     $q3->where('product_categories.designation', 'like', $term);
+                })->orWhereHas('unit', function ($q4) use ($term) {
+                    $q4->where('units.abreviation', 'like', $term);
                 });
         });
     }
@@ -51,7 +59,7 @@ class Product extends Model
             $branches = Branche::pluck('id');
 
             if ($branches->isEmpty()) {
-                return; 
+                return;
             }
 
             $data = $branches->map(function ($brancheId) use ($product) {
