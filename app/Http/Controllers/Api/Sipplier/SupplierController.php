@@ -79,7 +79,7 @@ class SupplierController extends Controller
 
     public function getSupplierOptions()
     {
-        $data = Supplier::latest()->get();
+        $data = Supplier::where('status', 'created')->get();
 
         return response()->json([
             'status' => true,

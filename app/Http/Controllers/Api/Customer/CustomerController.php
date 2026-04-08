@@ -78,7 +78,7 @@ class CustomerController extends Controller
 
     public function getCustomerOptions()
     {
-        $data = Customer::latest()->get();
+        $data = Customer::where('status', 'created')->get();
 
         return response()->json([
             'status' => true,
