@@ -111,13 +111,13 @@ class SaleController extends Controller
                     'branch_id' => $request->branch_id,
                     'addedBy' => Auth::id(),
                     'total_amount' => 0,
-                    'paid_amount' => $request->paid_amount ?? 0,
+                    'paid_amount' => 0,
                     'transaction_date' => now(),
                     'customer_id' => $request->customer_id,
                     'sale_type' => $request->sale_type,
                     'sale_category' => $request->sale_category,
                 ]);
-
+                $total = 0;
                 foreach ($request->products as $item) {
 
                     $product = Product::findOrFail($item['product_id']);
@@ -131,20 +131,25 @@ class SaleController extends Controller
                         'unit_price' => $item['unit_price'],
                         'total_price' => $lineTotal
                     ]);
+                    $total += $lineTotal;
                 }
+                $sale->update([
+                    'total_amount' => $total,
+                    'paid_amount' => $request->paid_amount ?? 0,
+                    'status' => $request->paid_amount >= $total ? 'completed' : 'pending'
+                ]);
+            } else {
+                $sale = SaleService::createSaleWithPayment(
+                    $request->branch_id,
+                    $request->products,
+                    Auth::id(),
+                    $request->customer_id,
+                    $request->paid_amount ?? 0,
+                    $request->account_id,
+                    $request->sale_type,
+                    $request->sale_category
+                );
             }
-
-            $sale = SaleService::createSaleWithPayment(
-                $request->branch_id,
-                $request->products,
-                Auth::id(),
-                $request->customer_id,
-                $request->paid_amount ?? 0,
-                $request->account_id,
-                $request->sale_type,
-                $request->sale_category
-            );
-
             return response()->json([
                 'message' => 'Vente enregistrée',
                 'status' => 201,
