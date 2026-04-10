@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branche;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -127,6 +128,7 @@ class AuthenticationController extends Controller
         }
 
         try {
+            $branche = Branche::where('user_id', $user->id)->first();
             // 🔹 Récupération des permissions
             $rolePermissions = DB::table('role_permission_actions as rpa')
                 ->join('permissions as p', 'rpa.permission_id', '=', 'p.id')
@@ -172,6 +174,8 @@ class AuthenticationController extends Controller
                         'email'       => $user->email,
                         'phone'       => $user->phone,
                         'active'      => $user->active,
+                        'branch_id'   => $user->id,
+                        'branche'     => $branche ? $branche->name : null,
                         'role'        => $user->role->name ?? null,
                         'permissions' => $permissions,
                     ],

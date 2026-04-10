@@ -100,9 +100,9 @@ class SaleController extends Controller
                 'products.*.unit_price' => 'required|integer|min:1',
                 'customer_id' => 'nullable|exists:customers,id',
                 'paid_amount' => 'nullable|numeric|min:0',
-                'account_id' => 'required|exists:cash_accounts,id',
-                'sale_type' => 'required|string',
-                'sale_category' => 'required|string',
+                'account_id' => 'nullable|exists:cash_accounts,id',
+                'sale_type' => 'nullable|string',
+                'sale_category' => 'nullable|string',
             ]);
             $reference1 = 'SALE-' . date('YmdHis');
             if ('sale_type' === 'Proforma') {

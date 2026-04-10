@@ -17,6 +17,7 @@ class BrancheSeeder extends Seeder
             'name' => 'Entrepôt principal',
             'city' => 'Beni',
             'address' => 'Comm. Beu',
+            'user_id' => 1
         ]);
     }
 }

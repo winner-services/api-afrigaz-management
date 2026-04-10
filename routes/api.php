@@ -131,6 +131,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
         Route::controller(StockController::class)->group(function () {
             Route::get('/stockByBranchGetAllData', 'index');
+            Route::get('/stocksByBrancheGetData', 'getStockByBranche');
         });
 
         Route::controller(SaleController::class)->group(function () {
