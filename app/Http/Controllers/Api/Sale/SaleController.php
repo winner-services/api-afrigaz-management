@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Sale;
 
 use App\Http\Controllers\Controller;
 use App\Models\Branche;
+use App\Models\Currency;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Services\SaleService;
@@ -263,6 +264,8 @@ class SaleController extends Controller
     public function index(Request $request)
     {
         $perPage = $request->query('per_page', 20);
+        $devide = Currency::latest()->get();
+        $branches = Branche::latest()->get();
 
         $sales = Sale::with(['branch', 'customer', 'user', 'saleItems.product'])
             ->orderBy('transaction_date', 'desc')
@@ -270,6 +273,8 @@ class SaleController extends Controller
 
         return response()->json([
             'status' => 200,
+            'devise' => $devide,
+            'branches' => $branches,
             'data' => $sales
         ]);
     }
@@ -357,6 +362,8 @@ class SaleController extends Controller
     )]
     public function indexByBranche(Request $request)
     {
+        $devide = Currency::latest()->get();
+        $branches = Branche::latest()->get();
         $user = Auth::user();
         $branch = Branche::where('user_id', $user->id)->first();
 
@@ -389,6 +396,8 @@ class SaleController extends Controller
 
         return response()->json([
             'status' => 200,
+            'devise' => $devide,
+            'branches' => $branches,
             'data' => $sales
         ]);
     }
