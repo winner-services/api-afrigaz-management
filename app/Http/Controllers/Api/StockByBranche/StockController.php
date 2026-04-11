@@ -171,6 +171,8 @@ class StockController extends Controller
         // 🔹 récupérer la branche
         $branche = Branche::where('user_id', $user->id)->first();
 
+        $brancheId = request('branche_id', $branche->id);
+
         if (!$branche) {
             return response()->json([
                 'message' => 'Branche non trouvée'
@@ -181,7 +183,7 @@ class StockController extends Controller
         $query = StockByBranch::with([
             'product.category',
             'product.unit'
-        ])->where('branche_id', $branche->id);
+        ])->where('branche_id', $brancheId);
 
         // 🔍 recherche produit
         if ($search) {
@@ -227,7 +229,7 @@ class StockController extends Controller
 
         return response()->json([
             'branche' => [
-                'id' => $branche->id,
+                'id' => $brancheId,
                 'name' => $branche->name,
                 'phone' => $branche->phone,
                 'city' => $branche->city,

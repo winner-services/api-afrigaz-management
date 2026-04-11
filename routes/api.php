@@ -107,6 +107,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/accountStoreData', 'store');
             Route::put('/accountUpdate/{id}', 'update');
             Route::put('/accountDelete/{id}', 'destroy');
+            Route::get('/accountByBranchGetOptionsData', 'getAccountOptionsByBranch');
         });
 
         Route::controller(BulkPurchaseController::class)->group(function () {
@@ -138,6 +139,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/saleStoreData', 'store');
             // Route::post('/saleCancel/{id}/', 'cancel');
             Route::get('/salesGetAllData', 'index');
+            Route::get('/salesByBranchGetData', 'indexByBranche');
         });
 
         Route::controller(ReturnSaleController::class)->group(function () {

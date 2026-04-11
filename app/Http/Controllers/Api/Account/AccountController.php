@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Account;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branche;
 use App\Models\CashAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -73,7 +74,7 @@ class AccountController extends Controller
     )]
     public function getAccountOptions()
     {
-        $data = CashAccount::latest()->get();
+        $data = CashAccount::where('status', 'created')->get();
 
         return response()->json([
             'status' => true,
@@ -264,6 +265,30 @@ class AccountController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Compte supprimé'
+        ]);
+    }
+
+    #[OA\Get(
+        path: "/api/v1/accountByBranchGetOptionsData",
+        summary: "Lister",
+        tags: ["Accounts"],
+        responses: [
+            new OA\Response(response: 200, description: "Liste")
+        ]
+    )]
+    public function getAccountOptionsByBranch()
+    {
+        $user = Auth::user();
+        $branch = Branche::where('user_id', $user->id)->first();
+
+        $brancheId = request('branche_id', $branch->id);
+        $data = CashAccount::where('status', 'created')
+            ->where('branche_id', $brancheId)
+            ->get();
+
+        return response()->json([
+            'status' => true,
+            'data' => $data
         ]);
     }
 }

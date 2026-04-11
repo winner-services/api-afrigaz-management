@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Sale;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branche;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Services\SaleService;
@@ -264,6 +265,125 @@ class SaleController extends Controller
         $perPage = $request->query('per_page', 20);
 
         $sales = Sale::with(['branch', 'customer', 'user', 'saleItems.product'])
+            ->orderBy('transaction_date', 'desc')
+            ->paginate($perPage);
+
+        return response()->json([
+            'status' => 200,
+            'data' => $sales
+        ]);
+    }
+
+    #[OA\Get(
+        path: "/api/v1/salesByBranchGetData",
+        summary: "Historique des ventes par succursale",
+        tags: ["Sales"],
+        parameters: [
+            new OA\Parameter(
+                name: "per_page",
+                in: "query",
+                description: "Nombre de résultats par page",
+                schema: new OA\Schema(type: "integer", example: 20)
+            ),
+            new OA\Parameter(
+                name: "page",
+                in: "query",
+                description: "Numéro de page",
+                schema: new OA\Schema(type: "integer", example: 1)
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Liste paginée des ventes",
+                content: new OA\JsonContent(
+                    type: "object",
+                    properties: [
+                        new OA\Property(
+                            property: "data",
+                            type: "array",
+                            items: new OA\Items(
+                                properties: [
+                                    new OA\Property(property: "id", type: "integer"),
+                                    new OA\Property(property: "reference", type: "string"),
+                                    new OA\Property(property: "transaction_date", type: "string", format: "date"),
+                                    new OA\Property(
+                                        property: "customer",
+                                        type: "object",
+                                        properties: [
+                                            new OA\Property(property: "id", type: "integer"),
+                                            new OA\Property(property: "name", type: "string")
+                                        ]
+                                    ),
+                                    new OA\Property(
+                                        property: "user",
+                                        type: "object",
+                                        properties: [
+                                            new OA\Property(property: "id", type: "integer"),
+                                            new OA\Property(property: "name", type: "string")
+                                        ]
+                                    ),
+                                    new OA\Property(
+                                        property: "items",
+                                        type: "array",
+                                        items: new OA\Items(
+                                            properties: [
+                                                new OA\Property(property: "id", type: "integer"),
+                                                new OA\Property(property: "quantity", type: "integer"),
+                                                new OA\Property(property: "unit_price", type: "number"),
+                                                new OA\Property(
+                                                    property: "product",
+                                                    type: "object",
+                                                    properties: [
+                                                        new OA\Property(property: "id", type: "integer"),
+                                                        new OA\Property(property: "name", type: "string")
+                                                    ]
+                                                )
+                                            ]
+                                        )
+                                    ),
+                                    new OA\Property(property: "total_amount", type: "number"),
+                                    new OA\Property(property: "paid_amount", type: "number"),
+                                    new OA\Property(property: "status", type: "string")
+                                ]
+                            )
+                        ),
+                        new OA\Property(property: "links", type: "object"),
+                        new OA\Property(property: "meta", type: "object")
+                    ]
+                )
+            )
+        ]
+    )]
+    public function indexByBranche(Request $request)
+    {
+        $user = Auth::user();
+        $branch = Branche::where('user_id', $user->id)->first();
+
+        $brancheId = request('branche_id', $branch->id);
+        $perPage = $request->query('per_page', 20);
+        $search = request('q', '');
+
+        $sales = Sale::with(['branch', 'customer', 'user', 'saleItems.product'])
+            ->where('branch_id', $brancheId)
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    // Recherche sur client
+                    $q->whereHas('customer', function ($q2) use ($search) {
+                        $q2->where('name', 'like', "%{$search}%");
+                    })
+                        // Recherche sur utilisateur (vendeur)
+                        ->orWhereHas('user', function ($q2) use ($search) {
+                            $q2->where('name', 'like', "%{$search}%");
+                        })
+                        // Recherche sur produits
+                        ->orWhereHas('saleItems.product', function ($q2) use ($search) {
+                            $q2->where('designation', 'like', "%{$search}%");
+                        })
+                        // Optionnel : recherche directe sur la vente (ex: référence)
+                        ->orWhere('reference', 'like', "%{$search}%");
+                });
+            })
             ->orderBy('transaction_date', 'desc')
             ->paginate($perPage);
 
