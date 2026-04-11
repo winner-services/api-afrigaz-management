@@ -167,13 +167,13 @@ class StockController extends Controller
 
     public function getStockByBranche(): JsonResponse
     {
+        $user = Auth::user();
         $devide = Currency::latest()->get();
         $branches = Branche::latest()->get();
-        $user = Auth::user();
-        $search = request('q', '');
-        $perPage = request('per_page', 10);
 
-        // 🔹 récupérer la branche
+        $page = request("paginate", 10);
+        $q = request("q", "");
+
         $branche = Branche::where('user_id', $user->id)->first();
 
         if (!$branche) {
@@ -184,77 +184,126 @@ class StockController extends Controller
 
         $brancheId = request('branche_id', $branche->id);
 
-        // 🔹 query stock
-        $query = StockByBranch::with([
+        $stocks = StockByBranch::with([
             'product.category',
             'product.unit'
-        ])->where('branche_id', $brancheId);
+        ])
+            ->where('branche_id', $brancheId)
 
-        // 🔍 recherche produit + catégorie (corrigé)
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('product', function ($q2) use ($search) {
-                    $q2->where('name', 'like', "%$search%");
-                })
-                    ->orWhereHas('product.category', function ($q2) use ($search) {
-                        $q2->where('designation', 'like', "%$search%");
-                    });
-            });
-        }
+            // 🔍 recherche simple
+            ->when($q, function ($query) use ($q) {
+                $query->where(function ($q2) use ($q) {
+                    $q2->whereHas('product', function ($q3) use ($q) {
+                        $q3->where('name', 'like', "%$q%");
+                    })
+                        ->orWhereHas('product.category', function ($q3) use ($q) {
+                            $q3->where('designation', 'like', "%$q%");
+                        });
+                });
+            })
 
-        // ✅ PAGINATION ici
-        $stocks = $query->paginate($perPage);
+            ->orderBy('id', 'desc')
+            ->paginate($page);
 
-        // 🔹 transformation des données
-        $products = collect($stocks->items())->map(function ($stock) {
-            return [
-                'stock_id' => $stock->id,
-                'stock_quantity' => $stock->stock_quantity,
-                'status' => $stock->status,
-
-                'product' => [
-                    'id' => $stock->product?->id,
-                    'name' => $stock->product?->name,
-                    'weight_kg' => $stock->product?->weight_kg,
-                    'wholesale_price' => $stock->product?->wholesale_price,
-                    'retail_price' => $stock->product?->retail_price,
-                ],
-
-                'category' => [
-                    'id' => $stock->product?->category?->id,
-                    'designation' => $stock->product?->category?->designation,
-                ],
-
-                'unit' => [
-                    'id' => $stock->product?->unit?->id,
-                    'designation' => $stock->product?->unit?->designation,
-                    'abreviation' => $stock->product?->unit?->abreviation,
-                ],
-            ];
-        });
-
-        return response()->json([
-            'devise' => $devide,
-            'branches' => $branches,
-            'branche' => [
-                'id' => $branche->id,
-                'name' => $branche->name,
-                'phone' => $branche->phone,
-                'city' => $branche->city,
-                'address' => $branche->address,
-            ],
-
-            'products' => $products,
-
-            // ✅ meta pagination
-            'pagination' => [
-                'current_page' => $stocks->currentPage(),
-                'last_page' => $stocks->lastPage(),
-                'per_page' => $stocks->perPage(),
-                'total' => $stocks->total(),
+        return response()->json(
+            [
+                'devise' => $devide,
+                'branches' => $branches,
+                'data' => $stocks
             ]
-        ]);
+        );
     }
+
+    // public function getStockByBranche(): JsonResponse
+    // {
+    //     $devide = Currency::latest()->get();
+    //     $branches = Branche::latest()->get();
+    //     $user = Auth::user();
+    //     $search = request('q', '');
+    //     $perPage = request('per_page', 10);
+
+    //     // 🔹 récupérer la branche
+    //     $branche = Branche::where('user_id', $user->id)->first();
+
+    //     if (!$branche) {
+    //         return response()->json([
+    //             'message' => 'Branche non trouvée'
+    //         ], 404);
+    //     }
+
+    //     $brancheId = request('branche_id', $branche->id);
+
+    //     // 🔹 query stock
+    //     $query = StockByBranch::with([
+    //         'product.category',
+    //         'product.unit'
+    //     ])->where('branche_id', $brancheId);
+
+    //     // 🔍 recherche produit + catégorie (corrigé)
+    //     if ($search) {
+    //         $query->where(function ($q) use ($search) {
+    //             $q->whereHas('product', function ($q2) use ($search) {
+    //                 $q2->where('name', 'like', "%$search%");
+    //             })
+    //                 ->orWhereHas('product.category', function ($q2) use ($search) {
+    //                     $q2->where('designation', 'like', "%$search%");
+    //                 });
+    //         });
+    //     }
+
+    //     // ✅ PAGINATION ici
+    //     $stocks = $query->paginate($perPage);
+
+    //     // 🔹 transformation des données
+    //     $products = collect($stocks->items())->map(function ($stock) {
+    //         return [
+    //             'stock_id' => $stock->id,
+    //             'stock_quantity' => $stock->stock_quantity,
+    //             'status' => $stock->status,
+
+    //             'product' => [
+    //                 'id' => $stock->product?->id,
+    //                 'name' => $stock->product?->name,
+    //                 'weight_kg' => $stock->product?->weight_kg,
+    //                 'wholesale_price' => $stock->product?->wholesale_price,
+    //                 'retail_price' => $stock->product?->retail_price,
+    //             ],
+
+    //             'category' => [
+    //                 'id' => $stock->product?->category?->id,
+    //                 'designation' => $stock->product?->category?->designation,
+    //             ],
+
+    //             'unit' => [
+    //                 'id' => $stock->product?->unit?->id,
+    //                 'designation' => $stock->product?->unit?->designation,
+    //                 'abreviation' => $stock->product?->unit?->abreviation,
+    //             ],
+    //         ];
+    //     });
+
+    //     return response()->json([
+    //         'devise' => $devide,
+    //         'branches' => $branches,
+    //         'branche' => [
+    //             'id' => $branche->id,
+    //             'name' => $branche->name,
+    //             'phone' => $branche->phone,
+    //             'city' => $branche->city,
+    //             'address' => $branche->address,
+    //         ],
+
+    //         'products' => $products,
+
+    //         // ✅ meta pagination
+    //         'pagination' => [
+    //             'current_page' => $stocks->currentPage(),
+    //             'last_page' => $stocks->lastPage(),
+    //             'per_page' => $stocks->perPage(),
+    //             'total' => $stocks->total(),
+    //         ]
+    //     ]);
+    // }
 
 
     // public function getStockByBranche(): JsonResponse
