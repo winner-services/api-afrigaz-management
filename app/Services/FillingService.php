@@ -20,17 +20,26 @@ class FillingService
         return DB::transaction(function () use ($data) {
 
             $branchId = 1;
+
+            if (!$branchId) {
+                throw new \Exception("Branche introuvable");
+            }
+
             $tankId = $data['tank_id'];
             $items = $data['items'];
+
 
             $products = Product::whereIn(
                 'id',
                 collect($items)->pluck('product_id')
             )->get()->keyBy('id');
 
+
+            $this->stockService->checkAllStocksOrFail($branchId, $items);
+
             $totalGas = 0;
 
-            // 🔥 2. validation + calcul gaz total
+
             foreach ($items as $item) {
 
                 $qty = $item['Number_of_bottles'];
@@ -45,26 +54,23 @@ class FillingService
                 }
 
                 $product = $products[$productId];
-                $weight = $product->weight_kg;
 
-                if (!$weight || $weight <= 0) {
+                if (!$product->weight_kg || $product->weight_kg <= 0) {
                     throw new \Exception("Poids non défini pour produit ID: $productId");
                 }
 
-                $this->stockService->checkAllStocksOrFail($branchId, $data['items']);
-                $totalGas += $qty * $weight;
+                $totalGas += $qty * $product->weight_kg;
             }
 
-            //  créer filling
             $filling = Filling::create([
                 'branch_id' => $branchId,
                 'tank_id' => $tankId,
                 'total_gas_used' => $totalGas,
                 'note' => 'Remplissage du ' . now()->format('Y-m-d H:i:s'),
                 'addedBy' => Auth::id(),
+                'operation_date' => $data['operation_date']
             ]);
 
-            // consommer gaz citerne
             $this->tankService->consumeGas(
                 $tankId,
                 $totalGas,
@@ -72,16 +78,15 @@ class FillingService
                 $filling->id
             );
 
-            // traitement des items
+
             foreach ($items as $item) {
 
                 $qty = $item['Number_of_bottles'];
                 $productId = $item['product_id'];
 
                 $product = $products[$productId];
-                $weight = $product->weight_kg;
 
-                // 🔻 retirer bouteilles vides (bon état)
+
                 $this->stockService->decreaseStock(
                     $branchId,
                     $productId,
@@ -90,7 +95,7 @@ class FillingService
                     'good'
                 );
 
-                // 🔺 ajouter bouteilles pleines
+
                 $this->stockService->increaseStock(
                     $branchId,
                     $productId,
@@ -99,16 +104,15 @@ class FillingService
                     null
                 );
 
-                // 🔥 enregistrer item
                 FillingItem::create([
                     'filling_id' => $filling->id,
                     'product_id' => $productId,
                     'Number_of_bottles' => $qty,
-                    'gas_used' => $qty * $weight,
+                    'gas_used' => $qty * $product->weight_kg,
                 ]);
             }
 
-            return $filling->load('items');
+            return $filling->load(['items.product']);
         });
     }
 }

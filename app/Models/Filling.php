@@ -10,7 +10,8 @@ use Illuminate\Database\Eloquent\Model;
     'tank_id',
     'total_gas_used',
     'note',
-    'addedBy'
+    'addedBy',
+    'operation_date'
 ])]
 class Filling extends Model
 {

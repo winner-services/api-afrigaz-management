@@ -23,6 +23,7 @@ return new class extends Migration
             $table->decimal('total_gas_used', 10, 2)->default(0);
             $table->text('note')->nullable();
             $table->foreignId('addedBy')->nullable()->constrained('users')->nullOnDelete();
+            $table->date('operation_date')->default(now());
             $table->timestamps();
         });
     }

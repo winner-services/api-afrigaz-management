@@ -90,12 +90,12 @@ class FillingController extends Controller
 
             $data = $request->validate([
                 'tank_id' => 'required|exists:tanks,id',
+                'operation_date' => 'required|date',
                 'items' => 'required|array|min:1',
                 'items.*.product_id' => 'required|exists:products,id',
                 'items.*.Number_of_bottles' => 'required|integer|min:1',
             ]);
 
-           
             $filling = $this->service->processFilling($data);
 
             return response()->json([
@@ -114,13 +114,14 @@ class FillingController extends Controller
 
             Log::error('Filling store error', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
                 'payload' => $request->all()
             ]);
 
+            $decoded = json_decode($e->getMessage(), true);
+
             return response()->json([
                 'message' => 'Impossible de faire le remplissage',
-                'error' => $e->getMessage(),
+                'errors' => is_array($decoded) ? $decoded : [$e->getMessage()],
                 'status' => 422
             ], 422);
         }
