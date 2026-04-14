@@ -1929,6 +1929,20 @@
                 }
             }
         },
+        "/api/v1/lowStockProductsGetData": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Lister",
+                "operationId": "b8b2fe4b7a61fc80e12e6c5d71686fc1",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
         "/api/v1/unitGetOptionsData": {
             "get": {
                 "tags": [

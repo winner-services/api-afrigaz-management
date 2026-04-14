@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Products;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branche;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -269,6 +270,61 @@ class ProductController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Produit supprimé'
+        ]);
+    }
+
+    #[OA\Get(
+        path: "/api/v1/lowStockProductsGetData",
+        summary: "Lister",
+        tags: ["Products"],
+        responses: [
+            new OA\Response(response: 200, description: "Liste")
+        ]
+    )]
+    public function lowStockProducts(Request $request): JsonResponse
+    {
+        $branche = Branche::where('user_id', Auth::id())->first();
+
+        if (!$branche) {
+            return response()->json([
+                'message' => 'Branche non trouvée'
+            ], 404);
+        }
+
+        $brancheId = request('branche_id', $branche->id);
+
+        $perPage = $request->query('paginate', 10);
+
+        $products = Product::query()
+            ->select([
+                'products.id',
+                'products.name',
+                'products.minimum_quantity',
+                'products.type'
+            ])
+            ->join('stock_by_branches', 'products.id', '=', 'stock_by_branches.product_id')
+            ->where('stock_by_branches.branche_id', $brancheId)
+            ->where('products.manage_stock', 1)
+            ->where(function ($q) {
+                $q->whereRaw('stock_by_branches.stock_quantity = 0')
+                    ->orWhereColumn('stock_by_branches.stock_quantity', '<=', 'products.minimum_quantity');
+            })
+            ->selectRaw('
+        stock_by_branches.stock_quantity,
+        CASE
+            WHEN stock_by_branches.stock_quantity = 0 THEN "rupture"
+            WHEN stock_by_branches.stock_quantity <= products.minimum_quantity THEN "critique"
+            ELSE "ok"
+        END as stock_status
+    ')
+            ->orderByRaw('stock_by_branches.stock_quantity = 0 DESC')
+            ->orderBy('stock_by_branches.stock_quantity', 'asc')
+            ->paginate($perPage);
+
+        return response()->json([
+            'status' => true,
+            'status' => 200,
+            'data' => $products
         ]);
     }
 }
