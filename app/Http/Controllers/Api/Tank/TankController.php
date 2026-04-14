@@ -17,7 +17,7 @@ class TankController extends Controller
         protected TankService $service
     ) {}
 
-     #[OA\Get(
+    #[OA\Get(
         path: "/api/v1/tankGetAllData",
         summary: "Lister",
         tags: ["Tanks"],
