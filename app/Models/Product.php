@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 #[Fillable([
     'name',
@@ -60,24 +61,69 @@ class Product extends Model
     {
         static::created(function ($product) {
 
-            $branches = Branche::pluck('id');
+            $branches = Branche::query()->select('id')->get();
 
             if ($branches->isEmpty()) {
                 return;
             }
 
-            $data = $branches->map(function ($brancheId) use ($product) {
-                return [
-                    'branche_id' => $brancheId,
-                    'product_id' => $product->id,
-                    'stock_quantity' => 0,
-                    'status' => 'created',
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
-            })->toArray();
+            $now = now();
 
-            StockByBranch::insertOrIgnore($data);
+            $isBottle = $product->type === 'bouteille';
+
+            $data = $branches->map(fn($branche) => [
+                'branche_id' => $branche->id,
+                'product_id' => $product->id,
+
+                'stock_quantity' => 0,
+
+                'is_empty' => $isBottle ? 1 : null,
+                'condition_state' => $isBottle ? 'good' : null,
+
+                'status' => 'created',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ])->toArray();
+
+            DB::table('stock_by_branches')->upsert(
+                $data,
+                [
+                    'branche_id',
+                    'product_id',
+                    'is_empty',
+                    'condition_state'
+                ],
+                [
+                    'stock_quantity',
+                    'status',
+                    'updated_at'
+                ]
+            );
         });
     }
+
+    // protected static function booted()
+    // {
+    //     static::created(function ($product) {
+
+    //         $branches = Branche::pluck('id');
+
+    //         if ($branches->isEmpty()) {
+    //             return;
+    //         }
+
+    //         $data = $branches->map(function ($brancheId) use ($product) {
+    //             return [
+    //                 'branche_id' => $brancheId,
+    //                 'product_id' => $product->id,
+    //                 'stock_quantity' => 0,
+    //                 'status' => 'created',
+    //                 'created_at' => now(),
+    //                 'updated_at' => now(),
+    //             ];
+    //         })->toArray();
+
+    //         StockByBranch::insertOrIgnore($data);
+    //     });
+    // }
 }
