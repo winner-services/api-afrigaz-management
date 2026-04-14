@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\Sale\ReturnSaleController;
 use App\Http\Controllers\Api\Sale\SaleController;
 use App\Http\Controllers\Api\Sipplier\SupplierController;
 use App\Http\Controllers\Api\StockByBranche\StockController;
+use App\Http\Controllers\Api\Tank\TankController;
 use App\Http\Controllers\Api\Transfer\TransefrController;
 use App\Http\Controllers\Api\Users\UserController;
 use Illuminate\Support\Facades\Route;
@@ -62,6 +63,13 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/brancheStoreData', 'storeData');
             Route::put('/brancheUpdate/{id}', 'update');
             Route::put('/brancheDelete/{id}', 'destroy');
+        });
+
+        Route::controller(TankController::class)->group(function () {
+            Route::post('/tankStoreData', 'store');
+            Route::post('/tankAddGas', 'addGas');
+            Route::get('/tankHistory/{id}', 'history');
+            Route::post('/tankAdjust', 'adjust');
         });
 
         Route::controller(CategoryController::class)->group(function () {

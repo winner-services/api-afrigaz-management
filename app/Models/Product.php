@@ -13,7 +13,11 @@ use Illuminate\Database\Eloquent\Model;
     'retail_price',
     'status',
     'addedBy',
-    'unit_id'
+    'unit_id',
+    'reference',
+    'type',
+    'is_returnable',
+    'manage_stock',
 ])]
 
 class Product extends Model

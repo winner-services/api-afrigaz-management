@@ -13,12 +13,31 @@ return new class extends Migration
     {
         Schema::create('stock_by_branches', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('branche_id')->nullable()->constrained('branches')->nullOnDelete();
-            $table->foreignId('product_id')->nullable()->constrained('products')->nullOnDelete();
+            $table->foreignId('branche_id')
+                ->nullable()
+                ->constrained('branches')
+                ->nullOnDelete();
+
+            $table->foreignId('product_id')
+                ->nullable()
+                ->constrained('products')
+                ->nullOnDelete();
             $table->integer('stock_quantity')->default(0);
+            $table->boolean('is_empty')->nullable();
+            $table->enum('condition_state', [
+                'good',
+                'damaged',
+                'repair'
+            ])->nullable();
+
             $table->string('status')->default('created');
             $table->timestamps();
-            $table->unique(['branche_id', 'product_id']);
+            $table->unique([
+                'branche_id',
+                'product_id',
+                'is_empty',
+                'condition_state'
+            ], 'unique_stock_state');
         });
     }
 

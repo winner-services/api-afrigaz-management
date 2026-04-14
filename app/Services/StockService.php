@@ -241,4 +241,69 @@ class StockService
             return $stock;
         });
     }
+
+    public function increaseStock(
+        $branchId,
+        $productId,
+        $qty,
+        $isEmpty = null,
+        $condition = null
+    ) {
+        $stock = StockByBranch::firstOrCreate([
+            'branche_id' => $branchId,
+            'product_id' => $productId,
+            'is_empty' => $isEmpty,
+            'condition_state' => $condition
+        ], [
+            'stock_quantity' => 0,
+            'status' => 'created'
+        ]);
+
+        $stock->increment('stock_quantity', $qty);
+
+        return $stock;
+    }
+
+    public function decreaseStock(
+        $branchId,
+        $productId,
+        $qty,
+        $isEmpty = null,
+        $condition = null
+    ) {
+        $stock = StockByBranch::where([
+            'branche_id' => $branchId,
+            'product_id' => $productId,
+            'is_empty' => $isEmpty,
+            'condition_state' => $condition
+        ])->first();
+
+        if (!$stock) {
+            throw new \Exception("Stock introuvable");
+        }
+
+        if ($stock->stock_quantity < $qty) {
+            throw new \Exception("Stock insuffisant");
+        }
+
+        $stock->decrement('stock_quantity', $qty);
+
+        return $stock;
+    }
+
+    public function checkStockOrFail($branchId, $productId, $qty, $isEmpty, $condition)
+    {
+        $stock = StockByBranch::where([
+            'branche_id' => $branchId,
+            'product_id' => $productId,
+            'is_empty' => $isEmpty,
+            'condition_state' => $condition
+        ])->firstOrFail();
+
+        if ($stock->stock_quantity < $qty) {
+            throw new \Exception("Stock insuffisant");
+        }
+
+        return $stock;
+    }
 }

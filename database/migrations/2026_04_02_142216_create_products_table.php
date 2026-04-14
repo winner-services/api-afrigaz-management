@@ -16,9 +16,13 @@ return new class extends Migration
             $table->string('name');
             $table->foreignId('category_id')->nullable()->constrained('product_categories')->nullOnDelete();
             $table->foreignId('unit_id')->nullable()->constrained('units')->nullOnDelete();
+            $table->string('reference')->nullable()->unique();
+            $table->enum('type', ['bouteille', 'accessoire', 'service']);
             $table->integer('weight_kg')->nullable();
-            $table->decimal('wholesale_price', 10, 2)->nullable();
+            $table->boolean('is_returnable')->default(false);
+            $table->boolean('manage_stock')->default(true);
             $table->decimal('retail_price', 10, 2)->nullable();
+            $table->decimal('wholesale_price', 10, 2)->nullable();
             $table->string('status')->default('created')->nullable();
             $table->foreignId('addedBy')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();

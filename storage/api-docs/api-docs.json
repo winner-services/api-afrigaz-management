@@ -1392,6 +1392,102 @@
                 }
             }
         },
+        "/api/tanks/fillings": {
+            "post": {
+                "tags": [
+                    "Tanks"
+                ],
+                "summary": "Créer un remplissage de tank",
+                "description": "Permet d’enregistrer un remplissage de tank avec plusieurs produits (bouteilles)",
+                "operationId": "841e4813ba86935e84f8c3ec556c0bc7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "tank_id",
+                                    "items"
+                                ],
+                                "properties": {
+                                    "tank_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "items": {
+                                        "description": "Liste des produits à remplir",
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "product_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "Number_of_bottles": {
+                                                    "description": "Nombre de bouteilles",
+                                                    "type": "integer",
+                                                    "example": 10
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Remplissage effectué avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Remplissage effectué avec succès"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 201
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Erreur de validation"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 422
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/stockMovementGetAllData": {
             "get": {
                 "tags": [
@@ -1706,6 +1802,14 @@
                                     "retail_price": {
                                         "type": "integer",
                                         "example": 1
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "example": "bouteille ou accessoire ou service"
+                                    },
+                                    "weight_kg": {
+                                        "type": "number",
+                                        "example": 1.5
                                     }
                                 },
                                 "type": "object"
@@ -1765,6 +1869,14 @@
                                     "retail_price": {
                                         "type": "integer",
                                         "example": 1
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "example": "bouteille ou accessoire ou service"
+                                    },
+                                    "weight_kg": {
+                                        "type": "number",
+                                        "example": 1.5
                                     }
                                 },
                                 "type": "object"
@@ -3005,6 +3117,296 @@
                 }
             }
         },
+        "/api/v1/tankStoreData": {
+            "post": {
+                "tags": [
+                    "Tanks"
+                ],
+                "summary": "Créer un tank",
+                "description": "Créer un nouveau tank avec capacité et niveau actuel",
+                "operationId": "2aac5a5666b7c75e14b2a6e25394f6e3",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "capacity",
+                                    "current_level"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Tank Principal",
+                                        "nullable": true
+                                    },
+                                    "capacity": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 1000
+                                    },
+                                    "current_level": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 500
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tank créé avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "tank": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Tank created successfully"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 201
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Erreur de validation"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 422
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erreur serveur",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Erreur lors de la création du tank"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Internal Server Error"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 500
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/tankAddGas": {
+            "post": {
+                "tags": [
+                    "Tanks"
+                ],
+                "summary": "Ajouter du gaz dans un tank",
+                "description": "Augmente le niveau de gaz dans un tank existant en respectant sa capacité",
+                "operationId": "498bcb8e5b86caa3aeadb20c4f542d97",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "tank_id",
+                                    "quantity"
+                                ],
+                                "properties": {
+                                    "tank_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "quantity": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 100
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Gaz ajouté avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Gaz ajouté avec succès"
+                                        },
+                                        "tank": {
+                                            "type": "object"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation ou capacité dépassée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Erreur de validation"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 422
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/tankAdjust": {
+            "post": {
+                "tags": [
+                    "Tanks"
+                ],
+                "summary": "Ajuster le niveau de gaz d’un tank",
+                "description": "Permet d’augmenter ou diminuer manuellement le niveau de gaz d’un tank",
+                "operationId": "4d589f93b8c15ae6c004ae917341e00b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "tank_id",
+                                    "quantity",
+                                    "type"
+                                ],
+                                "properties": {
+                                    "tank_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "quantity": {
+                                        "description": "Quantité à ajuster",
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 50.5
+                                    },
+                                    "type": {
+                                        "description": "Type d’ajustement",
+                                        "type": "string",
+                                        "example": "augmentation",
+                                        "enum": [
+                                            "augmentation",
+                                            "diminution"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Ajustement effectué avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Ajustement effectué avec succès"
+                                        },
+                                        "tank": {
+                                            "type": "object"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation ou logique métier",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Erreur de validation"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 422
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/transfersGetAllData": {
             "get": {
                 "tags": [
@@ -3730,6 +4132,10 @@
         {
             "name": "Stock Entries",
             "description": "Stock Entries"
+        },
+        {
+            "name": "Tanks",
+            "description": "Tanks"
         },
         {
             "name": "Stock Movements",

@@ -76,7 +76,9 @@ class ProductController extends Controller
                     new OA\Property(property: "category_id", type: "integer", example: 1),
                     new OA\Property(property: "unit_id", type: "integer", example: 1),
                     new OA\Property(property: "wholesale_price", type: "integer", example: 1),
-                    new OA\Property(property: "retail_price", type: "integer", example: 1)
+                    new OA\Property(property: "retail_price", type: "integer", example: 1),
+                    new OA\Property(property: "type", type: "string", example: "bouteille ou accessoire ou service"),
+                    new OA\Property(property: "weight_kg", type: "number", example: 1.5)
                 ]
             )
         ),
@@ -92,8 +94,10 @@ class ProductController extends Controller
             'name' => ['required', 'string', 'max:255', 'unique:products,name'],
             'category_id' => ['nullable', 'exists:product_categories,id'],
             'unit_id' => ['nullable', 'integer'],
+            'type' => ['nullable', 'in:bouteille,accessoire,service'],
+            'retail_price' => ['nullable', 'numeric'],
             'wholesale_price' => ['nullable', 'numeric'],
-            'retail_price' => ['nullable', 'numeric']
+            'weight_kg' => 'nullable|numeric',
         ];
 
         $messages = [
@@ -122,6 +126,8 @@ class ProductController extends Controller
                 'unit_id' => $request->unit_id,
                 'wholesale_price' => $request->wholesale_price,
                 'retail_price' => $request->retail_price,
+                'type' => $request->type,
+                'weight_kg' => $request->weight_kg,
                 'addedBy' => $userId
             ]);
 
@@ -158,7 +164,9 @@ class ProductController extends Controller
                     new OA\Property(property: "category_id", type: "integer", example: 1),
                     new OA\Property(property: "unit_id", type: "integer", example: 1),
                     new OA\Property(property: "wholesale_price", type: "integer", example: 1),
-                    new OA\Property(property: "retail_price", type: "integer", example: 1)
+                    new OA\Property(property: "retail_price", type: "integer", example: 1),
+                    new OA\Property(property: "type", type: "string", example: "bouteille ou accessoire ou service"),
+                    new OA\Property(property: "weight_kg", type: "number", example: 1.5)
                 ]
             )
         ),
@@ -185,11 +193,15 @@ class ProductController extends Controller
             'unit_id' => ['nullable', 'integer'],
             'wholesale_price' => ['nullable', 'numeric'],
             'retail_price' => ['nullable', 'numeric'],
+            'type' => ['nullable', 'in:bouteille,accessoire,service'],
+            'weight_kg' => ['nullable', 'numeric'],
         ];
 
         $messages = [
             'name.unique' => 'Ce produit existe déjà.',
             'category_id.exists' => 'Catégorie invalide.',
+            'type.in' => 'Type de produit invalide.',
+            'weight_kg.numeric' => 'Le poids doit être un nombre.',
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
@@ -208,6 +220,8 @@ class ProductController extends Controller
             'unit_id',
             'wholesale_price',
             'retail_price',
+            'type',
+            'weight_kg'
         ]));
 
         return response()->json([
