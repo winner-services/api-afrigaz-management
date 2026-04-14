@@ -44,7 +44,7 @@ class TankController extends Controller
                 fn($q) =>
                 $q->where('status', $status)
             )
-
+            ->where('status', '!=', 'deleted')
             ->orderBy('id', 'desc')
             ->paginate($perPage);
 
@@ -178,7 +178,7 @@ class TankController extends Controller
 
             return response()->json([
                 'message' => 'Erreur lors de la création du tank',
-                'error' => $e->getMessage(), // ⚠️ à désactiver en prod
+                'error' => $e->getMessage(),
                 'status' => 500
             ], 500);
         }
@@ -546,5 +546,160 @@ class TankController extends Controller
             'message' => 'successfully',
             'status' => 200
         ]);
+    }
+
+    #[OA\Put(
+        path: "/api/v1/tankUpdate/{id}",
+        summary: "Mettre à jour un tank",
+        description: "Permet de modifier les informations d’un tank (nom, capacité, niveau actuel, statut)",
+        tags: ["Tanks"],
+
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                description: "ID du tank",
+                in: "path",
+                required: true,
+                schema: new OA\Schema(type: "integer", example: 1)
+            )
+        ],
+
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: "name", type: "string", example: "Tank Principal"),
+                    new OA\Property(property: "capacity", type: "number", format: "float", example: 1000.50),
+                    new OA\Property(property: "current_level", type: "number", format: "float", example: 500.25)
+                ]
+            )
+        ),
+
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Tank mis à jour avec succès",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "message", type: "string", example: "Tank mis à jour avec succès"),
+                        new OA\Property(property: "status", type: "integer", example: 200),
+                        new OA\Property(
+                            property: "data",
+                            properties: [
+                                new OA\Property(property: "id", type: "integer", example: 1),
+                                new OA\Property(property: "name", type: "string", example: "Tank Principal"),
+                                new OA\Property(property: "capacity", type: "number", example: 1000.50),
+                                new OA\Property(property: "current_level", type: "number", example: 500.25),
+                                new OA\Property(property: "status", type: "string", example: "active"),
+                            ],
+                            type: "object"
+                        )
+                    ],
+                    type: "object"
+                )
+            ),
+
+            new OA\Response(
+                response: 422,
+                description: "Erreur de validation ou métier",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "message", type: "string", example: "Impossible de mettre à jour le tank"),
+                        new OA\Property(
+                            property: "errors",
+                            type: "array",
+                            items: new OA\Items(type: "string", example: "Le niveau actuel ne peut pas dépasser la capacité")
+                        ),
+                        new OA\Property(property: "status", type: "integer", example: 422)
+                    ]
+                )
+            )
+        ]
+    )]
+    public function update(Request $request, $id): JsonResponse
+    {
+        try {
+
+            $data = $request->validate([
+                'name' => "nullable|string|max:255|unique:tanks,name,$id",
+                'capacity' => 'nullable|numeric|min:0',
+                'current_level' => 'nullable|numeric|min:0',
+            ]);
+
+            $tank = Tank::findOrFail($id);
+
+            if (isset($data['current_level']) && isset($data['capacity'])) {
+                if ($data['current_level'] > $data['capacity']) {
+                    throw new \Exception("Le niveau actuel ne peut pas dépasser la capacité");
+                }
+            }
+
+            if (isset($data['capacity']) && $tank->current_level > $data['capacity']) {
+                throw new \Exception("La capacité ne peut pas être inférieure au niveau actuel");
+            }
+
+            $tank->update($data);
+
+            return response()->json([
+                'message' => 'Tank mis à jour avec succès',
+                'status' => 200,
+                'data' => $tank
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+
+            return response()->json([
+                'message' => 'Erreur de validation',
+                'errors' => $e->errors(),
+                'status' => 422
+            ], 422);
+        } catch (\Throwable $e) {
+
+            Log::error('Tank update error', [
+                'error' => $e->getMessage(),
+                'tank_id' => $id
+            ]);
+
+            return response()->json([
+                'message' => 'Impossible de mettre à jour le tank',
+                'errors' => [$e->getMessage()],
+                'status' => 422
+            ], 422);
+        }
+    }
+
+    #[OA\Put(
+        path: "/api/v1/tankDelete/{id}",
+        summary: "Supprimer",
+        tags: ["Tanks"],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer"))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Supprimée"),
+            new OA\Response(response: 404, description: "Non trouvée")
+        ]
+    )]
+    public function destroy($id): JsonResponse
+    {
+        try {
+
+            $tank = Tank::findOrFail($id);
+
+            $tank->update([
+                'status' => 'deleted'
+            ]);
+
+            return response()->json([
+                'message' => 'Tank supprimé avec succès',
+                'status' => 200
+            ]);
+        } catch (\Throwable $e) {
+
+            return response()->json([
+                'message' => 'Erreur lors de la suppression',
+                'errors' => [$e->getMessage()],
+                'status' => 422
+            ], 422);
+        }
     }
 }

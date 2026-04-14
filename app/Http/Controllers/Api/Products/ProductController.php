@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Products;
 use App\Http\Controllers\Controller;
 use App\Models\Branche;
 use App\Models\Product;
+use App\Models\StockByBranch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -56,8 +57,12 @@ class ProductController extends Controller
 
     public function getProductOptions()
     {
-        $data = Product::latest()->get();
-
+        $data = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
+            ->where('stock_by_branches.branche_id', 1)
+            ->where('products.status', 'created')
+            ->where('stock_by_branches.is_empty', true)
+            ->select('products.name', 'stock_by_branches.stock_quantity as empty_quantity')
+            ->get();
         return response()->json([
             'status' => true,
             'data' => $data

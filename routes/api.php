@@ -74,6 +74,8 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::get('/tankGetAllData', 'index');
             Route::get('/tankGetOptionsData', 'getOptionTank');
             Route::get('/approvisionnementGetAllData', 'getAddGasHistory');
+            Route::put('/tankUpdate/{id}', 'update');
+            Route::put('/tankDelete/{id}', 'destroy');
         });
 
         Route::controller(CategoryController::class)->group(function () {

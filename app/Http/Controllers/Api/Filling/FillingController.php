@@ -32,6 +32,13 @@ class FillingController extends Controller
                         type: "integer",
                         example: 1
                     ),
+                    new OA\Property(
+                        property: "operation_date",
+                        type: "string",
+                        format: "date",
+                        example: "2023-10-10",
+                        description: "Date de l'opération"
+                    ),
 
                     new OA\Property(
                         property: "items",

@@ -1414,6 +1414,12 @@
                                         "type": "integer",
                                         "example": 1
                                     },
+                                    "operation_date": {
+                                        "description": "Date de l'opération",
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2023-10-10"
+                                    },
                                     "items": {
                                         "description": "Liste des produits à remplir",
                                         "type": "array",
@@ -3493,6 +3499,155 @@
                 "responses": {
                     "200": {
                         "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/tankUpdate/{id}": {
+            "put": {
+                "tags": [
+                    "Tanks"
+                ],
+                "summary": "Mettre à jour un tank",
+                "description": "Permet de modifier les informations d’un tank (nom, capacité, niveau actuel, statut)",
+                "operationId": "b57a553f62d9e24ebb0f6510697406be",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID du tank",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Tank Principal"
+                                    },
+                                    "capacity": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 1000.5
+                                    },
+                                    "current_level": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 500.25
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tank mis à jour avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Tank mis à jour avec succès"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Tank Principal"
+                                                },
+                                                "capacity": {
+                                                    "type": "number",
+                                                    "example": 1000.5
+                                                },
+                                                "current_level": {
+                                                    "type": "number",
+                                                    "example": 500.25
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "active"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation ou métier",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Impossible de mettre à jour le tank"
+                                        },
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string",
+                                                "example": "Le niveau actuel ne peut pas dépasser la capacité"
+                                            }
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 422
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/tankDelete/{id}": {
+            "put": {
+                "tags": [
+                    "Tanks"
+                ],
+                "summary": "Supprimer",
+                "operationId": "09514105cd19fe4a8c3aca2043bd9762",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Supprimée"
+                    },
+                    "404": {
+                        "description": "Non trouvée"
                     }
                 }
             }
