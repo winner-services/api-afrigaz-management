@@ -26,6 +26,7 @@ return new class extends Migration
             $table->text('note')->nullable();
             $table->string('reference_type')->nullable();
             $table->unsignedBigInteger('reference_id')->nullable();
+            $table->date('operation_date')->default(now());
             $table->timestamps();
         });
     }

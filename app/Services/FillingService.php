@@ -51,15 +51,7 @@ class FillingService
                     throw new \Exception("Poids non défini pour produit ID: $productId");
                 }
 
-                // 🔥 vérifier stock AVANT traitement
-                $this->stockService->checkStockOrFail(
-                    $branchId,
-                    $productId,
-                    $qty,
-                    true,
-                    'good'
-                );
-
+                $this->stockService->checkAllStocksOrFail($branchId, $data['items']);
                 $totalGas += $qty * $weight;
             }
 

@@ -291,19 +291,33 @@ class StockService
         return $stock;
     }
 
-    public function checkStockOrFail($branchId, $productId, $qty, $isEmpty, $condition)
+    public function checkAllStocksOrFail($branchId, $items)
     {
-        $stock = StockByBranch::where([
-            'branche_id' => $branchId,
-            'product_id' => $productId,
-            'is_empty' => $isEmpty,
-            'condition_state' => $condition
-        ])->firstOrFail();
+        $errors = [];
+        foreach ($items as $item) {
 
-        if ($stock->stock_quantity < $qty) {
-            throw new \Exception("Stock insuffisant");
+            $stock = StockByBranch::where([
+                'branche_id' => $branchId,
+                'product_id' => $item['product_id'],
+                'is_empty' => $item['is_empty'] ?? true,
+                'condition_state' => $item['condition_state'] ?? 'good'
+            ])->first();
+
+            if (!$stock) {
+                throw new \Exception("Stock introuvable pour product ID {$item['product_id']}");
+            }
+
+            if ($stock->stock_quantity < $item['Number_of_bottles']) {
+                $errors[] = [
+                    'product_id' => $item['product_id'],
+                    'message' => 'Stock insuffisant'
+                ];
+            }
+        }
+        if (!empty($errors)) {
+            throw new \Exception(json_encode($errors));
         }
 
-        return $stock;
+        return true;
     }
 }

@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Company\CompanyController;
 use App\Http\Controllers\Api\Currency\CurrencyController;
 use App\Http\Controllers\Api\Customer\CustomerController;
 use App\Http\Controllers\Api\EntryStock\EntryStockController;
+use App\Http\Controllers\Api\Filling\FillingController;
 use App\Http\Controllers\Api\MovementStock\MovementController;
 use App\Http\Controllers\Api\Permission\PermissionController;
 use App\Http\Controllers\Api\Products\CategoryController;
@@ -72,6 +73,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/tankAdjust', 'adjust');
             Route::get('/tankGetAllData', 'index');
             Route::get('/tankGetOptionsData', 'getOptionTank');
+            Route::get('/approvisionnementGetAllData', 'getAddGasHistory');
         });
 
         Route::controller(CategoryController::class)->group(function () {
@@ -86,6 +88,11 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::put('/productUpdate/{id}', 'update');
             Route::put('/productDelete/{id}', 'destroy');
             Route::get('/lowStockProductsGetData', 'lowStockProducts');
+        });
+
+        Route::controller(FillingController::class)->group(function () {
+            Route::get('/fillingGetAllData', 'index');
+            Route::post('/fillingStoreData', 'store');
         });
 
         Route::controller(SupplierController::class)->group(function () {

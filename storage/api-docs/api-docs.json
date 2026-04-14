@@ -1392,14 +1392,14 @@
                 }
             }
         },
-        "/api/tanks/fillings": {
+        "/api/tanks/fillingsStoreData": {
             "post": {
                 "tags": [
-                    "Tanks"
+                    "Fillings"
                 ],
-                "summary": "Créer un remplissage de tank",
-                "description": "Permet d’enregistrer un remplissage de tank avec plusieurs produits (bouteilles)",
-                "operationId": "841e4813ba86935e84f8c3ec556c0bc7",
+                "summary": "Créer un remplissage des bouteilles",
+                "description": "Permet d’enregistrer un remplissage les bouteilles à partir d’un tank",
+                "operationId": "7aaceae1b7e0d1988447d4e8777d13a1",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -3306,6 +3306,12 @@
                                         "type": "number",
                                         "format": "float",
                                         "example": 100
+                                    },
+                                    "operation_date": {
+                                        "description": "Date de l'opération",
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2023-10-10"
                                     }
                                 },
                                 "type": "object"
@@ -3400,6 +3406,12 @@
                                             "augmentation",
                                             "diminution"
                                         ]
+                                    },
+                                    "operation_date": {
+                                        "description": "Date de l'opération",
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2023-10-10"
                                     }
                                 },
                                 "type": "object"
@@ -3464,6 +3476,20 @@
                 ],
                 "summary": "Lister",
                 "operationId": "5c0eecce12cdeab47c556552b841767f",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/approvisionnementGetAllData": {
+            "get": {
+                "tags": [
+                    "Tanks"
+                ],
+                "summary": "Lister",
+                "operationId": "6a68df0a94f54b86c8d5bdc521134111",
                 "responses": {
                     "200": {
                         "description": "Liste"
@@ -4198,8 +4224,8 @@
             "description": "Stock Entries"
         },
         {
-            "name": "Tanks",
-            "description": "Tanks"
+            "name": "Fillings",
+            "description": "Fillings"
         },
         {
             "name": "Stock Movements",
@@ -4236,6 +4262,10 @@
         {
             "name": "Stocks",
             "description": "Stocks"
+        },
+        {
+            "name": "Tanks",
+            "description": "Tanks"
         },
         {
             "name": "Transfers",

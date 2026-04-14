@@ -205,6 +205,14 @@ class TankController extends Controller
                         type: "number",
                         format: "float",
                         example: 100
+                    ),
+                    new OA\Property(
+                        property: "operation_date",
+                        type: "string",
+                        format: "date",
+                        example: "2023-10-10",
+                        description: "Date de l'opération"
+
                     )
                 ]
             )
@@ -243,12 +251,14 @@ class TankController extends Controller
 
             $data = $request->validate([
                 'tank_id' => 'required|exists:tanks,id',
-                'quantity' => 'required|numeric|min:1'
+                'quantity' => 'required|numeric|min:1',
+                'operation_date' => 'required|date',
             ]);
 
             $tank = $this->service->addGas(
                 $data['tank_id'],
-                $data['quantity']
+                $data['quantity'],
+                $data['operation_date']
             );
 
             return response()->json([
@@ -307,6 +317,14 @@ class TankController extends Controller
                         enum: ["augmentation", "diminution"],
                         example: "augmentation",
                         description: "Type d’ajustement"
+                    ),
+                    new OA\Property(
+                        property: "operation_date",
+                        type: "string",
+                        format: "date",
+                        example: "2023-10-10",
+                        description: "Date de l'opération"
+
                     )
                 ]
             )
@@ -346,13 +364,15 @@ class TankController extends Controller
             $data = $request->validate([
                 'tank_id' => 'required|exists:tanks,id',
                 'quantity' => 'required|numeric|min:0.1',
-                'type' => 'required|in:augmentation,diminution'
+                'type' => 'required|in:augmentation,diminution',
+                'operation_date' => 'nullable|date',
             ]);
 
             $tank = $this->service->adjust(
                 $data['tank_id'],
                 $data['quantity'],
-                $data['type']
+                $data['type'],
+                $data['operation_date'] ?? now()
             );
 
             return response()->json([
@@ -444,6 +464,79 @@ class TankController extends Controller
                 })
             )
 
+            ->orderByDesc('id')
+
+            ->paginate($perPage);
+
+        return response()->json([
+            'movements' => $movements,
+            'message' => 'successfully',
+            'status' => 200
+        ]);
+    }
+
+    #[OA\Get(
+        path: "/api/v1/approvisionnementGetAllData",
+        summary: "Lister",
+        tags: ["Tanks"],
+        responses: [
+            new OA\Response(response: 200, description: "Liste")
+        ]
+    )]
+
+    public function getAddGasHistory(Request $request): JsonResponse
+    {
+        $perPage = $request->query('paginate', 10);
+        $search = $request->query('q', '');
+        $type = $request->query('type');
+        $tankId = $request->query('tank_id');
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+
+        $movements = TankMovement::query()
+            ->with([
+                'tank:id,name',
+                'user:id,name'
+            ])
+
+            ->when(
+                $tankId,
+                fn($q) =>
+                $q->where('tank_id', $tankId)
+            )
+
+            ->when(
+                $type,
+                fn($q) =>
+                $q->where('type', $type)
+            )
+
+            ->when(
+                $startDate && $endDate,
+                fn($q) =>
+                $q->whereBetween('created_at', [$startDate, $endDate])
+            )
+            ->when(
+                $startDate && !$endDate,
+                fn($q) =>
+                $q->whereDate('created_at', '>=', $startDate)
+            )
+            ->when(
+                !$startDate && $endDate,
+                fn($q) =>
+                $q->whereDate('created_at', '<=', $endDate)
+            )
+
+            ->when(
+                $search,
+                fn($q) =>
+                $q->where(function ($q2) use ($search) {
+                    $q2->where('note', 'like', "%{$search}%")
+                        ->orWhere('reference_type', 'like', "%{$search}%")
+                        ->orWhere('reference_id', 'like', "%{$search}%");
+                })
+            )
+            ->where('type', 'entry')
             ->orderByDesc('id')
 
             ->paginate($perPage);

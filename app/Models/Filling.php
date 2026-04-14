@@ -14,5 +14,23 @@ use Illuminate\Database\Eloquent\Model;
 ])]
 class Filling extends Model
 {
-    //
+    public function items()
+    {
+        return $this->hasMany(FillingItem::class);
+    }
+
+    public function tank()
+    {
+        return $this->belongsTo(Tank::class);
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branche::class);
+    }
+
+    public function addedBy()
+    {
+        return $this->belongsTo(User::class, 'addedBy');
+    }
 }

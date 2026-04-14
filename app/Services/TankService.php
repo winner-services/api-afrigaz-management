@@ -15,9 +15,9 @@ class TankService
         return Tank::create($data);
     }
 
-    public function addGas($tankId, $qty)
+    public function addGas($tankId, $qty, $operation_date)
     {
-        return DB::transaction(function () use ($tankId, $qty) {
+        return DB::transaction(function () use ($tankId, $qty, $operation_date) {
 
             $tank = Tank::findOrFail($tankId);
 
@@ -32,16 +32,17 @@ class TankService
                 'type' => 'entry',
                 'quantity' => $qty,
                 'addedBy' => Auth::id(),
-                'note' => 'Achat gaz'
+                'note' => 'Achat gaz',
+                'operation_date' => $operation_date
             ]);
 
             return $tank;
         });
     }
 
-    public function consumeGas($tankId, $qty, $referenceType = null, $referenceId = null)
+    public function consumeGas($tankId, $qty, $referenceType = null, $referenceId = null, $operation_date = null)
     {
-        return DB::transaction(function () use ($tankId, $qty, $referenceType, $referenceId) {
+        return DB::transaction(function () use ($tankId, $qty, $referenceType, $referenceId, $operation_date) {
 
             $tank = Tank::findOrFail($tankId);
 
@@ -58,14 +59,15 @@ class TankService
                 'reference_type' => $referenceType,
                 'reference_id' => $referenceId,
                 'addedBy' => Auth::id(),
-                'note' => 'Remplissage des bouteilles'
+                'note' => 'Remplissage des bouteilles',
+                'operation_date' => $operation_date
             ]);
 
             return $tank;
         });
     }
 
-    public function adjust($tankId, $qty, $type)
+    public function adjust($tankId, $qty, $type, $operation_date = null)
     {
         $tank = Tank::findOrFail($tankId);
 
@@ -90,7 +92,8 @@ class TankService
             'type' => 'adjustment',
             'quantity' => $qty,
             'addedBy' => Auth::id(),
-            'note' => 'Ajustement quantité manuel'
+            'note' => 'Ajustement quantité manuel',
+            'operation_date' => $operation_date ?? now()
         ]);
 
         return $tank;
