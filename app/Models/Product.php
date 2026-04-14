@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\DB;
     'type',
     'is_returnable',
     'manage_stock',
+    'minimum_quantity'
 ])]
 
 class Product extends Model

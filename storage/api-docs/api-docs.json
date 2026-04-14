@@ -1810,6 +1810,10 @@
                                     "weight_kg": {
                                         "type": "number",
                                         "example": 1.5
+                                    },
+                                    "minimum_quantity": {
+                                        "type": "integer",
+                                        "example": 10
                                     }
                                 },
                                 "type": "object"
@@ -1877,6 +1881,10 @@
                                     "weight_kg": {
                                         "type": "number",
                                         "example": 1.5
+                                    },
+                                    "minimum_quantity": {
+                                        "type": "integer",
+                                        "example": 10
                                     }
                                 },
                                 "type": "object"

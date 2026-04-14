@@ -78,7 +78,8 @@ class ProductController extends Controller
                     new OA\Property(property: "wholesale_price", type: "integer", example: 1),
                     new OA\Property(property: "retail_price", type: "integer", example: 1),
                     new OA\Property(property: "type", type: "string", example: "bouteille ou accessoire ou service"),
-                    new OA\Property(property: "weight_kg", type: "number", example: 1.5)
+                    new OA\Property(property: "weight_kg", type: "number", example: 1.5),
+                    new OA\Property(property: "minimum_quantity", type: "integer", example: 10)
                 ]
             )
         ),
@@ -98,6 +99,7 @@ class ProductController extends Controller
             'retail_price' => ['nullable', 'numeric'],
             'wholesale_price' => ['nullable', 'numeric'],
             'weight_kg' => 'nullable|numeric',
+            'minimum_quantity' => 'nullable|integer|min:0'
         ];
 
         $messages = [
@@ -130,7 +132,8 @@ class ProductController extends Controller
                 'weight_kg' => $request->weight_kg,
                 'addedBy' => $userId,
                 'reference' => fake()->unique()->numerify('PRD-#####'),
-                'status' => 'created'
+                'status' => 'created',
+                'minimum_quantity' => $request->minimum_quantity ?? 0
             ]);
 
             DB::commit();
@@ -168,7 +171,8 @@ class ProductController extends Controller
                     new OA\Property(property: "wholesale_price", type: "integer", example: 1),
                     new OA\Property(property: "retail_price", type: "integer", example: 1),
                     new OA\Property(property: "type", type: "string", example: "bouteille ou accessoire ou service"),
-                    new OA\Property(property: "weight_kg", type: "number", example: 1.5)
+                    new OA\Property(property: "weight_kg", type: "number", example: 1.5),
+                    new OA\Property(property: "minimum_quantity", type: "integer", example: 10)
                 ]
             )
         ),
@@ -197,6 +201,7 @@ class ProductController extends Controller
             'retail_price' => ['nullable', 'numeric'],
             'type' => ['nullable', 'in:bouteille,accessoire,service'],
             'weight_kg' => ['nullable', 'numeric'],
+            'minimum_quantity' => 'nullable|integer|min:0'
         ];
 
         $messages = [
@@ -223,7 +228,8 @@ class ProductController extends Controller
             'wholesale_price',
             'retail_price',
             'type',
-            'weight_kg'
+            'weight_kg',
+            'minimum_quantity'
         ]));
 
         return response()->json([
