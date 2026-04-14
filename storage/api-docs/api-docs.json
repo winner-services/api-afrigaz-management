@@ -3117,6 +3117,34 @@
                 }
             }
         },
+        "/api/v1/tankGetAllData": {
+            "get": {
+                "tags": [
+                    "Tanks"
+                ],
+                "summary": "Lister",
+                "operationId": "367e7aac812a5c7003a77717db587879",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/tankGetOptionsData": {
+            "get": {
+                "tags": [
+                    "Tanks"
+                ],
+                "summary": "Lister",
+                "operationId": "4d45064e3dd49369e72cdaeeb074418d",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
         "/api/v1/tankStoreData": {
             "post": {
                 "tags": [
@@ -3403,6 +3431,20 @@
                                 }
                             }
                         }
+                    }
+                }
+            }
+        },
+        "/api/v1/tankMovementGetAllData": {
+            "get": {
+                "tags": [
+                    "Tanks"
+                ],
+                "summary": "Lister",
+                "operationId": "5c0eecce12cdeab47c556552b841767f",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
                     }
                 }
             }

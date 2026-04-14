@@ -68,8 +68,10 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::controller(TankController::class)->group(function () {
             Route::post('/tankStoreData', 'store');
             Route::post('/tankAddGas', 'addGas');
-            Route::get('/tankHistory/{id}', 'history');
+            Route::get('/tankMovementGetAllData', 'history');
             Route::post('/tankAdjust', 'adjust');
+            Route::get('/tankGetAllData', 'index');
+            Route::get('/tankGetOptionsData', 'getOptionTank');
         });
 
         Route::controller(CategoryController::class)->group(function () {

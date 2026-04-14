@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
+
 #[Fillable([
     'name',
     'capacity',
@@ -13,9 +14,9 @@ use Illuminate\Database\Eloquent\Model;
 ])]
 class Tank extends Model
 {
-    // public function movements()
-    // {
-    //     return $this->hasMany(TankMovement::class);
-    // }
-
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'addedBy');
+    }
+    
 }

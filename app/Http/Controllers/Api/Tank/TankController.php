@@ -3,16 +3,81 @@
 namespace App\Http\Controllers\Api\Tank;
 
 use App\Http\Controllers\Controller;
+use App\Models\Tank;
+use App\Models\TankMovement;
 use App\Services\TankService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class TankController extends Controller
 {
     public function __construct(
         protected TankService $service
     ) {}
+
+     #[OA\Get(
+        path: "/api/v1/tankGetAllData",
+        summary: "Lister",
+        tags: ["Tanks"],
+        responses: [
+            new OA\Response(response: 200, description: "Liste")
+        ]
+    )]
+    public function index(Request $request): JsonResponse
+    {
+        $perPage = $request->query('paginate', 10);
+        $search = $request->query('q', '');
+        $status = $request->query('status');
+
+        $tanks = Tank::with('user:id,name')
+
+            ->when(
+                $search,
+                fn($q) =>
+                $q->where('name', 'like', "%$search%")
+            )
+
+            ->when(
+                $status,
+                fn($q) =>
+                $q->where('status', $status)
+            )
+
+            ->orderBy('id', 'desc')
+            ->paginate($perPage);
+
+        return response()->json([
+            'tanks' => $tanks,
+            'message' => 'successfully',
+            'status' => 200
+        ]);
+    }
+    #[OA\Get(
+        path: "/api/v1/tankGetOptionsData",
+        summary: "Lister",
+        tags: ["Tanks"],
+        responses: [
+            new OA\Response(response: 200, description: "Liste")
+        ]
+    )]
+    public function getOptionTank(Request $request): JsonResponse
+    {
+        $search = $request->query('q', '');
+        $tanks = Tank::when(
+            $search,
+            fn($q) =>
+            $q->where('name', 'like', "%$search%")
+        )
+            ->orderBy('id', 'desc')->get();
+
+        return response()->json([
+            'tanks' => $tanks,
+            'message' => 'successfully',
+            'status' => 200
+        ]);
+    }
 
     #[OA\Post(
         path: "/api/v1/tankStoreData",
@@ -317,11 +382,76 @@ class TankController extends Controller
         }
     }
 
+    #[OA\Get(
+        path: "/api/v1/tankMovementGetAllData",
+        summary: "Lister",
+        tags: ["Tanks"],
+        responses: [
+            new OA\Response(response: 200, description: "Liste")
+        ]
+    )]
 
-    public function history($tankId)
+    public function history(Request $request): JsonResponse
     {
-        return response()->json(
-            $this->service->history($tankId)
-        );
+        $perPage = $request->query('paginate', 10);
+        $search = $request->query('q', '');
+        $type = $request->query('type');
+        $tankId = $request->query('tank_id');
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+
+        $movements = TankMovement::query()
+            ->with([
+                'tank:id,name',
+                'user:id,name'
+            ])
+
+            ->when(
+                $tankId,
+                fn($q) =>
+                $q->where('tank_id', $tankId)
+            )
+
+            ->when(
+                $type,
+                fn($q) =>
+                $q->where('type', $type)
+            )
+
+            ->when(
+                $startDate && $endDate,
+                fn($q) =>
+                $q->whereBetween('created_at', [$startDate, $endDate])
+            )
+            ->when(
+                $startDate && !$endDate,
+                fn($q) =>
+                $q->whereDate('created_at', '>=', $startDate)
+            )
+            ->when(
+                !$startDate && $endDate,
+                fn($q) =>
+                $q->whereDate('created_at', '<=', $endDate)
+            )
+
+            ->when(
+                $search,
+                fn($q) =>
+                $q->where(function ($q2) use ($search) {
+                    $q2->where('note', 'like', "%{$search}%")
+                        ->orWhere('reference_type', 'like', "%{$search}%")
+                        ->orWhere('reference_id', 'like', "%{$search}%");
+                })
+            )
+
+            ->orderByDesc('id')
+
+            ->paginate($perPage);
+
+        return response()->json([
+            'movements' => $movements,
+            'message' => 'successfully',
+            'status' => 200
+        ]);
     }
 }

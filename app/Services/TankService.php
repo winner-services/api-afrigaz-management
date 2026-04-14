@@ -95,11 +95,4 @@ class TankService
 
         return $tank;
     }
-
-    public function history($tankId)
-    {
-        return TankMovement::where('tank_id', $tankId)
-            ->orderByDesc('id')
-            ->get();
-    }
 }

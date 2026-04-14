@@ -128,7 +128,9 @@ class ProductController extends Controller
                 'retail_price' => $request->retail_price,
                 'type' => $request->type,
                 'weight_kg' => $request->weight_kg,
-                'addedBy' => $userId
+                'addedBy' => $userId,
+                'reference' => fake()->unique()->numerify('PRD-#####'),
+                'status' => 'created'
             ]);
 
             DB::commit();
