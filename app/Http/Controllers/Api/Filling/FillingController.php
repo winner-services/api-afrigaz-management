@@ -17,7 +17,7 @@ class FillingController extends Controller
     ) {}
 
     #[OA\Post(
-        path: "/api/tanks/fillingsStoreData",
+        path: "/api/tanks/fillingStoreData",
         summary: "Créer un remplissage des bouteilles",
         description: "Permet d’enregistrer un remplissage les bouteilles à partir d’un tank",
         tags: ["Fillings"],

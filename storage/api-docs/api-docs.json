@@ -1392,14 +1392,14 @@
                 }
             }
         },
-        "/api/tanks/fillingsStoreData": {
+        "/api/tanks/fillingStoreData": {
             "post": {
                 "tags": [
                     "Fillings"
                 ],
                 "summary": "Créer un remplissage des bouteilles",
                 "description": "Permet d’enregistrer un remplissage les bouteilles à partir d’un tank",
-                "operationId": "7aaceae1b7e0d1988447d4e8777d13a1",
+                "operationId": "1cf3b516df3830fdfe93737fa16fff57",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -1752,6 +1752,20 @@
                 ],
                 "summary": "Lister",
                 "operationId": "726d7b5cf6d18714ab404fb919426cc8",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/getEmptyProductOptions": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Lister",
+                "operationId": "abd4628d18c4c06c724e0bcdb9f729c8",
                 "responses": {
                     "200": {
                         "description": "Liste"

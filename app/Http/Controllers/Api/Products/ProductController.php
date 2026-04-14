@@ -47,6 +47,29 @@ class ProductController extends Controller
     }
 
     #[OA\Get(
+        path: "/api/v1/getEmptyProductOptions",
+        summary: "Lister",
+        tags: ["Products"],
+        responses: [
+            new OA\Response(response: 200, description: "Liste")
+        ]
+    )]
+
+    public function getEmptyProductOptions()
+    {
+        $data = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
+            ->where('stock_by_branches.branche_id', 1)
+            ->where('products.status', 'created')
+            ->where('stock_by_branches.is_empty', true)
+            ->select('products.*', 'stock_by_branches.stock_quantity as empty_quantity')
+            ->get();
+        return response()->json([
+            'status' => true,
+            'data' => $data
+        ]);
+    }
+
+    #[OA\Get(
         path: "/api/v1/productGetOptionsData",
         summary: "Lister",
         tags: ["Products"],
@@ -57,12 +80,7 @@ class ProductController extends Controller
 
     public function getProductOptions()
     {
-        $data = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
-            ->where('stock_by_branches.branche_id', 1)
-            ->where('products.status', 'created')
-            ->where('stock_by_branches.is_empty', true)
-            ->select('products.name', 'stock_by_branches.stock_quantity as empty_quantity')
-            ->get();
+        $data = Product::where('status', 'created')->latest()->get();
         return response()->json([
             'status' => true,
             'data' => $data

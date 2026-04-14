@@ -86,6 +86,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::controller(ProductController::class)->group(function () {
             Route::get('/productGetAllData', 'index');
             Route::get('/productGetOptionsData', 'getProductOptions');
+            Route::get('/getEmptyProductOptions', 'getEmptyProductOptions');
             Route::post('/productStoreData', 'store');
             Route::put('/productUpdate/{id}', 'update');
             Route::put('/productDelete/{id}', 'destroy');
