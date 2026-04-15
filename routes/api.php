@@ -93,6 +93,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::put('/productUpdate/{id}', 'update');
             Route::put('/productDelete/{id}', 'destroy');
             Route::get('/lowStockProductsGetData', 'lowStockProducts');
+            Route::get('/getTransfertProductOptionsData', 'getTransfertProductOptionsData');
         });
 
         Route::controller(FillingController::class)->group(function () {

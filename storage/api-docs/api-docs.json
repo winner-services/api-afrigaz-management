@@ -2209,6 +2209,20 @@
                 }
             }
         },
+        "/api/v1/getTransfertProductOptionsData": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Lister",
+                "operationId": "f0b4fd9c8962d3ad703ee1f8d6cbf92d",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
         "/api/v1/productGetOptionsData": {
             "get": {
                 "tags": [
