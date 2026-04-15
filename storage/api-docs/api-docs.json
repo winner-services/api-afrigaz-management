@@ -835,6 +835,235 @@
                 }
             }
         },
+        "/api/v1/charoitsGetAllData": {
+            "get": {
+                "tags": [
+                    "Charoits"
+                ],
+                "summary": "Liste des véhicules",
+                "operationId": "ef5bd133a27f3fa047575945602ff214",
+                "parameters": [
+                    {
+                        "name": "paginate",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    },
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Recherche",
+                        "schema": {
+                            "type": "string",
+                            "example": "Toyota"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Liste paginée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "current_page": {
+                                            "type": "integer"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Camion"
+                                                    },
+                                                    "brand": {
+                                                        "type": "string",
+                                                        "example": "Toyota"
+                                                    },
+                                                    "plate_number": {
+                                                        "type": "string",
+                                                        "example": "123ABC"
+                                                    },
+                                                    "color": {
+                                                        "type": "string",
+                                                        "example": "Blanc"
+                                                    },
+                                                    "reference": {
+                                                        "type": "string",
+                                                        "example": "REF001"
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "example": "created"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "total": {
+                                            "type": "integer",
+                                            "example": 100
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/charoitsGetOptionData": {
+            "get": {
+                "tags": [
+                    "Charoits"
+                ],
+                "summary": "Lister les options",
+                "operationId": "1b2fe48d41519fb6a4db0548c40c18cf",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/charoitsStoreData": {
+            "post": {
+                "tags": [
+                    "Charoits"
+                ],
+                "summary": "Créer un véhicule",
+                "operationId": "99bdafdac9b48c4a5b6aae3676908101",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Camion"
+                                    },
+                                    "brand": {
+                                        "type": "string",
+                                        "example": "Toyota"
+                                    },
+                                    "plate_number": {
+                                        "type": "string",
+                                        "example": "123ABC"
+                                    },
+                                    "color": {
+                                        "type": "string",
+                                        "example": "Blanc"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Créé"
+                    },
+                    "422": {
+                        "description": "Erreur validation"
+                    }
+                }
+            }
+        },
+        "/api/v1/charoitsUpdate/{id}": {
+            "put": {
+                "tags": [
+                    "Charoits"
+                ],
+                "summary": "Mettre à jour un véhicule",
+                "operationId": "92a2701a9cebf87da11ce686a45e39d6",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "brand": {
+                                        "type": "string"
+                                    },
+                                    "plate_number": {
+                                        "type": "string"
+                                    },
+                                    "color": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Mis à jour"
+                    },
+                    "404": {
+                        "description": "Introuvable"
+                    },
+                    "422": {
+                        "description": "Erreur"
+                    }
+                }
+            }
+        },
+        "/api/v1/charoitsDelete/{id}": {
+            "delete": {
+                "tags": [
+                    "Charoits"
+                ],
+                "summary": "Supprimer un véhicule",
+                "operationId": "91655c31a508679d10e681f5356ab994",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Supprimé"
+                    },
+                    "404": {
+                        "description": "Introuvable"
+                    },
+                    "422": {
+                        "description": "Erreur"
+                    }
+                }
+            }
+        },
         "/api/v1/aboutGetAllData": {
             "get": {
                 "tags": [
@@ -4371,6 +4600,10 @@
         {
             "name": "CashCategories",
             "description": "CashCategories"
+        },
+        {
+            "name": "Charoits",
+            "description": "Charoits"
         },
         {
             "name": "About",

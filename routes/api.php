@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\Auth\AuthenticationController;
 use App\Http\Controllers\Api\Branches\BrancheController;
 use App\Http\Controllers\Api\Bulk\BulkPurchaseController;
 use App\Http\Controllers\Api\CashCategory\CashCategoryController;
+use App\Http\Controllers\Api\Charoit\CharoitController;
 use App\Http\Controllers\Api\Company\CompanyController;
 use App\Http\Controllers\Api\Currency\CurrencyController;
 use App\Http\Controllers\Api\Customer\CustomerController;
@@ -96,6 +97,14 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::controller(FillingController::class)->group(function () {
             Route::get('/fillingGetAllData', 'index');
             Route::post('/fillingStoreData', 'store');
+        });
+
+        Route::controller(CharoitController::class)->group(function () {
+            Route::get('/charoitsGetAllData', 'index');
+            Route::get('/charoitsGetOptionData', 'charoitGetOptionData');
+            Route::post('/charoitsStoreData', 'store');
+            Route::put('/charoitsUpdate/{id}', 'update');
+            Route::put('/charoitsDelete/{id}', 'destroy');
         });
 
         Route::controller(SupplierController::class)->group(function () {
