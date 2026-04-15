@@ -120,7 +120,8 @@ class TransefrController extends Controller
 
         $query = Transfer::with([
             'fromBranch',
-            'toBranch',
+            'charoit',
+            'driver',
             'user',
             'items.product'
         ])->orderBy('created_at', 'desc');
@@ -128,11 +129,6 @@ class TransefrController extends Controller
         // 🔍 Filtre par branche source
         if ($request->filled('from_branch_id')) {
             $query->where('from_branch_id', $request->from_branch_id);
-        }
-
-        // 🔍 Filtre par branche destination
-        if ($request->filled('to_branch_id')) {
-            $query->where('to_branch_id', $request->to_branch_id);
         }
 
         // 🔍 Filtre par date
