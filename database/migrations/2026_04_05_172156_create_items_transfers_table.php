@@ -18,6 +18,7 @@ return new class extends Migration
             $table->integer('quantity')->default(0);
             $table->foreignId('to_branch_id')->nullable()->constrained('branches')->nullOnDelete();
             $table->string('status')->default('pending');
+            $table->integer('received_quantity')->default(0);
             $table->timestamps();
         });
     }

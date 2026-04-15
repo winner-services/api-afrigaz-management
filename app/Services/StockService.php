@@ -322,4 +322,37 @@ class StockService
 
         return true;
     }
+
+    public function handleMultipleBottleReturn($branchId, array $products)
+    {
+        foreach ($products as $product) {
+
+            $productId = $product['product_id'];
+            $returns = $product['returns'];
+
+            foreach ($returns as $item) {
+
+                $condition = $item['condition'];
+                $qty = $item['quantity'];
+
+                if ($qty <= 0) {
+                    throw new \Exception("Quantité invalide");
+                }
+
+                if (!in_array($condition, ['good', 'damaged', 'repair'])) {
+                    throw new \Exception("Etat invalide: $condition");
+                }
+
+                $this->increaseStock(
+                    $branchId,
+                    $productId,
+                    $qty,
+                    true,
+                    $condition
+                );
+            }
+        }
+
+        return true;
+    }
 }

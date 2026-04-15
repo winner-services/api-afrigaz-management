@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Transfer;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branche;
 use App\Models\Transfer;
 use App\Services\StockService;
 use Illuminate\Http\Request;
@@ -369,6 +370,35 @@ class TransefrController extends Controller
                 'product_id' => $stock->product_id,
                 'stock_quantity' => $stock->stock_quantity
             ]
+        ]);
+    }
+
+    public function getTansfertProduct()
+    {
+        $user = Auth::user();
+
+        $page = request("paginate", 10);
+        $q = request("q", "");
+
+        $branche = Branche::where('user_id', $user->id)->first();
+
+        $data = Transfer::join('items_transfers', 'transfers.id', '=', 'items_transfers.transfer_id')
+            ->join('branches as from_branch', 'transfers.from_branch_id', '=', 'from_branch.id')
+            ->join('products', 'items_transfers.product_id', '=', 'products.id')
+            ->select('transfers.id', 'transfers.transfer_date', 'transfers.reference', 'from_branch.name as from_branch_name', 'products.name as product_name', 'items_transfers.quantity as sent_quantity', 'items_transfers.received_quantity as received_quantity')
+            ->where('items_transfers.to_branch_id', '=', $branche->id)
+            ->where(function ($query) use ($q) {
+                $query->where('transfers.reference', 'like', "%$q%")
+                    ->orWhere('transfers.transfer_date', 'like', "%$q%")
+                    ->orWhere('from_branch.name', 'like', "%$q%")
+                    ->orWhere('products.name', 'like', "%$q%");
+            })
+            ->orderBy('transfers.created_at', 'desc')
+            ->paginate($page);
+        return response()->json([
+            'status' => 200,
+            'message' => 'succès',
+            'data' => $data
         ]);
     }
 }
