@@ -373,6 +373,14 @@ class TransefrController extends Controller
         ]);
     }
 
+    #[OA\Get(
+        path: "/api/v1/getTansfertProduct",
+        summary: "Lister les transferts de produit",
+        tags: ["Mouvement Stock"],
+        responses: [
+            new OA\Response(response: 200, description: "Liste des transferts de produit")
+        ]
+    )]
     public function getTansfertProduct()
     {
         $user = Auth::user();

@@ -4494,6 +4494,20 @@
                 }
             }
         },
+        "/api/v1/getTansfertProduct": {
+            "get": {
+                "tags": [
+                    "Mouvement Stock"
+                ],
+                "summary": "Lister les transferts de produit",
+                "operationId": "4b847f454509f2b845f04364f3780b04",
+                "responses": {
+                    "200": {
+                        "description": "Liste des transferts de produit"
+                    }
+                }
+            }
+        },
         "/api/v1/userGetAllData": {
             "get": {
                 "tags": [
