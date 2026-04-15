@@ -393,7 +393,7 @@ class TransefrController extends Controller
         $data = Transfer::join('items_transfers', 'transfers.id', '=', 'items_transfers.transfer_id')
             ->join('branches as from_branch', 'transfers.from_branch_id', '=', 'from_branch.id')
             ->join('products', 'items_transfers.product_id', '=', 'products.id')
-            ->select('transfers.id', 'transfers.transfer_date', 'transfers.reference', 'from_branch.name as from_branch_name', 'products.name as product_name', 'items_transfers.quantity as sent_quantity', 'items_transfers.received_quantity as received_quantity')
+            ->select('transfers.id', 'transfers.transfer_date', 'transfers.reference', 'from_branch.name as from_branch_name', 'products.name as product_name', 'items_transfers.quantity as sent_quantity', 'items_transfers.received_quantity as received_quantity', 'items_transfers.status')
             ->where('items_transfers.to_branch_id', '=', $branche->id)
             ->where(function ($query) use ($q) {
                 $query->where('transfers.reference', 'like', "%$q%")
