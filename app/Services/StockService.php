@@ -132,7 +132,6 @@ class StockService
                 'description' => $description,
                 'addedBy' => Auth::id(),
             ]);
-
             return $stock;
         });
     }
@@ -228,7 +227,7 @@ class StockService
             StockMovement::create([
                 'branche_id' => $branchId,
                 'product_id' => $productId,
-                'type' => 'return', // 🔥 important
+                'type' => 'return',
                 'quantity' => $quantity,
                 'stock_before' => $before,
                 'stock_after' => $after,

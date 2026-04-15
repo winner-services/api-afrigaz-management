@@ -51,8 +51,6 @@ class EntryStockController extends Controller
         $request->validate([
             'transaction_date' => 'required|date',
             'supplier_id' => 'nullable|exists:suppliers,id',
-            // 'branche_id' => 'required|exists:branches,id',
-
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',

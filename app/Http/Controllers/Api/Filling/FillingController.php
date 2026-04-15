@@ -102,7 +102,7 @@ class FillingController extends Controller
                 'items.*.product_id' => 'required|exists:products,id',
                 'items.*.Number_of_bottles' => 'required|integer|min:1',
             ]);
-
+            
             $filling = $this->service->processFilling($data);
 
             return response()->json([

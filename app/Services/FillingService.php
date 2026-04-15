@@ -27,6 +27,7 @@ class FillingService
 
             $tankId = $data['tank_id'];
             $items = $data['items'];
+            $operation_date = $data['operation_date'] ?? now()->format('Y-m-d');
 
 
             $products = Product::whereIn(
@@ -61,21 +62,21 @@ class FillingService
 
                 $totalGas += $qty * $product->weight_kg;
             }
-
             $filling = Filling::create([
                 'branch_id' => $branchId,
                 'tank_id' => $tankId,
                 'total_gas_used' => $totalGas,
                 'note' => 'Remplissage du ' . now()->format('Y-m-d H:i:s'),
                 'addedBy' => Auth::id(),
-                'operation_date' => $data['operation_date']
+                'operation_date' => $operation_date,
             ]);
 
             $this->tankService->consumeGas(
                 $tankId,
                 $totalGas,
                 'filling',
-                $filling->id
+                $filling->id,
+                $operation_date
             );
 
 
