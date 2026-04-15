@@ -135,6 +135,7 @@ class CharoitController extends Controller
             ]);
 
             $data['addedBy'] = Auth::id();
+            $data['reference'] = fake()->unique()->numerify('CHAR-#####');
 
             $item = Charoit::create($data);
 
