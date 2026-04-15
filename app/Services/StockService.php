@@ -136,9 +136,9 @@ class StockService
         });
     }
 
-    public static function transferMultipleProductsWithRecord($fromBranch, $toBranch, $productsQuantities, $transfer_date, $userId)
+    public static function transferMultipleProductsWithRecord($fromBranch, $driver, $charoit, $productsQuantities, $transfer_date, $userId)
     {
-        return DB::transaction(function () use ($fromBranch, $toBranch, $productsQuantities, $transfer_date, $userId) {
+        return DB::transaction(function () use ($fromBranch, $driver, $charoit, $productsQuantities, $transfer_date, $userId) {
 
             $productsQuantities = $productsQuantities ?? [];
 
@@ -165,7 +165,8 @@ class StockService
 
             $transfer = Transfer::create([
                 'from_branch_id' => $fromBranch,
-                'to_branch_id' => $toBranch,
+                'driver' => $driver,
+                'charoit' => $charoit,
                 'addedBy' => $userId,
                 'reference' => $reference,
                 'transfer_date' => $transfer_date,
@@ -179,9 +180,11 @@ class StockService
 
                 $productId = $item['product_id'];
                 $quantity  = $item['quantity'];
+                $toBranch = $item['to_branch_id'] ?? null;
 
                 $transfer->items()->create([
                     'product_id' => $productId,
+                    'to_branch_id' => $toBranch,
                     'quantity' => $quantity,
                     'transfer_id' => $transfer->id
                 ]);

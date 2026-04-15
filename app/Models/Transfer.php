@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['from_branch_id', 'to_branch_id', 'addedBy', 'reference', 'status', 'transfer_date'])]
+#[Fillable(['from_branch_id', 'charoit', 'addedBy', 'reference', 'status', 'transfer_date','driver'])]
 class Transfer extends Model
 {
     public function items()

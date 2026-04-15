@@ -160,12 +160,12 @@ class TransefrController extends Controller
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ["from_branch", "to_branch", "product_id", "quantity", "transfer_date", "items"],
+                required: ["from_branch", "driver", "charoit", "product_id", "quantity", "transfer_date", "items"],
                 properties: [
                     new OA\Property(property: "transfer_date", type: "string", example: "2026-04-05"),
                     new OA\Property(property: "from_branch", type: "integer", example: 1),
-                    new OA\Property(property: "to_branch", type: "integer", example: 1),
-
+                    new OA\Property(property: "driver", type: "integer", example: 1),
+                    new OA\Property(property: "charoit", type: "integer", example: 1),
                     new OA\Property(
                         property: "products",
                         type: "array",
@@ -174,6 +174,7 @@ class TransefrController extends Controller
                             properties: [
                                 new OA\Property(property: "product_id", type: "integer", example: 1),
                                 new OA\Property(property: "quantity", type: "integer", example: 50),
+                                new OA\Property(property: "to_branch_id", type: "integer", example: 2)
                             ]
                         )
                     ),
@@ -189,16 +190,19 @@ class TransefrController extends Controller
     {
         $request->validate([
             'from_branch' => 'required|integer|exists:branches,id',
-            'to_branch' => 'required|integer|exists:branches,id',
             'transfer_date' => 'nullable',
+            'driver' => 'nullable|integer|exists:users,id',
+            'charoit' => 'nullable|integer|exists:charoits,id',
             'products' => 'required|array|min:1',
             'products.*.product_id' => 'required|integer|exists:products,id',
             'products.*.quantity' => 'required|integer|min:1',
+            'products.*.to_branch_id' => 'required|integer|exists:branches,id',
         ]);
         try {
             $transfer = StockService::transferMultipleProductsWithRecord(
                 $request->from_branch,
-                $request->to_branch,
+                $request->driver,
+                $request->charoit,
                 $request->products,
                 $request->transfer_date,
                 Auth::id()

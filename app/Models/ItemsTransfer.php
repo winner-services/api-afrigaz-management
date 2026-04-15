@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['transfer_id', 'product_id', 'quantity'])]
+#[Fillable(['transfer_id', 'to_branch_id', 'product_id', 'quantity'])]
 class ItemsTransfer extends Model
 {
     public function product()

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('transfer_id')->nullable()->constrained('transfers')->nullOnDelete();
             $table->foreignId('product_id')->nullable()->constrained('products')->nullOnDelete();
             $table->integer('quantity')->default(0);
+            $table->foreignId('to_branch_id')->nullable()->constrained('branches')->nullOnDelete();
             $table->timestamps();
         });
     }

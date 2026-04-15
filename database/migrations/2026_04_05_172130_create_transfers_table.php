@@ -14,7 +14,9 @@ return new class extends Migration
         Schema::create('transfers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('from_branch_id')->nullable()->constrained('branches')->nullOnDelete();
-            $table->foreignId('to_branch_id')->nullable()->constrained('branches')->nullOnDelete();
+            // $table->foreignId('to_branch_id')->nullable()->constrained('branches')->nullOnDelete();
+            $table->foreignId('driver')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('charoit')->nullable()->constrained('charoits')->nullOnDelete();
             $table->foreignId('addedBy')->nullable()->constrained('users')->nullOnDelete();
             $table->string('status')->default('created');
             $table->string('reference')->nullable();

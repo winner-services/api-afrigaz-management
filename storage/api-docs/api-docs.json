@@ -4060,7 +4060,8 @@
                             "schema": {
                                 "required": [
                                     "from_branch",
-                                    "to_branch",
+                                    "driver",
+                                    "charoit",
                                     "product_id",
                                     "quantity",
                                     "transfer_date",
@@ -4075,7 +4076,11 @@
                                         "type": "integer",
                                         "example": 1
                                     },
-                                    "to_branch": {
+                                    "driver": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "charoit": {
                                         "type": "integer",
                                         "example": 1
                                     },
@@ -4090,6 +4095,10 @@
                                                 "quantity": {
                                                     "type": "integer",
                                                     "example": 50
+                                                },
+                                                "to_branch_id": {
+                                                    "type": "integer",
+                                                    "example": 2
                                                 }
                                             },
                                             "type": "object"
