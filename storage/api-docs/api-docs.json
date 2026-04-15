@@ -4508,6 +4508,50 @@
                 }
             }
         },
+        "/api/v1/validateReception": {
+            "post": {
+                "tags": [
+                    "Mouvement Stock"
+                ],
+                "summary": "Créer",
+                "operationId": "dc3502d2045ea52c4ed78e4490a5148b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "received_quantity",
+                                    "id"
+                                ],
+                                "properties": {
+                                    "received_quantity": {
+                                        "type": "integer",
+                                        "example": 100
+                                    },
+                                    "id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Données créées avec succès"
+                    },
+                    "422": {
+                        "description": "Validation des données échouée"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
         "/api/v1/userGetAllData": {
             "get": {
                 "tags": [

@@ -16,4 +16,5 @@ class ItemsTransfer extends Model
     {
         return $this->belongsTo(Transfer::class, 'transfer_id');
     }
+    
 }

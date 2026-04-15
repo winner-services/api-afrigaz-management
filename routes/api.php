@@ -171,6 +171,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/removeQteStockByBanch', 'remove');
             Route::post('/returnProductStockByBanch', 'returnProduct');
             Route::get('/getTansfertProduct', 'getTansfertProduct');
+            Route::post('/validateReception', 'receiveTransfer');
         });
 
         Route::controller(StockController::class)->group(function () {

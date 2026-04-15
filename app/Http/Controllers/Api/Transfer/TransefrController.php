@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Api\Transfer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Branche;
+use App\Models\ItemsTransfer;
 use App\Models\Transfer;
 use App\Services\StockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
@@ -393,7 +396,7 @@ class TransefrController extends Controller
         $data = Transfer::join('items_transfers', 'transfers.id', '=', 'items_transfers.transfer_id')
             ->join('branches as from_branch', 'transfers.from_branch_id', '=', 'from_branch.id')
             ->join('products', 'items_transfers.product_id', '=', 'products.id')
-            ->select('transfers.id', 'transfers.transfer_date', 'transfers.reference', 'from_branch.name as from_branch_name', 'products.name as product_name', 'items_transfers.quantity as sent_quantity', 'items_transfers.received_quantity as received_quantity', 'items_transfers.status')
+            ->select('items_transfers.id', 'transfers.transfer_date', 'transfers.reference', 'from_branch.name as from_branch_name', 'products.name as product_name', 'items_transfers.quantity as sent_quantity', 'items_transfers.received_quantity as received_quantity', 'items_transfers.status')
             ->where('items_transfers.to_branch_id', '=', $branche->id)
             ->where(function ($query) use ($q) {
                 $query->where('transfers.reference', 'like', "%$q%")
@@ -408,5 +411,112 @@ class TransefrController extends Controller
             'message' => 'succès',
             'data' => $data
         ]);
+    }
+
+    #[OA\Post(
+        path: '/api/v1/validateReception',
+        summary: 'Créer',
+        tags: ['Mouvement Stock'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['received_quantity', 'id'],
+                properties: [
+                    new OA\Property(property: "received_quantity", type: "integer", example: 100),
+                    new OA\Property(property: "id", type: "integer", example: 1),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Données créées avec succès'
+            ),
+            new OA\Response(
+                response: 422,
+                description: 'Validation des données échouée'
+            ),
+            new OA\Response(
+                response: 500,
+                description: 'Erreur serveur'
+            )
+        ]
+    )]
+    public function receiveTransfer(Request $request): JsonResponse
+    {
+        try {
+            $data = $request->validate([
+                'received_quantity' => 'required|integer|min:1',
+                'id' => 'required|integer|exists:items_transfers,id'
+            ]);
+            $itemId = $data['id'];
+
+            return DB::transaction(function () use ($data, $itemId) {
+
+                $item = ItemsTransfer::where('id', $itemId)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                if ($item->status === 'completed') {
+                    throw new \Exception("Réception déjà terminée");
+                }
+
+                $remaining = $item->quantity - $item->received_quantity;
+
+                if ($data['received_quantity'] > $remaining) {
+                    throw new \Exception("Quantité dépasse le restant à recevoir");
+                }
+
+                $item->received_quantity += $data['received_quantity'];
+
+                $item->status = $item->received_quantity == $item->quantity
+                    ? 'completed'
+                    : 'partial';
+
+                $item->save();
+
+                app(StockService::class)->increaseStock(
+                    $item->to_branch_id,
+                    $item->product_id,
+                    $data['received_quantity'],
+                    false,
+                    null
+                );
+                $transfer = $item->transfer;
+                if (
+                    $transfer && $transfer->items()
+                    ->where('status', '!=', 'completed')
+                    ->count() === 0
+                ) {
+
+                    $transfer->update(['status' => 'completed']);
+                }
+
+                return response()->json([
+                    'message' => 'Réception validée avec succès',
+                    'status' => 200,
+                    'data' => $item
+                ]);
+            });
+        } catch (\Illuminate\Validation\ValidationException $e) {
+
+            return response()->json([
+                'message' => 'Erreur de validation',
+                'errors' => $e->errors(),
+                'status' => 422
+            ], 422);
+        } catch (\Throwable $e) {
+
+            Log::error('Reception error', [
+                'item_id' => $itemId,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'message' => 'Impossible de valider la réception',
+                'errors' => [$e->getMessage()],
+                'status' => 422
+            ], 422);
+        }
     }
 }
