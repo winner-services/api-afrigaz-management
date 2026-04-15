@@ -195,11 +195,11 @@ class StockService
                     'addedBy' => $userId
                 ]);
 
-                self::addStock($toBranch, $productId, $quantity, "Transfert entrant depuis la branche $fromBranch", [
-                    'type' => 'transfer',
-                    'reference_id' => $transfer->id,
-                    'addedBy' => $userId
-                ]);
+                // self::addStock($toBranch, $productId, $quantity, "Transfert entrant depuis la branche $fromBranch", [
+                //     'type' => 'transfer',
+                //     'reference_id' => $transfer->id,
+                //     'addedBy' => $userId
+                // ]);
             }
 
             return $transfer;
