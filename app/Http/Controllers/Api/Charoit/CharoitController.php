@@ -201,9 +201,9 @@ class CharoitController extends Controller
             $item = Charoit::findOrFail($id);
 
             $data = $request->validate([
-                'name' => "nullable|string|max:255",
+                'name' => "nullable|name|unique:your_table,name,$id",
                 'brand' => "nullable|string|max:255",
-                'plate_number' => "nullable|string|max:255",
+                'plate_number' => "nullable|plate_number|unique:your_table,plate_number,$id",
                 'color' => "nullable|string|max:255",
             ]);
 

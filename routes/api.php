@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Charoit\CharoitController;
 use App\Http\Controllers\Api\Company\CompanyController;
 use App\Http\Controllers\Api\Currency\CurrencyController;
 use App\Http\Controllers\Api\Customer\CustomerController;
+use App\Http\Controllers\Api\Dristributor\DistributorController;
 use App\Http\Controllers\Api\EntryStock\EntryStockController;
 use App\Http\Controllers\Api\Filling\FillingController;
 use App\Http\Controllers\Api\MovementStock\MovementController;
@@ -105,6 +106,16 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/charoitsStoreData', 'store');
             Route::put('/charoitsUpdate/{id}', 'update');
             Route::put('/charoitsDelete/{id}', 'destroy');
+        });
+
+        Route::controller(DistributorController::class)->group(function () {
+            Route::get('/distributorGetAllData', 'index');
+            Route::get('/distributorsGetOptionData', 'getDistributorOptions');
+            Route::post('/distributorStoreData', 'store');
+            Route::put('/distributorUpdate/{id}', 'update');
+            Route::put('/distributorDelete/{id}', 'destroy');
+            Route::put('/distributorDisable/{id}', 'disableDistributor');
+            Route::put('/distributorActivate/{id}', 'activateDistributor');
         });
 
         Route::controller(SupplierController::class)->group(function () {

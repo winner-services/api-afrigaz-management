@@ -1545,6 +1545,213 @@
                 }
             }
         },
+        "/api/v1/distributorGetAllData": {
+            "get": {
+                "tags": [
+                    "Distributeurs"
+                ],
+                "summary": "Liste des Distributeurs",
+                "operationId": "3ec8045df335a1d018f6c3a05c875fd5",
+                "parameters": [
+                    {
+                        "name": "paginate",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    },
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "example": "Kinshasa"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Liste paginée"
+                    }
+                }
+            }
+        },
+        "/api/v1/distributorsGetOptionData": {
+            "get": {
+                "tags": [
+                    "Distributeurs"
+                ],
+                "summary": "Lister les options",
+                "operationId": "1245858100ae1c781d6a11d7b984f6a7",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/distributorStoreData": {
+            "post": {
+                "tags": [
+                    "Distributeurs"
+                ],
+                "summary": "Créer",
+                "operationId": "ee6aff58559b6d2c6b17964bb930b1e8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Entreprise X"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "Kinshasa"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "test@mail.com"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "099999999"
+                                    },
+                                    "zone": {
+                                        "type": "string",
+                                        "example": "Gombe"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Créé"
+                    },
+                    "422": {
+                        "description": "Erreur validation"
+                    }
+                }
+            }
+        },
+        "/api/v1/distributorUpdate/{id}": {
+            "put": {
+                "tags": [
+                    "Distributeurs"
+                ],
+                "summary": "Mettre à jour un distributeur",
+                "operationId": "cc9cf28147c39be0a9971b5037ad049e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Mis à jour"
+                    },
+                    "404": {
+                        "description": "Introuvable"
+                    }
+                }
+            }
+        },
+        "/api/v1/distributorDelete/{id}": {
+            "put": {
+                "tags": [
+                    "Distributeurs"
+                ],
+                "summary": "Supprimer un distributeur",
+                "operationId": "b1d382f2bad68173c761474b22801b36",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Supprimé"
+                    },
+                    "404": {
+                        "description": "Introuvable"
+                    }
+                }
+            }
+        },
+        "/api/v1/distributorDisable/{id}": {
+            "put": {
+                "tags": [
+                    "Distributeurs"
+                ],
+                "summary": "Désactiver un distributeur",
+                "operationId": "d69f442aec8338b92e266e49101f621c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Désactivé"
+                    },
+                    "404": {
+                        "description": "Introuvable"
+                    }
+                }
+            }
+        },
+        "/api/v1/distributorActivate/{id}": {
+            "delete": {
+                "tags": [
+                    "Distributeurs"
+                ],
+                "summary": "Activer un distributeur",
+                "operationId": "10e562b5db100fdb4561b7bd0a8ccc13",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Activé"
+                    },
+                    "404": {
+                        "description": "Introuvable"
+                    }
+                }
+            }
+        },
         "/api/v1/stockEntriesStore": {
             "post": {
                 "tags": [
@@ -4629,6 +4836,10 @@
         {
             "name": "payment Debts customers",
             "description": "payment Debts customers"
+        },
+        {
+            "name": "Distributeurs",
+            "description": "Distributeurs"
         },
         {
             "name": "Stock Entries",

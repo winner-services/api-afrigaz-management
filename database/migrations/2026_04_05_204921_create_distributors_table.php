@@ -13,6 +13,14 @@ return new class extends Migration
     {
         Schema::create('distributors', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->string('address')->nullable();
+            $table->string('email')->unique();
+            $table->string('phone')->nullable();
+            $table->string('zone')->nullable();
+            $table->string('status')->default('actif');
+            $table->boolean('is_deleted')->default(false);
+            $table->foreignId('addedBy')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
     }
