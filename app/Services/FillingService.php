@@ -69,6 +69,7 @@ class FillingService
                 'note' => 'Remplissage du ' . now()->format('Y-m-d H:i:s'),
                 'addedBy' => Auth::id(),
                 'operation_date' => $operation_date,
+                'reference' => fake()->unique()->numerify('FILL-#####')
             ]);
 
             $this->tankService->consumeGas(

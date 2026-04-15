@@ -104,6 +104,7 @@ class SaleController extends Controller
                 'paid_amount' => 'nullable|numeric|min:0',
                 'account_id' => 'nullable|exists:cash_accounts,id',
                 'sale_type' => 'nullable|string',
+                'commentaire' => 'nullable|string',
                 'sale_category' => 'nullable|string',
             ]);
             $reference1 = 'SALE-' . date('YmdHis');

@@ -24,6 +24,7 @@ return new class extends Migration
             $table->text('note')->nullable();
             $table->foreignId('addedBy')->nullable()->constrained('users')->nullOnDelete();
             $table->date('operation_date')->default(now());
+            $table->string('reference')->nullable()->unique();
             $table->timestamps();
         });
     }

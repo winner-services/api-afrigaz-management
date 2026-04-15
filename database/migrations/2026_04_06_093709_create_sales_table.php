@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('sale_category')->nullable();
             $table->string('status')->default('completed');
             $table->date('transaction_date');
+            $table->string('commentaire')->nullable();
             $table->timestamps();
         });
     }

@@ -11,7 +11,8 @@ use Illuminate\Database\Eloquent\Model;
     'total_gas_used',
     'note',
     'addedBy',
-    'operation_date'
+    'operation_date',
+    'reference'
 ])]
 class Filling extends Model
 {
@@ -34,5 +35,4 @@ class Filling extends Model
     {
         return $this->belongsTo(User::class, 'addedBy');
     }
-    
 }
