@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Distributor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
@@ -141,11 +142,25 @@ class DistributorController extends Controller
             $item = Distributor::findOrFail($id);
 
             $data = $request->validate([
-                'name' => "nullable|name|unique:distributors,name,$id",
-                'address' => 'nullable|string',
-                'email' => "nullable|email|unique:distributors,email,$id",
-                'phone' => "nullable|phone|unique:distributors,phone,$id",
-                'zone' => 'nullable|string',
+                'name' => [
+                    'nullable',
+                    'string',
+                    'max:255',
+                    Rule::unique('distributors', 'name')->ignore($id)
+                ],
+                'address' => ['nullable', 'string'],
+                'email' => [
+                    'nullable',
+                    'email',
+                    Rule::unique('distributors', 'email')->ignore($id)
+                ],
+                'phone' => [
+                    'nullable',
+                    'string',
+                    'max:20',
+                    Rule::unique('distributors', 'phone')->ignore($id)
+                ],
+                'zone' => ['nullable', 'string'],
             ]);
 
             $item->update($data);
