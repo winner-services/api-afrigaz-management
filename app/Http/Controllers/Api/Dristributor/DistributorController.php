@@ -96,10 +96,10 @@ class DistributorController extends Controller
         try {
 
             $data = $request->validate([
-                'name' => 'required|name|unique:your_table,name',
+                'name' => 'required|name|unique:distributors,name',
                 'address' => 'nullable|string',
-                'email' => 'nullable|email|unique:your_table,email',
-                'phone' => 'nullable|phone|unique:your_table,phone',
+                'email' => 'nullable|email|unique:distributors,email',
+                'phone' => 'nullable|phone|unique:distributors,phone',
                 'zone' => 'nullable|string'
             ]);
 
@@ -141,10 +141,10 @@ class DistributorController extends Controller
             $item = Distributor::findOrFail($id);
 
             $data = $request->validate([
-                'name' => "nullable|name|unique:your_table,name,$id",
+                'name' => "nullable|name|unique:distributors,name,$id",
                 'address' => 'nullable|string',
-                'email' => "nullable|email|unique:your_table,email,$id",
-                'phone' => "nullable|phone|unique:your_table,phone,$id",
+                'email' => "nullable|email|unique:distributors,email,$id",
+                'phone' => "nullable|phone|unique:distributors,phone,$id",
                 'zone' => 'nullable|string',
             ]);
 
