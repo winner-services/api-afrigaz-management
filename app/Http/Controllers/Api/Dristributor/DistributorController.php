@@ -37,7 +37,7 @@ class DistributorController extends Controller
                         ->orWhere('phone', 'like', "%$search%")
                         ->orWhere('zone', 'like', "%$search%")
                         ->orWhereHas('addedBy', function ($q3) use ($search) {
-                            $q3->where('users.name', 'like', "%$search%");
+                            $q3->where('name', 'like', "%$search%");
                         });
                 });
             })
@@ -46,9 +46,9 @@ class DistributorController extends Controller
             ->paginate($perPage);
 
         return response()->json([
-            'message' => 'succeess',
+            'message' => 'success',
             'status' => 200,
-            'data' => $items->items()
+            'data' => $items
         ]);
     }
     #[OA\Get(
