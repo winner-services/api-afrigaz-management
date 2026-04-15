@@ -96,10 +96,10 @@ class DistributorController extends Controller
         try {
 
             $data = $request->validate([
-                'name' => 'required|name|unique:distributors,name',
+                'name' => 'required|string|max:255|unique:distributors,name',
                 'address' => 'nullable|string',
                 'email' => 'nullable|email|unique:distributors,email',
-                'phone' => 'nullable|phone|unique:distributors,phone',
+                'phone' => 'nullable|string|max:20|unique:distributors,phone',
                 'zone' => 'nullable|string'
             ]);
 
