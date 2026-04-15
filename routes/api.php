@@ -39,7 +39,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::middleware(['auth:sanctum'])->group(function () {
         Route::controller(UserController::class)->group(function () {
             Route::get('/usersGetAllData', 'index');
-            Route::get('/usersGetOptionsData', 'getAllUsersOptions');
+            Route::get('/userGetOptionsData', 'getAllUsersOptions');
             Route::post('/userStoreData', 'store');
             Route::put('/userUpdateData/{id}', 'update');
             Route::delete('/userDestroyData/{id}', 'destroy');
