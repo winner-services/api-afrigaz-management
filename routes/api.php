@@ -170,7 +170,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/adjustStockByBanch', 'adjust');
             Route::post('/removeQteStockByBanch', 'remove');
             Route::post('/returnProductStockByBanch', 'returnProduct');
-            Route::post('/getTansfertProduct', 'getTansfertProduct');
+            Route::get('/getTansfertProduct', 'getTansfertProduct');
         });
 
         Route::controller(StockController::class)->group(function () {
