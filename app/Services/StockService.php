@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\BottleReturn;
+use App\Models\BottleReturnItem;
+use App\Models\Branche;
 use App\Models\StockByBranch;
 use App\Models\StockMovement;
 use App\Models\Transfer;
@@ -323,36 +326,101 @@ class StockService
         return true;
     }
 
-    public function handleMultipleBottleReturn($branchId, array $products)
+    // public function handleMultipleBottleReturn($branchId, array $products)
+    // {
+    //     foreach ($products as $product) {
+
+    //         $productId = $product['product_id'];
+    //         $returns = $product['returns'];
+
+    //         foreach ($returns as $item) {
+
+    //             $condition = $item['condition'];
+    //             $qty = $item['quantity'];
+
+    //             if ($qty <= 0) {
+    //                 throw new \Exception("Quantité invalide");
+    //             }
+
+    //             if (!in_array($condition, ['good', 'damaged', 'repair'])) {
+    //                 throw new \Exception("Etat invalide: $condition");
+    //             }
+
+    //             $this->increaseStock(
+    //                 $branchId,
+    //                 $productId,
+    //                 $qty,
+    //                 true,
+    //                 $condition
+    //             );
+    //         }
+    //     }
+
+    //     return true;
+    // }
+
+    public function storeReturn(array $data)
     {
-        foreach ($products as $product) {
+        return DB::transaction(function () use ($data) {
 
-            $productId = $product['product_id'];
-            $returns = $product['returns'];
+            $branchId = $data['branch_id'];
+            $agentId = Branche::join('users', 'branches.id', '=', 'users.branche_id')
+                ->where('branches.id', $branchId)
+                ->value('users.id');
+            $products = $data['products'];
 
-            foreach ($returns as $item) {
+            $totalItems = 0;
 
-                $condition = $item['condition'];
-                $qty = $item['quantity'];
-
-                if ($qty <= 0) {
-                    throw new \Exception("Quantité invalide");
+            // 🔥 1. calcul total
+            foreach ($products as $product) {
+                foreach ($product['returns'] as $item) {
+                    $totalItems += $item['quantity'];
                 }
-
-                if (!in_array($condition, ['good', 'damaged', 'repair'])) {
-                    throw new \Exception("Etat invalide: $condition");
-                }
-
-                $this->increaseStock(
-                    $branchId,
-                    $productId,
-                    $qty,
-                    true,
-                    $condition
-                );
             }
-        }
 
-        return true;
+            // 🔥 2. créer header
+            $return = BottleReturn::create([
+                'branch_id' => $branchId,
+                'agent_id' => $agentId,
+                'total_items' => $totalItems,
+                'note' => 'Retour de bouteilles',
+                'addedBy' => Auth::id(),
+            ]);
+
+            // 🔥 3. traiter chaque produit
+            foreach ($products as $product) {
+
+                $productId = $product['product_id'];
+
+                foreach ($product['returns'] as $item) {
+
+                    $condition = $item['condition'];
+                    $qty = $item['quantity'];
+
+                    if ($qty <= 0) {
+                        throw new \Exception("Quantité invalide");
+                    }
+
+                    // 🔥 enregistrer détail
+                    BottleReturnItem::create([
+                        'bottle_return_id' => $return->id,
+                        'product_id' => $productId,
+                        'condition' => $condition,
+                        'quantity' => $qty,
+                    ]);
+
+                    // mise à jour stock
+                    $this->increaseStock(
+                        1,
+                        $productId,
+                        $qty,
+                        true,
+                        $condition
+                    );
+                }
+            }
+
+            return $return->load('items.product');
+        });
     }
 }

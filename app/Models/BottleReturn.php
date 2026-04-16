@@ -1,0 +1,21 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Model;
+
+#[Fillable([
+    'branch_id',
+    'agent_id',
+    'total_items',
+    'note',
+    'addedBy'
+])]
+class BottleReturn extends Model
+{
+    public function items()
+    {
+        return $this->hasMany(BottleReturnItem::class);
+    }
+}

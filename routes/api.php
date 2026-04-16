@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\Permission\PermissionController;
 use App\Http\Controllers\Api\Products\CategoryController;
 use App\Http\Controllers\Api\Products\ProductController;
 use App\Http\Controllers\Api\Products\UnitController;
+use App\Http\Controllers\Api\ReturnBoitle\ReturnBootleController;
 use App\Http\Controllers\Api\Role\RoleController;
 use App\Http\Controllers\Api\Sale\ReturnSaleController;
 use App\Http\Controllers\Api\Sale\SaleController;
@@ -204,6 +205,10 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::controller(UnitController::class)->group(function () {
             Route::get('/unitGetOptionsData', 'getUnitsOptions');
             Route::post('/unitStoreData', 'storeUnit');
+        });
+
+        Route::controller(ReturnBootleController::class)->group(function () {
+            Route::post('/bottleReturnStore', 'returnMultipleBottles');
         });
     });
 });

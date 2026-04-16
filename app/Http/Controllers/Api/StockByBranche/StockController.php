@@ -7,6 +7,7 @@ use App\Models\Branche;
 use App\Models\Currency;
 use App\Models\StockByBranch;
 use Illuminate\Http\Request;
+use App\Services\StockService;
 use Illuminate\Support\Facades\Auth;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -213,4 +214,44 @@ class StockController extends Controller
             ]
         );
     }
+
+    // public function returnMultipleBottles(Request $request)
+    // {
+    //     try {
+
+    //         $data = $request->validate([
+    //             'branch_id' => 'required|exists:branches,id',
+    //             'note' => 'nullable|string',
+
+    //             'products' => 'required|array|min:1',
+    //             'products.*.product_id' => 'required|exists:products,id',
+
+    //             'products.*.returns' => 'required|array|min:1',
+    //             'products.*.returns.*.condition' => 'required|in:good,damaged,repair',
+    //             'products.*.returns.*.quantity' => 'required|integer|min:1',
+    //         ]);
+
+    //         $result = $this->stockService->storeReturn($data);
+
+    //         return response()->json([
+    //             'message' => 'Retour enregistré avec succès',
+    //             'data' => $result
+    //         ], 201);
+    //     } catch (\Illuminate\Validation\ValidationException $e) {
+
+    //         return response()->json([
+    //             'message' => 'Erreur de validation',
+    //             'errors' => $e->errors()
+    //         ], 422);
+    //     } catch (\Exception $e) {
+
+    //         Log::error('Bottle return error', [
+    //             'error' => $e->getMessage()
+    //         ]);
+
+    //         return response()->json([
+    //             'message' => 'Erreur lors du retour des bouteilles'
+    //         ], 500);
+    //     }
+    // }
 }

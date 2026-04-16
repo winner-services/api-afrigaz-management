@@ -2470,6 +2470,89 @@
                 }
             }
         },
+        "/api/bottleReturnStore": {
+            "post": {
+                "tags": [
+                    "Bottle Returns"
+                ],
+                "summary": "Enregistrer un retour de bouteilles",
+                "description": "Retour multi-produits avec états (good, damaged, repair)",
+                "operationId": "7a33f745d401de5dd29d2d171bd7e94d",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "branch_id",
+                                    "products"
+                                ],
+                                "properties": {
+                                    "branch_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "note": {
+                                        "type": "string",
+                                        "example": "Retour de bouteilles"
+                                    },
+                                    "products": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "product_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "returns": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "condition": {
+                                                                "type": "string",
+                                                                "example": "good",
+                                                                "enum": [
+                                                                    "good",
+                                                                    "damaged",
+                                                                    "repair"
+                                                                ]
+                                                            },
+                                                            "quantity": {
+                                                                "type": "integer",
+                                                                "example": 40
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Retour enregistré avec succès"
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/rolesGetAllData": {
             "get": {
                 "tags": [
@@ -4936,6 +5019,10 @@
         {
             "name": "Units",
             "description": "Units"
+        },
+        {
+            "name": "Bottle Returns",
+            "description": "Bottle Returns"
         },
         {
             "name": "Roles",
