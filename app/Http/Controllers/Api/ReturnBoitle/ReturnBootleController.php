@@ -146,6 +146,7 @@ class ReturnBootleController extends Controller
 
             $query = BottleReturn::with([
                 'agent:id,name',
+                'branch:id,name',
                 'items.product:id,name',
                 'user:id,name'
             ])
