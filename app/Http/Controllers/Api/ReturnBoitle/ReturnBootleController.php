@@ -98,6 +98,7 @@ class ReturnBootleController extends Controller
 
             return response()->json([
                 'message' => 'Retour enregistré avec succès',
+                'status' => 201,
                 'data' => $result
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
