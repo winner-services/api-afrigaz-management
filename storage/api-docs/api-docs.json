@@ -2195,6 +2195,20 @@
                 }
             }
         },
+        "/api/v1/getProductGazCategories": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Lister",
+                "operationId": "663e847e5c33095b681ebd8f3315b6e1",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
         "/api/v1/getEmptyProductOptions": {
             "get": {
                 "tags": [

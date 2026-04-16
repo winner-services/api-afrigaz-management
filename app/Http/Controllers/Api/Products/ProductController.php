@@ -45,6 +45,23 @@ class ProductController extends Controller
             'data' => $data
         ]);
     }
+    #[OA\Get(
+        path: "/api/v1/getProductGazCategories",
+        summary: "Lister",
+        tags: ["Products"],
+        responses: [
+            new OA\Response(response: 200, description: "Liste")
+        ]
+    )]
+    public function getProductGazCategories()
+    {
+        $data = Product::where('category_id', 1)->latest()->get();
+
+        return response()->json([
+            'status' => true,
+            'data' => $data
+        ]);
+    }
 
     #[OA\Get(
         path: "/api/v1/getEmptyProductOptions",
