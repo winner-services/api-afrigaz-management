@@ -18,4 +18,18 @@ class BottleReturn extends Model
     {
         return $this->hasMany(BottleReturnItem::class);
     }
+
+    public function agent()
+    {
+        return $this->belongsTo(User::class, 'agent_id');
+    }
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'addedBy');
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branche::class);
+    }
 }

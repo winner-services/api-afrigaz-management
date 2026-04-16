@@ -368,6 +368,7 @@ class StockService
                 ->where('branches.id', $branchId)
                 ->value('users.id');
             $products = $data['products'];
+            $return_date = $data['date_operation'] ?? now();
 
             $totalItems = 0;
 
@@ -385,6 +386,8 @@ class StockService
                 'total_items' => $totalItems,
                 'note' => 'Retour de bouteilles',
                 'addedBy' => Auth::id(),
+                'return_date' => $return_date,
+                'reference' => fake()->unique()->numerify('RET-#####')
             ]);
 
             // 🔥 3. traiter chaque produit

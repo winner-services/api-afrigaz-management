@@ -19,12 +19,14 @@ return new class extends Migration
 
             $table->foreignId('agent_id')
                 ->nullable()
-                ->constrained('customers')
+                ->constrained('users')
                 ->nullOnDelete();
 
             // 🔥 info opération
             $table->decimal('total_items', 10, 2)->default(0);
             $table->text('note')->nullable();
+            $table->string('reference')->unique();
+            $table->date('return_date')->default(now());
 
             // 🔥 traçabilité
             $table->foreignId('addedBy')

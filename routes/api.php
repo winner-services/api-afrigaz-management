@@ -209,6 +209,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
         Route::controller(ReturnBootleController::class)->group(function () {
             Route::post('/bottleReturnStore', 'returnMultipleBottles');
+            Route::get('/bottleReturnsGetAllData', 'getData');
         });
     });
 });

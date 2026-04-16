@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api\ReturnBoitle;
 
 use App\Http\Controllers\Controller;
+use App\Models\BottleReturn;
 use App\Services\StockService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
 
@@ -85,6 +87,7 @@ class ReturnBootleController extends Controller
             $data = $request->validate([
                 'branch_id' => 'required|exists:branches,id',
                 'note' => 'nullable|string',
+                'date_operation' => 'nullable|date',
 
                 'products' => 'required|array|min:1',
                 'products.*.product_id' => 'required|exists:products,id',
@@ -112,6 +115,62 @@ class ReturnBootleController extends Controller
             return response()->json([
                 'message' => 'Erreur lors du retour des bouteilles',
                 'errors' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getData(Request $request)
+    {
+        try {
+
+            $user = Auth::user();
+            $branchId = $user->branch_id;
+
+            $perPage = $request->query('per_page', 10);
+            $search = $request->query('q', '');
+            $sortField = $request->query('sort_field', 'id');
+            $sortDirection = $request->query('sort_direction', 'desc');
+
+            // 🔒 sécuriser tri
+            $allowedSortFields = [
+                'id',
+                'reference',
+                'total_items',
+                'return_date',
+                'created_at'
+            ];
+
+            if (!in_array($sortField, $allowedSortFields)) {
+                $sortField = 'id';
+            }
+
+            $query = BottleReturn::with([
+                'agent:id,name',
+                'items.product:id,name',
+                'user:id,name'
+            ])
+                // 🔍 recherche
+                ->when($search, function ($q) use ($search) {
+                    $q->where('reference', 'like', "%$search%")
+                        ->orWhere('note', 'like', "%$search%");
+                })
+
+                ->orderBy($sortField, $sortDirection);
+
+            $data = $query->paginate($perPage);
+
+            return response()->json([
+                'message' => 'Liste des retours',
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+
+            Log::error('BottleReturn getData error', [
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'message' => 'Erreur lors de la récupération des données'
             ], 500);
         }
     }
