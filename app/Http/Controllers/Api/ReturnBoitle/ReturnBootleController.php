@@ -108,12 +108,9 @@ class ReturnBootleController extends Controller
             ], 422);
         } catch (\Exception $e) {
 
-            Log::error('Bottle return error', [
-                'error' => $e->getMessage()
-            ]);
-
             return response()->json([
-                'message' => 'Erreur lors du retour des bouteilles'
+                'message' => 'Erreur lors du retour des bouteilles',
+                'errors' => $e->getMessage()
             ], 500);
         }
     }

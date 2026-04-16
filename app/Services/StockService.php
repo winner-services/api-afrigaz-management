@@ -364,7 +364,7 @@ class StockService
         return DB::transaction(function () use ($data) {
 
             $branchId = $data['branch_id'];
-            $agentId = Branche::join('users', 'branches.id', '=', 'users.branche_id')
+            $agentId = Branche::join('users', 'branches.user_id', '=', 'users.id')
                 ->where('branches.id', $branchId)
                 ->value('users.id');
             $products = $data['products'];
