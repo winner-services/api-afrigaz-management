@@ -10,7 +10,9 @@ use Illuminate\Database\Eloquent\Model;
     'agent_id',
     'total_items',
     'note',
-    'addedBy'
+    'addedBy',
+    'reference',
+    'return_date'
 ])]
 class BottleReturn extends Model
 {

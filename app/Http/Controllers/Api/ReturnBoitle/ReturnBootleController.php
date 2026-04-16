@@ -119,6 +119,57 @@ class ReturnBootleController extends Controller
         }
     }
 
+    // public function getData(Request $request)
+    // {
+    //     try {
+
+    //         $user = Auth::user();
+    //         $branchId = $user->branch_id;
+
+    //         $perPage = $request->query('per_page', 10);
+    //         $search = $request->query('q', '');
+    //         $sortField = $request->query('sort_field', 'id');
+    //         $sortDirection = $request->query('sort_direction', 'desc');
+
+    //         $allowedSortFields = [
+    //             'id',
+    //             'reference',
+    //             'total_items',
+    //             'return_date',
+    //             'created_at'
+    //         ];
+
+    //         if (!in_array($sortField, $allowedSortFields)) {
+    //             $sortField = 'id';
+    //         }
+
+    //         $query = BottleReturn::with([
+    //             'agent:id,name',
+    //             'branch:id,name',
+    //             'items.product:id,name',
+    //             'user:id,name'
+    //         ])
+    //             ->when($search, function ($q) use ($search) {
+    //                 $q->where('reference', 'like', "%$search%")
+    //                     ->orWhere('note', 'like', "%$search%");
+    //             })
+    //             ->orderBy($sortField, $sortDirection)
+    //             ->paginate($perPage);
+    //         return response()->json([
+    //             'message' => 'Liste des retours',
+    //             'data' => $query,
+    //         ]);
+    //     } catch (\Exception $e) {
+
+    //         Log::error('BottleReturn getData error', [
+    //             'error' => $e->getMessage()
+    //         ]);
+
+    //         return response()->json([
+    //             'message' => 'Erreur lors de la récupération des données'
+    //         ], 500);
+    //     }
+    // }
     public function getData(Request $request)
     {
         try {
@@ -131,7 +182,6 @@ class ReturnBootleController extends Controller
             $sortField = $request->query('sort_field', 'id');
             $sortDirection = $request->query('sort_direction', 'desc');
 
-            // 🔒 sécuriser tri
             $allowedSortFields = [
                 'id',
                 'reference',
@@ -150,19 +200,19 @@ class ReturnBootleController extends Controller
                 'items.product:id,name',
                 'user:id,name'
             ])
-                // 🔍 recherche
                 ->when($search, function ($q) use ($search) {
-                    $q->where('reference', 'like', "%$search%")
-                        ->orWhere('note', 'like', "%$search%");
+                    $q->where(function ($q2) use ($search) {
+                        $q2->where('reference', 'like', "%$search%")
+                            ->orWhere('note', 'like', "%$search%");
+                    });
                 })
 
-                ->orderBy($sortField, $sortDirection);
-
-            $data = $query->paginate($perPage);
+                ->orderBy($sortField, $sortDirection)
+                ->paginate($perPage);
 
             return response()->json([
                 'message' => 'Liste des retours',
-                'data' => $data
+                'data' => $query
             ]);
         } catch (\Exception $e) {
 
