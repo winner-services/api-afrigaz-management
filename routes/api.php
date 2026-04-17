@@ -99,6 +99,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::get('/lowStockProductsGetData', 'lowStockProducts');
             Route::get('/getTransfertProductOptionsData', 'getTransfertProductOptionsData');
             Route::get('/getProductGazCategories', 'getProductGazCategories');
+            Route::get('/getProductOptionsByBranche', 'getProductOptionsByBranche');
         });
 
         Route::controller(FillingController::class)->group(function () {

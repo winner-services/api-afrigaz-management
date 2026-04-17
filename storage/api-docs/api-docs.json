@@ -2252,6 +2252,20 @@
                 }
             }
         },
+        "/api/v1/getProductOptionsByBranche": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Lister",
+                "operationId": "9d39817390511e3a7b7254780899c05b",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
         "/api/v1/productGetOptionsData": {
             "get": {
                 "tags": [

@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\Api\Dristributor\DeptPayment;
 
 use App\Http\Controllers\Controller;
+use App\Models\CashTransaction;
+use App\Models\DebtDistributor;
 use App\Models\Distributor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 class PaymentDristributorController extends Controller
@@ -53,5 +57,109 @@ class PaymentDristributorController extends Controller
             'message' => 'succès',
             'data' => $data
         ]);
+    }
+
+
+
+    public function autoPayDebts(Request $request)
+    {
+        $request->validate([
+            'distributor_id' => 'required|exists:distributors,id',
+            'paid_amount' => 'required|numeric|min:0.01',
+            'account_id' => 'required|exists:cash_accounts,id',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $remainingAmount = $request->paid_amount;
+            $totalPaid = 0;
+
+            $lastTransaction = CashTransaction::where('cash_account_id', $request->account_id)
+                ->latest('id')
+                ->first();
+            $currentSolde = $lastTransaction ? $lastTransaction->solde : 0;
+
+            $debts = DebtDistributor::where('distributor_id', $request->distributor_id)
+                ->whereIn('status', ['pending', 'partial'])
+                ->orderBy('transaction_date', 'asc')
+                ->lockForUpdate()
+                ->get();
+
+            if ($debts->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Aucune dette à payer.'
+                ], 404);
+            }
+
+            foreach ($debts as $debt) {
+
+                if ($remainingAmount <= 0) break;
+
+                $debtRemaining = $debt->loan_amount - $debt->paid_amount;
+
+                if ($debtRemaining <= 0) continue;
+
+                $payAmount = min($remainingAmount, $debtRemaining);
+
+                DebtDistributor::create([
+                    'distributor_id' => $debt->distributor_id,
+                    'sale_id' => $debt->sale_id,
+                    'paid_amount' => $payAmount,
+                    'cash_account_id' => $request->account_id,
+                    'addedBy' => Auth::id(),
+                ]);
+
+                // ✅ 2. Mise à jour dette
+                $debt->paid_amount += $payAmount;
+
+                if ($debt->paid_amount >= $debt->loan_amount) {
+                    $debt->status = 'paid';
+                } elseif ($debt->paid_amount > 0) {
+                    $debt->status = 'partial';
+                }
+
+                $debt->save();
+
+
+                $currentSolde += $payAmount;
+
+                CashTransaction::create([
+                    'reason' => 'Paiement dette Distributeur #' . $debt->distributor_id,
+                    'type' => 'Revenue',
+                    'amount' => $payAmount,
+                    'transaction_date' => now(),
+                    'solde' => $currentSolde,
+                    'reference' => 'DEBT-' . $debt->id,
+                    'reference_id' => $debt->id,
+                    'cash_account_id' => $request->account_id,
+                    'cash_categorie_id' => 4,
+                    'addedBy' => Auth::id()
+                ]);
+
+                $remainingAmount -= $payAmount;
+                $totalPaid += $payAmount;
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Paiement effectué.',
+                'total_paid' => $totalPaid,
+                'remaining_unallocated' => $remainingAmount,
+                'new_balance' => $currentSolde
+            ]);
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors du paiement.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

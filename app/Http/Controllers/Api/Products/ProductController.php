@@ -110,6 +110,38 @@ class ProductController extends Controller
             'data' => $data
         ]);
     }
+     #[OA\Get(
+        path: "/api/v1/getProductOptionsByBranche",
+        summary: "Lister",
+        tags: ["Products"],
+        responses: [
+            new OA\Response(response: 200, description: "Liste")
+        ]
+    )]
+
+    public function getProductOptionsByBranche()
+    {
+        $branche = Branche::where('user_id', Auth::id())->first();
+
+        if (!$branche) {
+            return response()->json([
+                'message' => 'Branche non trouvée'
+            ], 404);
+        }
+        $data = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
+            ->where('stock_by_branches.branche_id', $branche->id)
+            ->where('products.status', 'created')
+            ->where(function ($query) {
+                $query->where('stock_by_branches.is_empty', false)
+                    ->orWhereNull('stock_by_branches.is_empty');
+            })
+            ->select('products.*', 'stock_by_branches.stock_quantity as stock_quantity')
+            ->get();
+        return response()->json([
+            'status' => true,
+            'data' => $data
+        ]);
+    }
 
     #[OA\Get(
         path: "/api/v1/productGetOptionsData",
