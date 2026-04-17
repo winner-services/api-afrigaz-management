@@ -101,6 +101,7 @@ class SaleController extends Controller
                 'products.*.quantity' => 'required|integer|min:1',
                 'products.*.unit_price' => 'required|integer|min:1',
                 'customer_id' => 'nullable|exists:customers,id',
+                'distributor_id' => 'nullable|exists:distributors,id',
                 'paid_amount' => 'nullable|numeric|min:0',
                 'account_id' => 'nullable|exists:cash_accounts,id',
                 'sale_type' => 'nullable|string',
@@ -117,6 +118,7 @@ class SaleController extends Controller
                     'paid_amount' => 0,
                     'transaction_date' => now(),
                     'customer_id' => $request->customer_id,
+                    'distributor_id' => $request->distributor_id,
                     'sale_type' => $request->sale_type,
                     'sale_category' => $request->sale_category,
                 ]);
@@ -147,6 +149,7 @@ class SaleController extends Controller
                     $request->products,
                     Auth::id(),
                     $request->customer_id,
+                    $request->distributor_id,
                     $request->paid_amount ?? 0,
                     $request->account_id,
                     $request->sale_type,

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\CashTransaction;
 use App\Models\CustomerDebt;
+use App\Models\DebtDistributor;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\Shipping;
@@ -13,9 +14,9 @@ use Illuminate\Support\Facades\DB;
 
 class SaleService
 {
-    public static function createSaleWithPayment($branchId, $products, $userId, $customerId = null, $paidAmount = 0, $account_id, $sale_type, $sale_category)
+    public static function createSaleWithPayment($branchId, $products, $userId, $customerId = null, $distributor_id = null, $paidAmount = 0, $account_id, $sale_type, $sale_category)
     {
-        return DB::transaction(function () use ($branchId, $products, $userId, $customerId, $paidAmount, $account_id, $sale_type, $sale_category) {
+        return DB::transaction(function () use ($branchId, $products, $userId, $customerId, $distributor_id, $paidAmount, $account_id, $sale_type, $sale_category) {
             $errors = [];
 
             foreach ($products as $item) {
@@ -49,6 +50,7 @@ class SaleService
                 'paid_amount' => 0,
                 'transaction_date' => now(),
                 'customer_id' => $customerId,
+                'distributor_id' => $distributor_id,
                 'sale_type' => $sale_type,
                 'sale_category' => $sale_category,
             ]);
@@ -102,29 +104,41 @@ class SaleService
 
             $remaining = $total - $paidAmount;
 
-            // $lastTransaction = CashTransaction::where('cash_account_id', $account_id)
-            //     ->latest('id')
-            //     ->first();
-            // $solde = $lastTransaction ? $lastTransaction->solde : 0;
+            $lastTransaction = CashTransaction::where('cash_account_id', $account_id)
+                ->latest('id')
+                ->first();
+            $solde = $lastTransaction ? $lastTransaction->solde : 0;
 
-            // if ($paidAmount > 0) {
-            //     CashTransaction::create([
-            //         'reason' => 'Paiement vente',
-            //         'type' => 'Revenue',
-            //         'amount' => $paidAmount,
-            //         'transaction_date' => now(),
-            //         'solde' => $solde + $paidAmount,
-            //         'reference' => $sale->reference,
-            //         'reference_id' => $sale->id,
-            //         'cash_account_id' => $account_id,
-            //         'cash_categorie_id' => 1,
-            //         'addedBy' => $userId,
-            //     ]);
-            // }
+            if ($paidAmount > 0) {
+                CashTransaction::create([
+                    'reason' => 'Paiement vente',
+                    'type' => 'Revenue',
+                    'amount' => $paidAmount,
+                    'transaction_date' => now(),
+                    'solde' => $solde + $paidAmount,
+                    'reference' => $sale->reference,
+                    'reference_id' => $sale->id,
+                    'cash_account_id' => $account_id,
+                    'cash_categorie_id' => 1,
+                    'addedBy' => $userId,
+                ]);
+            }
 
             if ($remaining > 0 && $customerId) {
                 CustomerDebt::create([
                     'customer_id' => $customerId,
+                    'sale_id' => $sale->id,
+                    'loan_amount' => $total,
+                    'paid_amount' => $paidAmount,
+                    'transaction_date' => now(),
+                    'motif' => 'Vente à crédit',
+                    'status' => 'pending',
+                    'user_id' => $userId,
+                ]);
+            }
+            if ($remaining > 0 && $distributor_id) {
+                DebtDistributor::create([
+                    'distributor_id' => $distributor_id,
                     'sale_id' => $sale->id,
                     'loan_amount' => $total,
                     'paid_amount' => $paidAmount,
@@ -145,12 +159,6 @@ class SaleService
             $errors = [];
 
             foreach ($products as $item) {
-
-                // $stock = StockByBranch::where([
-                //     'branche_id' => $branchId,
-                //     'product_id' => $item['product_id'],
-                //     'is_empty' => false
-                // ])->lockForUpdate()->first();
                 $stock = StockByBranch::where('branche_id', $branchId)
                     ->where('product_id', $item['product_id'])
                     ->where(
