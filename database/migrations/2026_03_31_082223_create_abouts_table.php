@@ -22,6 +22,7 @@ return new class extends Migration
             $table->text('address')->nullable();
             $table->text('email')->nullable();
             $table->text('logo')->nullable();
+            $table->decimal('caution_amount',10,2)->default(0);
             $table->timestamps();
         });
     }

@@ -32,11 +32,6 @@ class BrancheController extends Controller
             ->orderBy('branches.created_at', 'desc')
             ->search(trim($q))
             ->paginate($page);
-        // $branches = Branche::with(['user', 'addedBy'])->where('status', '!=', 'deleted')
-        //     ->orderBy('created_at', 'desc')
-        //     ->search(trim($q))
-        //     ->paginate($page);
-
         return response()->json([
             'status' => true,
             'data' => $branches

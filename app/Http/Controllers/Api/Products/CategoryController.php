@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Products;
 
 use App\Http\Controllers\Controller;
+use App\Models\CashCategory;
 use App\Models\ProductCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -98,6 +99,72 @@ class CategoryController extends Controller
                 'status'  => false,
                 'message' => 'Une erreur est survenue lors de la création de l\'utilisateur.',
                 'error'   => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        try {
+            $category = ProductCategory::findOrFail($id);
+            if (!$category) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => ' introuvable'
+                ], 404);
+            }
+
+            $rule = [
+                'designation' => ['required', 'string', 'max:20', 'unique:product_categories,designation,' . $category->id],
+            ];
+            $message = [
+                'designation.unique'   => 'Cette categorie existe déjà.',
+            ];
+
+            $validator = Validator::make($request->all(), $rule, $message);
+            if ($validator->fails()) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'Les données envoyées ne sont pas valides.',
+                    'errors'  => $validator->errors()
+                ], 422);
+            }
+            $category->designation = $request->designation;
+            $category->save();
+            return response()->json([
+                'status'  => 200,
+                'message' => 'modifié avec succès.',
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Une erreur est survenue.',
+                'error'   => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $category = ProductCategory::findOrFail($id);
+            if (!$category) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => ' introuvable'
+                ], 404);
+            }
+            $category->status = 'deleted';
+            $category->save();
+            return response()->json([
+                'status'  => 200,
+                'message' => 'modifié avec succès.',
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Une erreur est survenue.',
+                'error'   => config('app.debug') ? $th->getMessage() : null
             ], 500);
         }
     }

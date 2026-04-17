@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Exceptions\StockException;
 use App\Models\BottleReturn;
 use App\Models\BottleReturnItem;
 use App\Models\Branche;
+use App\Models\Product;
 use App\Models\StockByBranch;
 use App\Models\StockMovement;
 use App\Models\Transfer;
@@ -23,6 +25,8 @@ class StockService
             $stock = StockByBranch::firstOrCreate([
                 'branche_id' => $branchId,
                 'product_id' => $productId,
+                'is_empty' => true,
+                'condition_state' => 'good'
             ]);
 
             $before = $stock->stock_quantity;
@@ -326,38 +330,82 @@ class StockService
         return true;
     }
 
-    // public function handleMultipleBottleReturn($branchId, array $products)
-    // {
-    //     foreach ($products as $product) {
+    public function decreaseStockMultiple($branchId, array $products, $isEmpty = true)
+    {
+        return DB::transaction(function () use ($branchId, $products, $isEmpty) {
 
-    //         $productId = $product['product_id'];
-    //         $returns = $product['returns'];
+            $grouped = [];
+            $errors = [];
 
-    //         foreach ($returns as $item) {
+            // 🔥 1. REGROUPER correctement
+            foreach ($products as $product) {
 
-    //             $condition = $item['condition'];
-    //             $qty = $item['quantity'];
+                $productId = $product['product_id'];
 
-    //             if ($qty <= 0) {
-    //                 throw new \Exception("Quantité invalide");
-    //             }
+                foreach ($product['returns'] as $item) {
 
-    //             if (!in_array($condition, ['good', 'damaged', 'repair'])) {
-    //                 throw new \Exception("Etat invalide: $condition");
-    //             }
+                    $condition = 'good';
+                    $qty = $item['quantity'];
 
-    //             $this->increaseStock(
-    //                 $branchId,
-    //                 $productId,
-    //                 $qty,
-    //                 true,
-    //                 $condition
-    //             );
-    //         }
-    //     }
+                    $key = $productId . '-' . $condition;
 
-    //     return true;
-    // }
+                    if (!isset($grouped[$key])) {
+                        $grouped[$key] = [
+                            'product_id' => $productId,
+                            'condition' => $condition,
+                            'quantity' => 0
+                        ];
+                    }
+
+                    $grouped[$key]['quantity'] += $qty;
+                }
+            }
+
+            foreach ($grouped as $item) {
+
+                $stock = StockByBranch::where([
+                    'branche_id' => $branchId,
+                    'product_id' => $item['product_id'],
+                    'is_empty' => $isEmpty,
+                    'condition_state' => $item['condition']
+                ])->lockForUpdate()->first();
+
+                if (!$stock || $stock->stock_quantity < $item['quantity']) {
+
+                    $errors[] = [
+                        'product_id' => $item['product_id'],
+                        'condition_state' => $item['condition'],
+                        'requested' => $item['quantity'],
+                        'available' => $stock->stock_quantity ?? 0,
+                        'message' => 'Stock insuffisant'
+                    ];
+                }
+            }
+
+            if (!empty($errors)) {
+
+                throw new StockException(
+                    "Stock insuffisant pour un ou plusieurs produits",
+                    $errors
+                );
+            }
+
+            foreach ($grouped as $item) {
+
+                StockByBranch::where([
+                    'branche_id' => $branchId,
+                    'product_id' => $item['product_id'],
+                    'is_empty' => $isEmpty,
+                    'condition_state' => 'good'
+                ])->decrement('stock_quantity', $item['quantity']);
+            }
+
+            return [
+                'success' => true,
+                'message' => 'Stock mis à jour avec succès'
+            ];
+        });
+    }
 
     public function storeReturn(array $data)
     {
@@ -419,6 +467,11 @@ class StockService
                         $qty,
                         true,
                         $condition
+                    );
+
+                    $this->decreaseStockMultiple(
+                        $branchId,
+                        $products,
                     );
                 }
             }

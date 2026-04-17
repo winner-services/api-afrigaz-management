@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\ReturnBoitle\ReturnBootleController;
 use App\Http\Controllers\Api\Role\RoleController;
 use App\Http\Controllers\Api\Sale\ReturnSaleController;
 use App\Http\Controllers\Api\Sale\SaleController;
+use App\Http\Controllers\Api\Shipping\ShippingControlle;
 use App\Http\Controllers\Api\Sipplier\SupplierController;
 use App\Http\Controllers\Api\StockByBranche\StockController;
 use App\Http\Controllers\Api\Tank\TankController;
@@ -84,6 +85,8 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::controller(CategoryController::class)->group(function () {
             Route::get('/categoryGetOptionsData', 'getCategoryOptions');
             Route::post('/categoryStoreData', 'storeCategory');
+            Route::put('/categoryUpdateData/{id}', 'update');
+            Route::put('/categoryDeleteData/{id}', 'destroy');
         });
 
         Route::controller(ProductController::class)->group(function () {
@@ -206,11 +209,19 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::controller(UnitController::class)->group(function () {
             Route::get('/unitGetOptionsData', 'getUnitsOptions');
             Route::post('/unitStoreData', 'storeUnit');
+            Route::put('/unitUpdateData/{id}', 'update');
+            Route::put('/unitDelete/{id}', 'destroy');
         });
 
         Route::controller(ReturnBootleController::class)->group(function () {
             Route::post('/bottleReturnStore', 'returnMultipleBottles');
             Route::get('/bottleReturnsGetAllData', 'getData');
+        });
+
+        Route::controller(ShippingControlle::class)->group(function () {
+            Route::post('/shippingStoreData', 'store');
+            Route::get('/shippingByBranchGetData', 'indexByBranche');
+            Route::get('/shippingsGetAllData', 'index');
         });
     });
 });

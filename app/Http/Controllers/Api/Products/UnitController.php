@@ -105,4 +105,69 @@ class UnitController extends Controller
             ], 500);
         }
     }
+
+    public function update(Request $request, $id)
+    {
+        try {
+            $unit = Unit::findOrFail($id);
+            if (!$unit) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => ' introuvable'
+                ], 404);
+            }
+
+            $rule = [
+                'designation' => ['required', 'string', 'max:20', 'unique:units,designation,' . $unit->id],
+                'abreviation' => ['nullable', 'string', 'max:10', 'unique:units,abreviation,' . $unit->id]
+            ];
+            $message = [
+                'designation.unique'   => 'Cette unité existe déjà.',
+                'abreviation.unique'   => 'Cette abréviation existe déjà.',
+            ];
+
+            $validator = Validator::make($request->all(), $rule, $message);
+            if ($validator->fails()) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'Les données envoyées ne sont pas valides.',
+                    'errors'  => $validator->errors()
+                ], 422);
+            }
+            $unit->designation = $request->designation;
+            $unit->abreviation = $request->abreviation;
+            $unit->save();
+            return response()->json([
+                'status'  => 200,
+                'message' => 'modifié avec succès.',
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Une erreur est survenue.',
+                'error'   => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $unit = Unit::findOrFail($id);
+            if (!$unit) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => ' introuvable'
+                ], 404);
+            }
+            $unit->status = 'deleted';
+            $unit->save();
+            return response()->json([
+                'status'  => 200,
+                'message' => 'modifié avec succès.',
+            ], 200);
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
+    }
 }

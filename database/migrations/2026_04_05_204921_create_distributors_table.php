@@ -21,6 +21,8 @@ return new class extends Migration
             $table->string('status')->default('actif');
             $table->boolean('is_deleted')->default(false);
             $table->foreignId('addedBy')->nullable()->constrained('users')->nullOnDelete();
+            $table->decimal('caution_amount', 10, 2)->default(0);
+            $table->date('operation_date')->default(now());
             $table->timestamps();
         });
     }

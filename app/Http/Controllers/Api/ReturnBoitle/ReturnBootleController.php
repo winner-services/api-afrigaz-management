@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Api\ReturnBoitle;
 
+use App\Exceptions\StockException;
 use App\Http\Controllers\Controller;
 use App\Models\BottleReturn;
 use App\Services\StockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
 
 class ReturnBootleController extends Controller
@@ -100,8 +102,8 @@ class ReturnBootleController extends Controller
             $result = $this->stockService->storeReturn($data);
 
             return response()->json([
-                'message' => 'Retour enregistré avec succès',
-                'status' => 201,
+                'success' => true,
+                'message' => 'Retour des bouteilles enregistré avec succès',
                 'data' => $result
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -110,66 +112,22 @@ class ReturnBootleController extends Controller
                 'message' => 'Erreur de validation',
                 'errors' => $e->errors()
             ], 422);
+        } catch (\App\Services\StockException $e) {
+
+            return response()->json([
+                'message' => 'Erreur de stock',
+                'errors' => $e->getErrors()
+            ], 400);
         } catch (\Exception $e) {
 
             return response()->json([
-                'message' => 'Erreur lors du retour des bouteilles',
-                'errors' => $e->getMessage()
+                'message' => 'Erreur lors de la création de la vente',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
 
-    // public function getData(Request $request)
-    // {
-    //     try {
 
-    //         $user = Auth::user();
-    //         $branchId = $user->branch_id;
-
-    //         $perPage = $request->query('per_page', 10);
-    //         $search = $request->query('q', '');
-    //         $sortField = $request->query('sort_field', 'id');
-    //         $sortDirection = $request->query('sort_direction', 'desc');
-
-    //         $allowedSortFields = [
-    //             'id',
-    //             'reference',
-    //             'total_items',
-    //             'return_date',
-    //             'created_at'
-    //         ];
-
-    //         if (!in_array($sortField, $allowedSortFields)) {
-    //             $sortField = 'id';
-    //         }
-
-    //         $query = BottleReturn::with([
-    //             'agent:id,name',
-    //             'branch:id,name',
-    //             'items.product:id,name',
-    //             'user:id,name'
-    //         ])
-    //             ->when($search, function ($q) use ($search) {
-    //                 $q->where('reference', 'like', "%$search%")
-    //                     ->orWhere('note', 'like', "%$search%");
-    //             })
-    //             ->orderBy($sortField, $sortDirection)
-    //             ->paginate($perPage);
-    //         return response()->json([
-    //             'message' => 'Liste des retours',
-    //             'data' => $query,
-    //         ]);
-    //     } catch (\Exception $e) {
-
-    //         Log::error('BottleReturn getData error', [
-    //             'error' => $e->getMessage()
-    //         ]);
-
-    //         return response()->json([
-    //             'message' => 'Erreur lors de la récupération des données'
-    //         ], 500);
-    //     }
-    // }
     public function getData(Request $request)
     {
         try {
