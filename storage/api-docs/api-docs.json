@@ -1610,7 +1610,8 @@
                             "schema": {
                                 "required": [
                                     "name",
-                                    "email"
+                                    "email",
+                                    "caution_amount"
                                 ],
                                 "properties": {
                                     "name": {
@@ -1632,6 +1633,15 @@
                                     "zone": {
                                         "type": "string",
                                         "example": "Gombe"
+                                    },
+                                    "caution_amount": {
+                                        "type": "number",
+                                        "example": 1000
+                                    },
+                                    "operation_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2024-01-01"
                                     }
                                 },
                                 "type": "object"

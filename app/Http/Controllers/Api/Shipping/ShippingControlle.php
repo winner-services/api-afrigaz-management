@@ -98,7 +98,7 @@ class ShippingControlle extends Controller
             $branch_id = request($request->branch_id, 1);
 
             $livraison = SaleService::createShipping(
-                $request->$branch_id,
+                $branch_id,
                 $request->products,
                 $request->distributor_id,
                 $request->transaction_date ?? now(),

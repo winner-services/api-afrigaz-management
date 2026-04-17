@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Api\Dristributor;
 
 use App\Http\Controllers\Controller;
+use App\Models\CashTransaction;
+use App\Models\DebtDistributor;
 use App\Models\Distributor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -77,13 +80,15 @@ class DistributorController extends Controller
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ["name", "email"],
+                required: ["name", "email", "caution_amount"],
                 properties: [
                     new OA\Property(property: "name", type: "string", example: "Entreprise X"),
                     new OA\Property(property: "address", type: "string", example: "Kinshasa"),
                     new OA\Property(property: "email", type: "string", example: "test@mail.com"),
                     new OA\Property(property: "phone", type: "string", example: "099999999"),
-                    new OA\Property(property: "zone", type: "string", example: "Gombe")
+                    new OA\Property(property: "zone", type: "string", example: "Gombe"),
+                    new OA\Property(property: "caution_amount", type: "number", example: 1000),
+                    new OA\Property(property: "operation_date", type: "string", format: "date", example: "2024-01-01")
                 ]
             )
         ),
@@ -101,18 +106,69 @@ class DistributorController extends Controller
                 'address' => 'nullable|string',
                 'email' => 'nullable|email|unique:distributors,email',
                 'phone' => 'nullable|string|max:20|unique:distributors,phone',
-                'zone' => 'nullable|string'
+                'zone' => 'nullable|string',
+                'caution_amount' => 'nullable|numeric|min:0',
+                'operation_date' => 'nullable|date',
+                'loan_amount' => 'nullable|numeric|min:0',
+                'account_id' => 'nullable|integer|exists:cash_accounts,id'
             ]);
 
-            $data['addedBy'] = Auth::id();
-            $data['reference'] = fake()->unique()->numerify('DB-#####');
+            $result = DB::transaction(function () use ($data) {
 
-            $item = Distributor::create($data);
+                $data['addedBy'] = Auth::id();
+                $data['reference'] = fake()->unique()->numerify('DB-#####');
+
+                $loan_amount = $data['loan_amount'] ?? 0;
+                $caution_amount = $data['caution_amount'] ?? 0;
+                $account_id = $data['account_id'] ?? 1;
+
+
+                $item = Distributor::create($data);
+
+
+                $lastTransaction = CashTransaction::where('cash_account_id', $account_id)
+                    ->latest('id')
+                    ->lockForUpdate()
+                    ->first();
+
+                $solde = $lastTransaction ? $lastTransaction->solde : 0;
+
+
+                if ($caution_amount > 0) {
+
+                    CashTransaction::create([
+                        'reason' => 'Paiement Caution initiale',
+                        'type' => 'Revenue',
+                        'amount' => $caution_amount,
+                        'transaction_date' => now(),
+                        'solde' => $solde + $caution_amount,
+                        'reference' => $item->reference,
+                        'reference_id' => $item->id,
+                        'cash_account_id' => $account_id,
+                        'cash_categorie_id' => 1,
+                        'addedBy' => Auth::id(),
+                    ]);
+
+                    if ($caution_amount < $loan_amount) {
+                        DebtDistributor::create([
+                            'distributor_id' => $item->id,
+                            'loan_amount' => $loan_amount,
+                            'paid_amount' => $caution_amount,
+                            'transaction_date' => now(),
+                            'motif' => 'Crédit initial',
+                            'status' => 'pending',
+                            'user_id' => Auth::id(),
+                        ]);
+                    }
+                }
+
+                return $item;
+            });
 
             return response()->json([
                 'message' => 'Client créé avec succès',
                 'status' => 201,
-                'data' => $item
+                'data' => $result
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
 
@@ -121,6 +177,13 @@ class DistributorController extends Controller
                 'errors' => $e->errors(),
                 'status' => 422
             ], 422);
+        } catch (\Throwable $e) {
+
+            return response()->json([
+                'message' => 'Erreur serveur',
+                'error' => $e->getMessage(),
+                'status' => 500
+            ], 500);
         }
     }
     #[OA\Put(
@@ -161,6 +224,8 @@ class DistributorController extends Controller
                     Rule::unique('distributors', 'phone')->ignore($id)
                 ],
                 'zone' => ['nullable', 'string'],
+                'caution_amount' => 'nullable|numeric|min:0',
+                'operation_date' => 'nullable|date'
             ]);
 
             $item->update($data);

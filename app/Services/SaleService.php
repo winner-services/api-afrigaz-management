@@ -146,11 +146,20 @@ class SaleService
 
             foreach ($products as $item) {
 
-                $stock = StockByBranch::where([
-                    'branche_id' => $branchId,
-                    'product_id' => $item['product_id'],
-                    'is_empty' => false
-                ])->lockForUpdate()->first();
+                // $stock = StockByBranch::where([
+                //     'branche_id' => $branchId,
+                //     'product_id' => $item['product_id'],
+                //     'is_empty' => false
+                // ])->lockForUpdate()->first();
+                $stock = StockByBranch::where('branche_id', $branchId)
+                    ->where('product_id', $item['product_id'])
+                    ->where(
+                        fn($q) =>
+                        $q->where('is_empty', false)
+                            ->orWhereNull('is_empty')
+                    )
+                    ->lockForUpdate()
+                    ->first();
 
                 if (!$stock || $stock->stock_quantity < $item['quantity']) {
                     $errors[] = [
