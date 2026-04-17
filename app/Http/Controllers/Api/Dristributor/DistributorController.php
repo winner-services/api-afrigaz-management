@@ -32,7 +32,7 @@ class DistributorController extends Controller
         $perPage = $request->query('paginate', 10);
         $search = $request->query('q', '');
 
-        $items = Distributor::with('addedBy:id,name')
+        $items = Distributor::with('addedBy:id,name', 'debts')
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($q2) use ($search) {
                     $q2->where('name', 'like', "%$search%")

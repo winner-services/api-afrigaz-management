@@ -39,25 +39,24 @@ class CustomerController extends Controller
             $sort_direction = 'desc';
         }
 
-        $data = Customer::query()
-            ->leftJoin('users', 'customers.addedBy', '=', 'users.id')
-            ->select(
-                'customers.*',
-                'users.name as addedBy'
-            )
-            ->where('customers.status', 'created')
+        $data = Customer::with(['user:id,name', 'debts'])
+            ->where('status', 'created')
 
             // 🔍 Recherche
             ->when($q, function ($query) use ($q) {
                 $query->where(function ($sub) use ($q) {
-                    $sub->where('customers.name', 'LIKE', "%{$q}%")
-                        ->orWhere('customers.phone', 'LIKE', "%{$q}%")
-                        ->orWhere('customers.address', 'LIKE', "%{$q}%")
-                        ->orWhere('users.name', 'LIKE', "%{$q}%");
+                    $sub->where('name', 'LIKE', "%{$q}%")
+                        ->orWhere('phone', 'LIKE', "%{$q}%")
+                        ->orWhere('address', 'LIKE', "%{$q}%")
+
+                        // 🔥 recherche dans la relation
+                        ->orWhereHas('user', function ($q2) use ($q) {
+                            $q2->where('name', 'LIKE', "%{$q}%");
+                        });
                 });
             })
 
-            ->orderBy("customers.$sort_field", $sort_direction)
+            ->orderBy($sort_field, $sort_direction)
             ->paginate($page);
 
         return response()->json([
