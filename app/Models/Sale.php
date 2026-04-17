@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['reference', 'branch_id', 'addedBy', 'paid_amount', 'total_amount', 'status', 'customer_id', 'transaction_date', 'sale_type', 'sale_category','commentaire', 'distributor_id'])]
+#[Fillable(['reference', 'branch_id', 'addedBy', 'paid_amount', 'total_amount', 'status', 'customer_id', 'transaction_date', 'sale_type', 'sale_category', 'commentaire', 'distributor_id'])]
 class Sale extends Model
 {
     public function saleItems()
@@ -29,5 +29,9 @@ class Sale extends Model
     public function branch()
     {
         return $this->belongsTo(Branche::class, 'branch_id');
+    }
+    public function distributor()
+    {
+        return $this->belongsTo(Distributor::class);
     }
 }

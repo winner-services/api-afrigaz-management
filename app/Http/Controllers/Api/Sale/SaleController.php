@@ -271,8 +271,8 @@ class SaleController extends Controller
         $devide = Currency::latest()->get();
         $branches = Branche::latest()->get();
 
-        $sales = Sale::with(['branch', 'customer', 'user', 'saleItems.product'])
-            ->orderBy('transaction_date', 'desc')
+        $sales = Sale::with(['branch', 'customer', 'distributor', 'user', 'saleItems.product'])
+            ->orderBy('sales.transaction_date', 'desc')
             ->paginate($perPage);
 
         return response()->json([
