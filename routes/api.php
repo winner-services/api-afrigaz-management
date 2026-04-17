@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\Charoit\CharoitController;
 use App\Http\Controllers\Api\Company\CompanyController;
 use App\Http\Controllers\Api\Currency\CurrencyController;
 use App\Http\Controllers\Api\Customer\CustomerController;
+use App\Http\Controllers\Api\Customer\DebtPayment\CustomerDebtPaymentController;
+use App\Http\Controllers\Api\Dristributor\DeptPayment\PaymentDristributorController;
 use App\Http\Controllers\Api\Dristributor\DistributorController;
 use App\Http\Controllers\Api\EntryStock\EntryStockController;
 use App\Http\Controllers\Api\Filling\FillingController;
@@ -141,6 +143,11 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::put('/customerDelete/{id}', 'destroy');
         });
 
+        Route::controller(CustomerDebtPaymentController::class)->group(function () {
+            Route::post('/paymentDebtStoreData', 'autoPayDebts');
+            Route::get('/customerDebtsGetAllData', 'customersWithDebts');
+        });
+
         Route::controller(CashCategoryController::class)->group(function () {
             Route::get('/cashCategoriesGetAllData', 'index');
             Route::get('/cashCategoriesGetOptionsData', 'getCashCategoryOptions');
@@ -223,6 +230,10 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/shippingStoreData', 'store');
             Route::get('/shippingByBranchGetData', 'indexByBranche');
             Route::get('/shippingsGetAllData', 'index');
+        });
+        Route::controller(PaymentDristributorController::class)->group(function () {
+            Route::post('/payDistributorDebt', 'payDebt');
+            Route::get('/distributorDebtsGetAllData', 'distributorWithDebts');
         });
     });
 });

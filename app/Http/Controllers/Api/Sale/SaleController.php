@@ -23,7 +23,7 @@ class SaleController extends Controller
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ["branch_id", "products"],
+                required: ["branch_id", "products", "distributor_id"],
                 properties: [
 
                     new OA\Property(property: "branch_id", type: "integer", example: 1),
@@ -32,6 +32,7 @@ class SaleController extends Controller
                     new OA\Property(property: "paid_amount", type: "number", format: "float", example: 5000),
                     new OA\Property(property: "sale_type", type: "string", example: "proforma"),
                     new OA\Property(property: "sale_category", type: "string", example: "detail"),
+                    new OA\Property(property: "distributor_id", type: "integer", example: 1),
 
                     new OA\Property(
                         property: "products",

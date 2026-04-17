@@ -18,7 +18,7 @@ class CustomerDebtPaymentController extends Controller
     #[OA\Post(
         path: '/api/v1/paymentDebtStoreData',
         summary: 'Créer',
-        tags: ['payment Debts customers'],
+        tags: ['customers Debts'],
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
@@ -151,7 +151,7 @@ class CustomerDebtPaymentController extends Controller
     #[OA\Get(
         path: "/api/v1/customerDebtsGetAllData",
         summary: "Lister",
-        tags: ["payment Debts customers"],
+        tags: ["customers Debts"],
         responses: [
             new OA\Response(response: 200, description: "Liste")
         ]
@@ -196,17 +196,15 @@ class CustomerDebtPaymentController extends Controller
             new OA\Response(response: 200, description: "Liste")
         ]
     )]
-    public function getAllPayments(Request $request)
+    public function getAllPayments()
     {
-        $perPage = $request->get('per_page', 10); // 🔥 dynamique
-
         $payments = CustomerDebtPayment::with([
             'debt.customer',
             'cashAccount',
             'user'
         ])
             ->latest()
-            ->paginate($perPage);
+            ->paginate(10);
 
         // ✅ Format propre
         $data = $payments->getCollection()->map(function ($payment) {
@@ -240,18 +238,8 @@ class CustomerDebtPaymentController extends Controller
         });
 
         return response()->json([
-            'success' => true,
-
-            // 📊 Données
+            'success' => 200,
             'data' => $data,
-
-            // 📌 Pagination meta (TRÈS IMPORTANT pour frontend)
-            'pagination' => [
-                'current_page' => $payments->currentPage(),
-                'last_page' => $payments->lastPage(),
-                'per_page' => $payments->perPage(),
-                'total' => $payments->total(),
-            ]
         ]);
     }
 }

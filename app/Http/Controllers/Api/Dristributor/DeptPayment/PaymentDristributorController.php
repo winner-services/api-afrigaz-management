@@ -9,59 +9,87 @@ use App\Models\Distributor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use OpenApi\Attributes as OA;
 
 class PaymentDristributorController extends Controller
 {
-    public function index(): JsonResponse
-    {
-        $page = request('paginate', 10);
-        $q = request('q', '');
-        $sort_direction = request('sort_direction', 'desc');
-        $sort_field = request('sort_field', 'id');
+    // public function index(): JsonResponse
+    // {
+    //     $page = request('paginate', 10);
+    //     $q = request('q', '');
+    //     $sort_direction = request('sort_direction', 'desc');
+    //     $sort_field = request('sort_field', 'id');
 
-        // 🔒 Sécurité tri
-        $allowedSortFields = ['id', 'name', 'phone', 'address', 'created_at', 'zone', 'caution_amount', 'operation_date'];
+    //     // 🔒 Sécurité tri
+    //     $allowedSortFields = ['id', 'name', 'phone', 'address', 'created_at', 'zone', 'caution_amount', 'operation_date'];
 
-        if (!in_array($sort_field, $allowedSortFields)) {
-            $sort_field = 'id';
-        }
+    //     if (!in_array($sort_field, $allowedSortFields)) {
+    //         $sort_field = 'id';
+    //     }
 
-        if (!in_array(strtolower($sort_direction), ['asc', 'desc'])) {
-            $sort_direction = 'desc';
-        }
+    //     if (!in_array(strtolower($sort_direction), ['asc', 'desc'])) {
+    //         $sort_direction = 'desc';
+    //     }
 
-        $data = Distributor::query()
-            ->leftJoin('users', 'distributors.addedBy', '=', 'users.id')
-            ->select(
-                'distributors.*',
-                'users.name as addedBy'
+    //     $data = Distributor::query()
+    //         ->leftJoin('users', 'distributors.addedBy', '=', 'users.id')
+    //         ->select(
+    //             'distributors.*',
+    //             'users.name as addedBy'
+    //         )
+    //         ->where('distributors.is_deleted', false)
+
+    //         // 🔍 Recherche
+    //         ->when($q, function ($query) use ($q) {
+    //             $query->where(function ($sub) use ($q) {
+    //                 $sub->where('distributors.name', 'LIKE', "%{$q}%")
+    //                     ->orWhere('distributors.phone', 'LIKE', "%{$q}%")
+    //                     ->orWhere('distributors.address', 'LIKE', "%{$q}%")
+    //                     ->orWhere('users.name', 'LIKE', "%{$q}%");
+    //             });
+    //         })
+
+    //         ->orderBy("distributors.$sort_field", $sort_direction)
+    //         ->paginate($page);
+
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => 'succès',
+    //         'data' => $data
+    //     ]);
+    // }
+
+    #[OA\Post(
+        path: '/api/v1/payDistributorDebt',
+        summary: 'Créer',
+        tags: ['Distributors Debts'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['distributor_id', 'paid_amount', 'account_id'],
+                properties: [
+                    new OA\Property(property: "distributor_id", type: "integer", example: 1),
+                    new OA\Property(property: "paid_amount", type: "number", format: "float", example: 100.00),
+                    new OA\Property(property: "account_id", type: "integer", example: 1),
+                ]
             )
-            ->where('distributors.is_deleted', false)
-
-            // 🔍 Recherche
-            ->when($q, function ($query) use ($q) {
-                $query->where(function ($sub) use ($q) {
-                    $sub->where('distributors.name', 'LIKE', "%{$q}%")
-                        ->orWhere('distributors.phone', 'LIKE', "%{$q}%")
-                        ->orWhere('distributors.address', 'LIKE', "%{$q}%")
-                        ->orWhere('users.name', 'LIKE', "%{$q}%");
-                });
-            })
-
-            ->orderBy("distributors.$sort_field", $sort_direction)
-            ->paginate($page);
-
-        return response()->json([
-            'status' => true,
-            'message' => 'succès',
-            'data' => $data
-        ]);
-    }
-
-
-
-    public function autoPayDebts(Request $request)
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Données créées avec succès'
+            ),
+            new OA\Response(
+                response: 422,
+                description: 'Validation des données échouée'
+            ),
+            new OA\Response(
+                response: 500,
+                description: 'Erreur serveur'
+            )
+        ]
+    )]
+    public function payDebt(Request $request)
     {
         $request->validate([
             'distributor_id' => 'required|exists:distributors,id',
@@ -161,5 +189,44 @@ class PaymentDristributorController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+    #[OA\Get(
+        path: "/api/v1/distributorDebtsGetAllData",
+        summary: "Lister",
+        tags: ["Distributors Debts"],
+        responses: [
+            new OA\Response(response: 200, description: "Liste")
+        ]
+    )]
+
+    public function distributorWithDebts()
+    {
+        $distributor = Distributor::whereHas('debts', function ($query) {
+            $query->whereIn('status', ['pending', 'partial']);
+        })
+            ->with(['debts' => function ($query) {
+                $query->whereIn('status', ['pending', 'partial'])
+                    ->orderBy('transaction_date', 'asc');
+            }])
+            ->get()
+            ->map(function ($distributor) {
+
+                $totalDebt = $distributor->debts->sum('loan_amount');
+                $totalPaid = $distributor->debts->sum('paid_amount');
+
+                return [
+                    'id' => $distributor->id,
+                    'name' => $distributor->name,
+                    'total_debt' => $totalDebt,
+                    'total_paid' => $totalPaid,
+                    'remaining' => $totalDebt - $totalPaid,
+                    'debts' => $distributor->debts
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'data' => $distributor
+        ]);
     }
 }

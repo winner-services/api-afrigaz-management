@@ -1475,7 +1475,7 @@
         "/api/v1/paymentDebtStoreData": {
             "post": {
                 "tags": [
-                    "payment Debts customers"
+                    "customers Debts"
                 ],
                 "summary": "Créer",
                 "operationId": "4ae5b6974023980d9de9ff4c313d30be",
@@ -1525,7 +1525,7 @@
         "/api/v1/customerDebtsGetAllData": {
             "get": {
                 "tags": [
-                    "payment Debts customers"
+                    "customers Debts"
                 ],
                 "summary": "Lister",
                 "operationId": "3f39a7ac6365e7651fdd4226ece1f60f",
@@ -1543,6 +1543,70 @@
                 ],
                 "summary": "Lister",
                 "operationId": "0b19a0ad270cf32032315c0eb0ae535d",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/payDistributorDebt": {
+            "post": {
+                "tags": [
+                    "Distributors Debts"
+                ],
+                "summary": "Créer",
+                "operationId": "efe94d658714fa870192bad9deebc3a2",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "distributor_id",
+                                    "paid_amount",
+                                    "account_id"
+                                ],
+                                "properties": {
+                                    "distributor_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "paid_amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 100
+                                    },
+                                    "account_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Données créées avec succès"
+                    },
+                    "422": {
+                        "description": "Validation des données échouée"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/distributorDebtsGetAllData": {
+            "get": {
+                "tags": [
+                    "Distributors Debts"
+                ],
+                "summary": "Lister",
+                "operationId": "4867ad3e8d135d070a6fdc0fa6dddfa3",
                 "responses": {
                     "200": {
                         "description": "Liste"
@@ -3006,7 +3070,8 @@
                             "schema": {
                                 "required": [
                                     "branch_id",
-                                    "products"
+                                    "products",
+                                    "distributor_id"
                                 ],
                                 "properties": {
                                     "branch_id": {
@@ -3035,6 +3100,10 @@
                                     "sale_category": {
                                         "type": "string",
                                         "example": "detail"
+                                    },
+                                    "distributor_id": {
+                                        "type": "integer",
+                                        "example": 1
                                     },
                                     "products": {
                                         "type": "array",
@@ -5401,8 +5470,16 @@
             "description": "Customers"
         },
         {
+            "name": "customers Debts",
+            "description": "customers Debts"
+        },
+        {
             "name": "payment Debts customers",
             "description": "payment Debts customers"
+        },
+        {
+            "name": "Distributors Debts",
+            "description": "Distributors Debts"
         },
         {
             "name": "Distributeurs",
