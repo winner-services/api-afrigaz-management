@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('customer_debt_payments', function (Blueprint $table) {
+        Schema::create('payment_distributors', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_debt_id')->nullable()->constrained('customer_debts')->nullOnDelete();
+             $table->foreignId('debt_distributor_id')->nullable()->constrained('debt_distributors')->nullOnDelete();
             $table->decimal('paid_amount', 10, 2);
             $table->foreignId('cash_account_id')->nullable()->constrained('cash_accounts')->nullOnDelete();
             $table->foreignId('addedBy')->nullable()->constrained('users')->nullOnDelete();
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('customer_debt_payments');
+        Schema::dropIfExists('payment_distributors');
     }
 };

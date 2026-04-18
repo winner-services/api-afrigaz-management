@@ -1487,7 +1487,8 @@
                                 "required": [
                                     "customer_id",
                                     "paid_amount",
-                                    "cash_account_id"
+                                    "account_id",
+                                    "operation_date"
                                 ],
                                 "properties": {
                                     "customer_id": {
@@ -1499,9 +1500,14 @@
                                         "format": "float",
                                         "example": 100
                                     },
-                                    "cash_account_id": {
+                                    "account_id": {
                                         "type": "integer",
                                         "example": 1
+                                    },
+                                    "operation_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2023-01-01"
                                     }
                                 },
                                 "type": "object"
@@ -1580,6 +1586,11 @@
                                     "account_id": {
                                         "type": "integer",
                                         "example": 1
+                                    },
+                                    "operation_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2023-01-01"
                                     }
                                 },
                                 "type": "object"

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CashTransaction;
 use App\Models\DebtDistributor;
 use App\Models\Distributor;
+use App\Models\PaymentDistributor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -71,6 +72,7 @@ class PaymentDristributorController extends Controller
                     new OA\Property(property: "distributor_id", type: "integer", example: 1),
                     new OA\Property(property: "paid_amount", type: "number", format: "float", example: 100.00),
                     new OA\Property(property: "account_id", type: "integer", example: 1),
+                    new OA\Property(property: "operation_date", type: "string", format: "date", example: "2023-01-01"),
                 ]
             )
         ),
@@ -95,6 +97,7 @@ class PaymentDristributorController extends Controller
             'distributor_id' => 'required|exists:distributors,id',
             'paid_amount' => 'required|numeric|min:0.01',
             'account_id' => 'required|exists:cash_accounts,id',
+            'operation_date' => 'nullable|date',
         ]);
 
         try {
@@ -131,12 +134,12 @@ class PaymentDristributorController extends Controller
 
                 $payAmount = min($remainingAmount, $debtRemaining);
 
-                DebtDistributor::create([
-                    'distributor_id' => $debt->distributor_id,
-                    'sale_id' => $debt->sale_id,
+                PaymentDistributor::create([
+                    'debt_distributor_id' => $debt->id,
                     'paid_amount' => $payAmount,
                     'cash_account_id' => $request->account_id,
                     'addedBy' => Auth::id(),
+                    'operation_date' => $request->operation_date ?? now(),
                 ]);
 
                 // ✅ 2. Mise à jour dette
@@ -171,13 +174,17 @@ class PaymentDristributorController extends Controller
             }
 
             DB::commit();
+            $updatedDebts = DebtDistributor::where('distributor_id', $request->distributor_id)
+                ->orderBy('transaction_date', 'asc')
+                ->get();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Paiement effectué.',
                 'total_paid' => $totalPaid,
                 'remaining_unallocated' => $remainingAmount,
-                'new_balance' => $currentSolde
+                'new_balance' => $currentSolde,
+                'debts' => $updatedDebts
             ]);
         } catch (\Exception $e) {
 

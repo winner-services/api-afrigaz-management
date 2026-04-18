@@ -22,11 +22,12 @@ class CustomerDebtPaymentController extends Controller
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['customer_id', 'paid_amount', 'cash_account_id'],
+                required: ['customer_id', 'paid_amount', 'account_id', 'operation_date'],
                 properties: [
                     new OA\Property(property: "customer_id", type: "integer", example: 1),
                     new OA\Property(property: "paid_amount", type: "number", format: "float", example: 100.00),
-                    new OA\Property(property: "cash_account_id", type: "integer", example: 1),
+                    new OA\Property(property: "account_id", type: "integer", example: 1),
+                    new OA\Property(property: "operation_date", type: "string", format: "date", example: "2023-01-01"),
                 ]
             )
         ),
@@ -51,7 +52,8 @@ class CustomerDebtPaymentController extends Controller
         $request->validate([
             'customer_id' => 'required|exists:customers,id',
             'paid_amount' => 'required|numeric|min:0.01',
-            'cash_account_id' => 'required|exists:cash_accounts,id',
+            'account_id' => 'required|exists:cash_accounts,id',
+            'operation_date' => 'nullable|date',
         ]);
 
         try {
@@ -60,7 +62,7 @@ class CustomerDebtPaymentController extends Controller
             $remainingAmount = $request->paid_amount;
             $totalPaid = 0;
 
-            $lastTransaction = CashTransaction::where('cash_account_id', $request->cash_account_id)
+            $lastTransaction = CashTransaction::where('cash_account_id', $request->account_id)
                 ->latest('id')
                 ->first();
             $currentSolde = $lastTransaction ? $lastTransaction->solde : 0;
@@ -91,8 +93,9 @@ class CustomerDebtPaymentController extends Controller
                 CustomerDebtPayment::create([
                     'customer_debt_id' => $debt->id,
                     'paid_amount' => $payAmount,
-                    'cash_account_id' => $request->cash_account_id,
+                    'cash_account_id' => $request->account_id,
                     'addedBy' => Auth::id(),
+                    'operation_date' => $request->operation_date ?? now(),
                 ]);
 
                 // ✅ 2. Mise à jour dette
@@ -118,7 +121,7 @@ class CustomerDebtPaymentController extends Controller
                     'solde' => $currentSolde,
                     'reference' => 'DEBT-' . $debt->id,
                     'reference_id' => $debt->id,
-                    'cash_account_id' => $request->cash_account_id,
+                    'cash_account_id' => $request->account_id,
                     'cash_categorie_id' => 4,
                     'addedBy' => Auth::id()
                 ]);
@@ -129,9 +132,14 @@ class CustomerDebtPaymentController extends Controller
 
             DB::commit();
 
+            $updatedDebts = CustomerDebt::where('customer_id', $request->customer_id)
+                ->orderBy('transaction_date', 'asc')
+                ->get();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Paiement effectué.',
+                'debts' => $updatedDebts,
                 'total_paid' => $totalPaid,
                 'remaining_unallocated' => $remainingAmount,
                 'new_balance' => $currentSolde
