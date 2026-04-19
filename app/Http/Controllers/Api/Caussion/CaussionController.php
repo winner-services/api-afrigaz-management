@@ -114,7 +114,6 @@ class CaussionController extends Controller
                 ->get()
                 ->keyBy('id');
 
-            $totalAmount = 0;
 
             foreach ($request->items as $item) {
                 CaussionItem::create([
@@ -309,11 +308,16 @@ class CaussionController extends Controller
     public function getData(Request $request)
     {
         try {
-$devise = Currency::where('status', 'created')->latest()->get();
+            $devise = Currency::where('status', 'created')->latest()->get();
             $perPage = $request->query('per_page', 10);
             $search = $request->query('q', '');
 
-            $query = Caussion::with(['items.product', 'distributor']);
+            $query = Caussion::with(['items.product', 'distributor', 'distributor.categoryDistributor', 'addedBy'])
+                ->where('status', '!=', 'deleted');
+
+            if ($request->has('category_distributor_id')) {
+                $query->where('category_distributor_id', $request->query('category_distributor_id'));
+            }
 
             if (!empty($search)) {
                 $query->whereHas('distributor', function ($q) use ($search) {
