@@ -92,10 +92,10 @@ class CustomerController extends Controller
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['name', 'category'],
+                required: ['name', 'referred_by'],
                 properties: [
                     new OA\Property(property: "name", type: "string", example: "John Doe"),
-                    new OA\Property(property: "category", type: "enum", example: "consommateur ou distributeur"),
+                    new OA\Property(property: "referred_by", type: "string", example: "Jane Doe"),
                     new OA\Property(property: "address", type: "string", example: "Dar"),
                     new OA\Property(property: "phone", type: "string", nullable: true, example: "+243990000000")
                 ]
@@ -123,7 +123,7 @@ class CustomerController extends Controller
             'name' => ['nullable', 'string', 'max:255', 'unique:customers,name'],
             'address' => ['nullable', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:20', 'unique:customers,phone'],
-            'category' => ['required', 'in:distributeur,consommateur']
+            'referred_by' => ['nullable', 'string'] // getCustomerByCode('WINNER123')
         ];
 
         $messages = [
@@ -145,13 +145,15 @@ class CustomerController extends Controller
         DB::beginTransaction();
 
         $authId = Auth::id();
+        $troisLettres = substr($request->name, 0, 2);
 
         try {
             $customer = Customer::create([
                 'name' => $request->name,
                 'address' => $request->address,
                 'phone' => $request->phone,
-                'category' => $request->category,
+                'referral_code' => fake()->unique()->numerify("{$troisLettres}-#####"),
+                'referred_by' => $request->referred_by,
                 'addedBy' => $authId
             ]);
 
@@ -187,7 +189,7 @@ class CustomerController extends Controller
                     new OA\Property(property: "name", type: "string", example: "John Doe"),
                     new OA\Property(property: "address", type: "string", example: "Dar"),
                     new OA\Property(property: "phone", type: "string", nullable: true, example: "+243990000000"),
-                    new OA\Property(property: "category", type: "enum", example: "consommateur ou distributeur")
+                    new OA\Property(property: "referred_by", type: "string", example: "Jane Doe")
                 ]
             )
         ),
@@ -211,14 +213,13 @@ class CustomerController extends Controller
             'name' => ['nullable', 'string', 'max:255', 'unique:customers,name,' . $customer->id],
             'address' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20', 'unique:customers,phone,' . $customer->id],
-            'category' => ['nullable', 'in:distributeur,consommateur']
+            'referred_by' => ['nullable', 'string']
         ];
 
         $messages = [
             'phone.required' => 'Le numéro est obligatoire.',
             'phone.unique' => 'Ce numéro existe déjà.',
             'name.unique' => 'Ce nom existe déjà.',
-            'category.required' => 'La catégorie est obligatoire.',
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
@@ -230,12 +231,13 @@ class CustomerController extends Controller
                 'errors' => $validator->errors()
             ], 422);
         }
-
+        $troisLettres = substr($request->name, 0, 2);
         $customer->update([
             'name' => $request->name,
             'address' => $request->address,
             'phone' => $request->phone,
-            'category' => $request->category
+            'referral_code' => fake()->unique()->numerify("{$troisLettres}-#####"),
+            'referred_by' => $request->referred_by
         ]);
 
         return response()->json([

@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['name', 'email', 'phone', 'address', 'category', 'status', 'addedBy'])]
+#[Fillable(['name', 'email', 'phone', 'address', 'category', 'status', 'addedBy', 'referral_code', 'referred_by'])]
 class Customer extends Model
 {
     public function debts()
