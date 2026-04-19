@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Api\Dristributor;
 
 use App\Http\Controllers\Controller;
 use App\Models\CashTransaction;
+use App\Models\Caussion;
 use App\Models\Currency;
 use App\Models\DebtDistributor;
 use App\Models\Distributor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -56,10 +58,65 @@ class DistributorController extends Controller
         return response()->json([
             'message' => 'success',
             'status' => 200,
-            'devise' => $devise,            
+            'devise' => $devise,
             'data' => $items
         ]);
     }
+    #[OA\Get(
+        path: "/api/v1/distributorsOptionData",
+        summary: "Lister les options",
+        tags: ["Distributeurs"],
+        responses: [
+            new OA\Response(response: 200, description: "Liste")
+        ]
+    )]
+
+    public function getData(Request $request)
+    {
+        try {
+
+            $search = $request->query('q', '');
+
+            $data = Caussion::with([
+                'distributor:id,designation',
+                'user:id,name',
+                'items.product:id,name'
+            ])
+                // 🔍 recherche
+                ->when($search, function ($q) use ($search) {
+                    $q->where(function ($q2) use ($search) {
+                        $q2->where('amount', 'like', "%$search%")
+                            ->orWhereDate('transaction_date', $search)
+                            ->orWhereHas('category', function ($q3) use ($search) {
+                                $q3->where('designation', 'like', "%$search%");
+                            })
+                            ->orWhereHas('items.product', function ($q4) use ($search) {
+                                $q4->where('name', 'like', "%$search%");
+                            });
+                    });
+                })
+
+                ->orderBy('id', 'desc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Liste des cautions',
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+
+            Log::error('Caussion getData error', [
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des cautions'
+            ], 500);
+        }
+    }
+
     #[OA\Get(
         path: "/api/v1/distributorsGetOptionData",
         summary: "Lister les options",
