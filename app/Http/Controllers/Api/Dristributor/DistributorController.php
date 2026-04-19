@@ -79,7 +79,7 @@ class DistributorController extends Controller
 
             $data = Caussion::with([
                 'category:id,designation',
-                'category.distributors:id,name,phone,zone', // 🔥 ICI
+                'categoryDistributor.distributors:id,name,phone,zone', // 🔥 ICI
                 'items.product:id,name'
             ])
 
