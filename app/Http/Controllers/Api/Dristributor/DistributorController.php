@@ -77,27 +77,17 @@ class DistributorController extends Controller
 
             $search = $request->query('q', '');
 
-            $data = Caussion::with([
+            $data = Distributor::with([
                 'category:id,designation',
-                'category.distributors:id,name,phone,zone', // 🔥 ICI
-                'items.product:id,name'
+                'category.caussions.items.product:id,name'
             ])
 
                 ->when($search, function ($q) use ($search) {
-                    $q->where(function ($q2) use ($search) {
-
-                        $q2->whereHas('category', function ($q3) use ($search) {
-                            $q3->where('designation', 'like', "%$search%");
-                        })
-
-                            ->orWhereHas('category.distributors', function ($q4) use ($search) {
-                                $q4->where('name', 'like', "%$search%");
-                            })
-
-                            ->orWhereHas('items.product', function ($q5) use ($search) {
-                                $q5->where('name', 'like', "%$search%");
-                            });
-                    });
+                    $q->where('name', 'like', "%$search%")
+                        ->orWhere('phone', 'like', "%$search%")
+                        ->orWhereHas('category', function ($q2) use ($search) {
+                            $q2->where('designation', 'like', "%$search%");
+                        });
                 })
 
                 ->orderBy('id', 'desc')
@@ -105,18 +95,22 @@ class DistributorController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Configuration des cautions',
+                'message' => 'Liste des distributeurs avec caution',
                 'data' => $data
             ]);
-        } catch (\Exception $e) {
-
-            Log::error('Caussion getData error', [
-                'error' => $e->getMessage()
-            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
 
             return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de la récupération'
+                'message' => 'Erreur de validation',
+                'errors' => $e->errors(),
+                'status' => 422
+            ], 422);
+        } catch (\Throwable $e) {
+
+            return response()->json([
+                'message' => 'Erreur serveur',
+                'error' => $e->getMessage(),
+                'status' => 500
             ], 500);
         }
     }

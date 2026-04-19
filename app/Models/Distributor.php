@@ -22,7 +22,7 @@ class Distributor extends Model
     }
 
     public function category()
-{
-    return $this->belongsTo(CategoryDistributor::class, 'category_distributor_id');
-}
+    {
+        return $this->belongsTo(CategoryDistributor::class, 'category_distributor_id');
+    }
 }
