@@ -78,8 +78,8 @@ class DistributorController extends Controller
             $search = $request->query('q', '');
 
             $data = Caussion::with([
-                'category:id,designation',
-                'categoryDistributor.distributors:id,name,phone,zone', // 🔥 ICI
+                'categoryDistributor:id,designation',
+                'category.distributors:id,name,phone,zone', // 🔥 ICI
                 'items.product:id,name'
             ])
 
