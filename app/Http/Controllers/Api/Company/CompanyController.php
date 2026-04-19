@@ -66,7 +66,6 @@ class CompanyController extends Controller
                     new OA\Property(property: 'address', type: 'string', example: 'Kinshasa, RDC'),
                     new OA\Property(property: 'email', type: 'string', example: 'contact@afrigaz.com'),
                     new OA\Property(property: 'logo', type: 'string', format: 'binary', description: 'Fichier image'),
-                    new OA\Property(property: 'caution_amount', type: 'number', format: 'float', example: 1000.00),
                 ]
             )
         ),

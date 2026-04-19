@@ -14,10 +14,11 @@ return new class extends Migration
         Schema::create('shippings', function (Blueprint $table) {
             $table->id();
             $table->string('reference')->unique();
+            $table->foreignId('caussion_id')->constrained('caussions')->cascadeOnDelete();
             $table->foreignId('branch_id')->constrained('branches')->cascadeOnDelete();
             $table->foreignId('addedBy')->constrained('users')->cascadeOnDelete();
             $table->foreignId('distributor_id')->nullable()->constrained('distributors')->cascadeOnDelete();
-            $table->string('status')->default('completed');
+            $table->enum('status', ['pending', 'completed', 'cancelled', 'partial'])->default('pending');
             $table->date('transaction_date');
             $table->string('commentaire')->nullable();
             $table->timestamps();

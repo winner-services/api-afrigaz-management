@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('shipping_id')->constrained('shippings')->cascadeOnDelete();
             $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
             $table->integer('quantity');
+            $table->integer('delivered_quantity')->default(0);
             $table->timestamps();
         });
     }

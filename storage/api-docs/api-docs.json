@@ -1365,11 +1365,6 @@
                                         "description": "Fichier image",
                                         "type": "string",
                                         "format": "binary"
-                                    },
-                                    "caution_amount": {
-                                        "type": "number",
-                                        "format": "float",
-                                        "example": 1000
                                     }
                                 },
                                 "type": "object"
@@ -1793,7 +1788,7 @@
                     "Category Distributors"
                 ],
                 "summary": "Lister",
-                "operationId": "4b0c651003d5020e6d0176f5fa567049",
+                "operationId": "6607ce4128070ca7451c1a90250ef057",
                 "responses": {
                     "200": {
                         "description": "Liste dses categories de distributeurs"

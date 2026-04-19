@@ -4,16 +4,90 @@ namespace App\Http\Controllers\Api\Shipping;
 
 use App\Http\Controllers\Controller;
 use App\Models\Branche;
+use App\Models\Caussion;
 use App\Models\Product;
 use App\Models\Shipping;
+use App\Models\ShippingItem;
 use App\Services\SaleService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use OpenApi\Attributes as OA;
 
 class ShippingControlle extends Controller
 {
+
+    public function storeData(Request $request)
+    {
+        $request->validate([
+            'caussion_id' => 'required|exists:caussions,id',
+            'branch_id' => 'nullable|exists:branches,id',
+            'distributor_id' => 'required|exists:distributors,id',
+            'transaction_date' => 'required|date',
+            'commentaire' => 'nullable|string',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $caussion = Caussion::with('items')->findOrFail($request->caussion_id);
+
+            $reference = 'SHIP-' . strtoupper(uniqid());
+            $branch_id = $request->branch_id ?? 1;
+
+            // 📦 créer shipping
+            $shipping = Shipping::create([
+                'reference' => $reference,
+                'caussion_id' => $caussion->id,
+                'branch_id' => $branch_id,
+                'distributor_id' => $request->distributor_id,
+                'addedBy' => Auth::id(),
+                'transaction_date' => $request->transaction_date,
+                'commentaire' => $request->commentaire ?? null,
+                'status' => 'pending',
+            ]);
+
+            // 🔥 calcul total pour déterminer status initial
+            $totalItems = 0;
+
+            foreach ($caussion->items as $item) {
+
+                ShippingItem::create([
+                    'shipping_id' => $shipping->id,
+                    'product_id' => $item->product_id,
+                    'quantity' => $item->quantity,
+                    'delivered_quantity' => 0,
+                ]);
+
+                $totalItems += $item->quantity;
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'status' => 201,
+                'message' => 'Livraison créée avec succès',
+                'reference' => $reference,
+                'data' => $shipping->load('items.product')
+            ]);
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la création de la livraison',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+
+
+
     #[OA\Post(
         path: "/api/v1/shippingStoreData",
         summary: "Créer une livraison avec paiement ou dette",

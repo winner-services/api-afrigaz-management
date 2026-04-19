@@ -19,7 +19,7 @@ class CategoryController extends Controller
         ]
     )]
 
-    public function getCategoryOptions()
+    public function categoryGetOptionsData()
     {
         $data = CategoryDistributor::where('status', '!=', 'deleted')->latest()->get();
 
