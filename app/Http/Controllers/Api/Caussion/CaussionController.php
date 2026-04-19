@@ -312,12 +312,7 @@ class CaussionController extends Controller
             $perPage = $request->query('per_page', 10);
             $search = $request->query('q', '');
 
-            $query = Caussion::with(['items.product', 'distributor', 'distributor.categoryDistributor', 'addedBy'])
-                ->where('status', '!=', 'deleted');
-
-            if ($request->has('category_distributor_id')) {
-                $query->where('category_distributor_id', $request->query('category_distributor_id'));
-            }
+            $query = Caussion::with(['items.product', 'distributor','addedBy']);
 
             if (!empty($search)) {
                 $query->whereHas('distributor', function ($q) use ($search) {
