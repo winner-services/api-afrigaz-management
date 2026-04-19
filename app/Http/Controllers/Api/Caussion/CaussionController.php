@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Caussion;
 use App\Http\Controllers\Controller;
 use App\Models\Caussion;
 use App\Models\CaussionItem;
+use App\Models\Currency;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -308,7 +309,7 @@ class CaussionController extends Controller
     public function getData(Request $request)
     {
         try {
-
+$devise = Currency::where('status', 'created')->latest()->get();
             $perPage = $request->query('per_page', 10);
             $search = $request->query('q', '');
 
@@ -327,6 +328,7 @@ class CaussionController extends Controller
             return response()->json([
                 'success' => true,
                 'status' => 200,
+                'devise' => $devise,
                 'data' => $data
             ]);
         } catch (\Exception $e) {
