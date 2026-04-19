@@ -226,7 +226,7 @@ class ShippingControlle extends Controller
     public function deliver(Request $request, $id)
     {
         $request->validate([
-            'planned_date' => 'nullable|data',
+            'planned_date' => 'nullable|date',
             'items' => 'required|array|min:1',
             'items.*.id' => 'required|exists:shipping_items,id',
             'items.*.delivered_quantity' => 'required|integer|min:0',
