@@ -269,7 +269,7 @@ class SaleController extends Controller
     public function index(Request $request)
     {
         $perPage = $request->query('per_page', 20);
-        $devide = Currency::latest()->get();
+        $devise = Currency::where('status', 'created')->latest()->get();
         $branches = Branche::latest()->get();
 
         $sales = Sale::with(['branch', 'customer', 'distributor', 'user', 'saleItems.product'])
@@ -278,7 +278,7 @@ class SaleController extends Controller
 
         return response()->json([
             'status' => 200,
-            'devise' => $devide,
+            'devise' => $devise,
             'branches' => $branches,
             'data' => $sales
         ]);
@@ -367,7 +367,7 @@ class SaleController extends Controller
     )]
     public function indexByBranche(Request $request)
     {
-        $devide = Currency::latest()->get();
+        $devise = Currency::where('status', 'created')->latest()->get();
         $branches = Branche::latest()->get();
         $user = Auth::user();
         $branch = Branche::where('user_id', $user->id)->first();
@@ -401,7 +401,7 @@ class SaleController extends Controller
 
         return response()->json([
             'status' => 200,
-            'devise' => $devide,
+            'devise' => $devise,
             'branches' => $branches,
             'data' => $sales
         ]);

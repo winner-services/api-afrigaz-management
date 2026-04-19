@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Dristributor;
 
 use App\Http\Controllers\Controller;
 use App\Models\CashTransaction;
+use App\Models\Currency;
 use App\Models\DebtDistributor;
 use App\Models\Distributor;
 use Illuminate\Http\Request;
@@ -29,6 +30,7 @@ class DistributorController extends Controller
     )]
     public function index(Request $request): JsonResponse
     {
+        $devise = Currency::where('status', 'created')->latest()->get();
         $perPage = $request->query('paginate', 10);
         $search = $request->query('q', '');
 
@@ -54,6 +56,7 @@ class DistributorController extends Controller
         return response()->json([
             'message' => 'success',
             'status' => 200,
+            'devise' => $devise,            
             'data' => $items
         ]);
     }

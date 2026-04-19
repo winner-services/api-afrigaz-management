@@ -203,8 +203,9 @@ class CurrencyController extends Controller
         if ($devise->currency_type === 'devise_principale') {
             return response()->json([
                 'success' => false,
+                'status' => 422,
                 'message' => 'Impossible de supprimer la devise principale.'
-            ], 400);
+            ], 422);
         }
 
         $devise->status = 'deleted';

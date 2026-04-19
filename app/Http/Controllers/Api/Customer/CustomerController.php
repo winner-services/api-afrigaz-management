@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Models\Currency;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,6 +24,7 @@ class CustomerController extends Controller
     )]
     public function index(): JsonResponse
     {
+        $devise = Currency::where('status', 'created')->latest()->get();
         $page = request('paginate', 10);
         $q = request('q', '');
         $sort_direction = request('sort_direction', 'desc');
@@ -62,6 +64,7 @@ class CustomerController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'succès',
+            'devise' => $devise,
             'data' => $data
         ]);
     }
