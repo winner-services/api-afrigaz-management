@@ -64,7 +64,7 @@ class DistributorController extends Controller
     }
     #[OA\Get(
         path: "/api/v1/distributorsOptionData",
-        summary: "Lister les options",
+        summary: "Lister",
         tags: ["Distributeurs"],
         responses: [
             new OA\Response(response: 200, description: "Liste")
@@ -104,15 +104,12 @@ class DistributorController extends Controller
                 'message' => 'Liste des cautions',
                 'data' => $data
             ]);
-        } catch (\Exception $e) {
-
-            Log::error('Caussion getData error', [
-                'error' => $e->getMessage()
-            ]);
+        } catch (\Throwable $e) {
 
             return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de la récupération des cautions'
+                'message' => 'Erreur serveur',
+                'error' => $e->getMessage(),
+                'status' => 500
             ], 500);
         }
     }
