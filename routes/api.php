@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\Auth\AuthenticationController;
 use App\Http\Controllers\Api\Branches\BrancheController;
 use App\Http\Controllers\Api\Bulk\BulkPurchaseController;
 use App\Http\Controllers\Api\CashCategory\CashCategoryController;
+use App\Http\Controllers\Api\Caussion\CaussionController;
 use App\Http\Controllers\Api\Charoit\CharoitController;
 use App\Http\Controllers\Api\Company\CompanyController;
 use App\Http\Controllers\Api\Currency\CurrencyController;
@@ -253,6 +254,13 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::put('/transactionUpdate/{id}', 'updateData');
             Route::post('/transferFundStore', 'transferFunds');
             Route::get('/getHistoryTransferFund', 'index');
+        });
+
+        Route::controller(CaussionController::class)->group(function () {
+            Route::get('/caussionGetAllData', 'getData');
+            Route::post('/caussionStoreData', 'storeData');
+            Route::put('/caussionUpdate/{id}', 'updateData');
+            Route::put('/caussionDelete/{id}', 'destroy');
         });
     });
 });

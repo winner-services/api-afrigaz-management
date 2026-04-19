@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 #[Fillable([
     'caussion_id',
     'product_id',
-    'quantity'
+    'quantity',
+    'unit_price'
 ])]
 class CaussionItem extends Model
 {

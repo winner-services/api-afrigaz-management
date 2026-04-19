@@ -835,6 +835,237 @@
                 }
             }
         },
+        "/api/v1/caussionStoreData": {
+            "post": {
+                "tags": [
+                    "Caussions"
+                ],
+                "summary": "Créer une caution avec calcul automatique",
+                "description": "Crée une caution et calcule automatiquement le montant total basé sur quantity × price des produits.",
+                "operationId": "e12ffcc4de07cd679998ffb9eb3675ac",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "transaction_date",
+                                    "category_distributor_id",
+                                    "items"
+                                ],
+                                "properties": {
+                                    "transaction_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-04-19"
+                                    },
+                                    "category_distributor_id": {
+                                        "description": "ID du distributeur",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "items": {
+                                        "description": "Liste des produits",
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "product_id": {
+                                                    "type": "integer",
+                                                    "example": 5
+                                                },
+                                                "quantity": {
+                                                    "type": "integer",
+                                                    "example": 2
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Caution créée avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Caution créée avec montant calculé automatiquement"
+                                        },
+                                        "total_amount": {
+                                            "type": "number",
+                                            "example": 150
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/caussionUpdate/{id}": {
+            "put": {
+                "tags": [
+                    "Caussions"
+                ],
+                "summary": "Modifier une caution",
+                "description": "Met à jour une caution et recalcule automatiquement le montant total.",
+                "operationId": "7881937efffd9328dcaedced04a9b79a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la caution",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "transaction_date",
+                                    "category_distributor_id",
+                                    "items"
+                                ],
+                                "properties": {
+                                    "transaction_date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "category_distributor_id": {
+                                        "type": "integer"
+                                    },
+                                    "items": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "product_id": {
+                                                    "type": "integer"
+                                                },
+                                                "quantity": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Caution mise à jour"
+                    },
+                    "404": {
+                        "description": "Caution introuvable"
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/caussionDelete/{id}": {
+            "put": {
+                "tags": [
+                    "Caussions"
+                ],
+                "summary": "Supprimer une caution",
+                "operationId": "725abf453b350ff3eaf3de1bbf0a4a60",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Caution supprimée"
+                    },
+                    "404": {
+                        "description": "Introuvable"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/caussionGetAllData": {
+            "get": {
+                "tags": [
+                    "Caussions"
+                ],
+                "summary": "Lister les cautions",
+                "operationId": "70b4441cb5239479925554e6af257297",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "required": false
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "example": 10
+                    },
+                    {
+                        "name": "category_distributor_id",
+                        "in": "query",
+                        "required": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Liste des cautions",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/charoitsGetAllData": {
             "get": {
                 "tags": [
@@ -5820,6 +6051,10 @@
         {
             "name": "CashCategories",
             "description": "CashCategories"
+        },
+        {
+            "name": "Caussions",
+            "description": "Caussions"
         },
         {
             "name": "Charoits",
