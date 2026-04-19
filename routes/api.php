@@ -123,7 +123,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
 
         Route::controller(CategoryDistribController::class)->group(function () {
-            Route::get('/categoryDistribGetOptionsData', 'getCategoryOptions');
+            Route::get('/categoryDistribGetOptionsData', 'categoryDistribGetOptionsData');
             Route::post('/categoryDistribStoreData', 'storeCategory');
             Route::put('/categoryDistribUpdateData/{id}', 'update');
             Route::put('/categoryDistribDeleteData/{id}', 'destroy');
