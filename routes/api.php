@@ -219,7 +219,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
         Route::controller(CurrencyController::class)->group(function () {
             Route::get('/currencyGetAllData', 'index');
-            Route::post('/currencyStoreData', 'store');
+            Route::post('/currencyStoreData', 'createCurrency');
             Route::put('/currencyUpdate/{id}', 'update');
             Route::put('/currencyDelete/{id}', 'destroy');
         });
