@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('currencies', function (Blueprint $table) {
             $table->id();
             $table->string('designation')->unique();
-            $table->string('Symbol')->unique();
+            $table->string('symbol')->unique();
             $table->enum('currency_type', ['devise_principale', 'devise_secondaire']);
             $table->decimal('conversion_amount', 10, 2);
             $table->string('status')->default('created');
