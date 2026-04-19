@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\Company\CompanyController;
 use App\Http\Controllers\Api\Currency\CurrencyController;
 use App\Http\Controllers\Api\Customer\CustomerController;
 use App\Http\Controllers\Api\Customer\DebtPayment\CustomerDebtPaymentController;
+use App\Http\Controllers\Api\Dristributor\Category\CategoryDistribController;
 use App\Http\Controllers\Api\Dristributor\DeptPayment\PaymentDristributorController;
 use App\Http\Controllers\Api\Dristributor\DistributorController;
 use App\Http\Controllers\Api\EntryStock\EntryStockController;
@@ -31,6 +32,7 @@ use App\Http\Controllers\Api\Tank\TankController;
 use App\Http\Controllers\Api\Transaction\TransactionController;
 use App\Http\Controllers\Api\Transfer\TransefrController;
 use App\Http\Controllers\Api\Users\UserController;
+use App\Models\CategoryDistributor;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
@@ -87,7 +89,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         });
 
         Route::controller(CategoryController::class)->group(function () {
-            Route::get('/categoryGetOptionsData', 'categoryDistribGetOptionsData');
+            Route::get('/categoryGetOptionsData', 'getCategoryOptions');
             Route::post('/categoryStoreData', 'storeCategory');
             Route::put('/categoryUpdateData/{id}', 'update');
             Route::put('/categoryDeleteData/{id}', 'destroy');
@@ -120,7 +122,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         });
 
 
-        Route::controller(CategoryController::class)->group(function () {
+        Route::controller(CategoryDistribController::class)->group(function () {
             Route::get('/categoryDistribGetOptionsData', 'getCategoryOptions');
             Route::post('/categoryDistribStoreData', 'storeCategory');
             Route::put('/categoryDistribUpdateData/{id}', 'update');

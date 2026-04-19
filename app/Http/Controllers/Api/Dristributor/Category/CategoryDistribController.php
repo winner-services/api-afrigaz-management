@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use OpenApi\Attributes as OA;
 
-class CategoryController extends Controller
+class CategoryDistribController extends Controller
 {
     #[OA\Get(
         path: "/api/v1/categoryDistribGetOptionsData",
