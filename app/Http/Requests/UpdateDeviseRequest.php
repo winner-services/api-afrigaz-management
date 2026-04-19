@@ -12,7 +12,7 @@ class UpdateDeviseRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,7 +23,7 @@ class UpdateDeviseRequest extends FormRequest
     public function rules()
     {
         return [
-            'designation'        => 'required|string|max:100|unique:devises,designation,' . $this->route('id'),
+            'designation'        => 'required|string|max:100|unique:currencies,designation,' . $this->route('id'),
             'currency_type'      => 'required|in:devise_principale,devise_secondaire',
             'conversion_amount'  => 'required|numeric|min:0',
             'symbol'             => 'required|string|max:10'
