@@ -20,6 +20,7 @@ return new class extends Migration
             $table->foreignId('distributor_id')->nullable()->constrained('distributors')->cascadeOnDelete();
             $table->enum('status', ['pending', 'completed', 'cancelled', 'partial'])->default('pending');
             $table->date('transaction_date');
+            $table->date('planned_date')->nullable();
             $table->string('commentaire')->nullable();
             $table->timestamps();
         });

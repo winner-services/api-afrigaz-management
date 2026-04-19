@@ -134,7 +134,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::get('/distributorsGetOptionData', 'getDistributorOptions');
             Route::post('/distributorStoreData', 'store');
             Route::put('/distributorUpdate/{id}', 'update');
-            Route::put('/distributorDelete/{id}', 'destroy');
+            Route::put('/distributorDelete/{id}', 'delete');
             Route::put('/distributorDisable/{id}', 'disableDistributor');
             Route::put('/distributorActivate/{id}', 'activateDistributor');
         });

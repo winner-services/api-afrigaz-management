@@ -18,12 +18,69 @@ use OpenApi\Attributes as OA;
 class ShippingControlle extends Controller
 {
 
+    #[OA\Post(
+        path: '/api/v1/shippingStoreData',
+        summary: 'Programmer une livraison',
+        description: 'Crée une livraison planifiée à partir d’une caution déjà payée. Aucun produit n’est encore livré.',
+        tags: ['Shippings'],
+
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['caussion_id', 'branch_id', 'distributor_id', 'planned_date', 'transaction_date'],
+                properties: [
+                    new OA\Property(property: "caussion_id", type: "integer", example: 1),
+                    new OA\Property(property: "branch_id", type: "integer", example: 1),
+                    new OA\Property(property: "distributor_id", type: "integer", example: 5),
+
+                    new OA\Property(
+                        property: "planned_date",
+                        type: "string",
+                        format: "date",
+                        example: "2026-04-25"
+                    ),
+
+                    new OA\Property(
+                        property: "transaction_date",
+                        type: "string",
+                        format: "date",
+                        example: "2026-04-19"
+                    ),
+
+                    new OA\Property(
+                        property: "commentaire",
+                        type: "string",
+                        example: "Livraison prévue matin"
+                    )
+                ]
+            )
+        ),
+
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Livraison programmée avec succès',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "success", type: "boolean", example: true),
+                        new OA\Property(property: "message", type: "string", example: "Livraison programmée avec succès"),
+                        new OA\Property(property: "data", type: "object")
+                    ]
+                )
+            ),
+
+            new OA\Response(response: 422, description: 'Erreur de validation'),
+            new OA\Response(response: 500, description: 'Erreur serveur')
+        ]
+    )]
+
     public function storeData(Request $request)
     {
         $request->validate([
             'caussion_id' => 'required|exists:caussions,id',
             'branch_id' => 'nullable|exists:branches,id',
             'distributor_id' => 'required|exists:distributors,id',
+            'planned_date' => 'required|date',
             'transaction_date' => 'required|date',
             'commentaire' => 'nullable|string',
         ]);
@@ -45,11 +102,9 @@ class ShippingControlle extends Controller
                 'addedBy' => Auth::id(),
                 'transaction_date' => $request->transaction_date,
                 'commentaire' => $request->commentaire ?? null,
+                'planned_date' => $request->planned_date,
                 'status' => 'pending',
             ]);
-
-            // 🔥 calcul total pour déterminer status initial
-            $totalItems = 0;
 
             foreach ($caussion->items as $item) {
 
@@ -59,8 +114,6 @@ class ShippingControlle extends Controller
                     'quantity' => $item->quantity,
                     'delivered_quantity' => 0,
                 ]);
-
-                $totalItems += $item->quantity;
             }
 
             DB::commit();
@@ -68,7 +121,7 @@ class ShippingControlle extends Controller
             return response()->json([
                 'success' => true,
                 'status' => 201,
-                'message' => 'Livraison créée avec succès',
+                'message' => 'Livraison planifiée avec succès',
                 'reference' => $reference,
                 'data' => $shipping->load('items.product')
             ]);
@@ -84,125 +137,52 @@ class ShippingControlle extends Controller
         }
     }
 
+    // public function store(Request $request): JsonResponse
+    // {
+    //     try {
 
+    //         $request->validate([
+    //             'products' => 'required|array|min:1',
+    //             'products.*.product_id' => 'required|exists:products,id',
+    //             'products.*.quantity' => 'required|integer|min:1',
+    //             'distributor_id' => 'nullable|exists:distributors,id',
+    //             'commentaire' => 'nullable|string',
+    //             'transaction_date' => 'date|string',
+    //         ]);
+    //         $branch_id = request($request->branch_id, 1);
 
+    //         $livraison = SaleService::createShipping(
+    //             $branch_id,
+    //             $request->products,
+    //             $request->distributor_id,
+    //             $request->transaction_date ?? now(),
+    //             $request->commentaire
+    //         );
+    //         return response()->json([
+    //             'message' => 'Vente enregistrée',
+    //             'status' => 201,
+    //             'data' => $livraison
+    //         ], 201);
+    //     } catch (\Illuminate\Validation\ValidationException $e) {
 
+    //         return response()->json([
+    //             'message' => 'Erreur de validation',
+    //             'errors' => $e->errors()
+    //         ], 422);
+    //     } catch (\App\Services\StockException $e) {
 
-    #[OA\Post(
-        path: "/api/v1/shippingStoreData",
-        summary: "Créer une livraison avec paiement ou dette",
-        tags: ["Shippings"],
+    //         return response()->json([
+    //             'message' => 'Erreur de stock',
+    //             'errors' => $e->getErrors()
+    //         ], 400);
+    //     } catch (\Exception $e) {
 
-        requestBody: new OA\RequestBody(
-            required: true,
-            content: new OA\JsonContent(
-                required: ["branch_id", "products", "transaction_date", "commentaire"],
-                properties: [
-
-                    new OA\Property(property: "branch_id", type: "integer", example: 1),
-                    new OA\Property(property: "distributor_id", type: "integer", nullable: true, example: 1),
-                    new OA\Property(property: "transaction_date", type: "string", format: "date", example: "2023-10-10"),
-                    new OA\Property(property: "commentaire", type: "string", nullable: true, example: "Commentaire sur la livraison"),
-
-                    new OA\Property(
-                        property: "products",
-                        type: "array",
-                        items: new OA\Items(
-                            properties: [
-                                new OA\Property(property: "product_id", type: "integer", example: 1),
-                                new OA\Property(property: "quantity", type: "integer", example: 2),
-                            ]
-                        )
-                    ),
-                ]
-            )
-        ),
-
-        responses: [
-
-            new OA\Response(
-                response: 201,
-                description: "Livraison créée avec succès",
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: "message", type: "string", example: "Livraison enregistrée avec paiement/dette"),
-                        new OA\Property(property: "shipping_id", type: "integer", example: 10),
-                    ]
-                )
-            ),
-
-            new OA\Response(
-                response: 409,
-                description: "Stock insuffisant",
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: "message", type: "string", example: "Stock insuffisant pour certains produits"),
-                        new OA\Property(
-                            property: "errors",
-                            type: "array",
-                            items: new OA\Items(
-                                properties: [
-                                    new OA\Property(property: "product_id", type: "integer", example: 1),
-                                    new OA\Property(property: "message", type: "string", example: "Stock insuffisant"),
-                                    new OA\Property(property: "available", type: "integer", example: 2),
-                                ]
-                            )
-                        )
-                    ]
-                )
-            ),
-            new OA\Response(
-                response: 500,
-                description: "Erreur interne serveur"
-            )
-        ]
-    )]
-    public function store(Request $request): JsonResponse
-    {
-        try {
-
-            $request->validate([
-                'products' => 'required|array|min:1',
-                'products.*.product_id' => 'required|exists:products,id',
-                'products.*.quantity' => 'required|integer|min:1',
-                'distributor_id' => 'nullable|exists:distributors,id',
-                'commentaire' => 'nullable|string',
-                'transaction_date' => 'date|string',
-            ]);
-            $branch_id = request($request->branch_id, 1);
-
-            $livraison = SaleService::createShipping(
-                $branch_id,
-                $request->products,
-                $request->distributor_id,
-                $request->transaction_date ?? now(),
-                $request->commentaire
-            );
-            return response()->json([
-                'message' => 'Vente enregistrée',
-                'status' => 201,
-                'data' => $livraison
-            ], 201);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-
-            return response()->json([
-                'message' => 'Erreur de validation',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\App\Services\StockException $e) {
-
-            return response()->json([
-                'message' => 'Erreur de stock',
-                'errors' => $e->getErrors()
-            ], 400);
-        } catch (\Exception $e) {
-
-            return response()->json([
-                'message' => 'Erreur lors de la création de la vente',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
+    //         return response()->json([
+    //             'message' => 'Erreur lors de la création de la vente',
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
     #[OA\Get(
         path: "/api/v1/shippingsGetAllData",
