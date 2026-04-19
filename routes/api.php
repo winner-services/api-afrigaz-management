@@ -87,7 +87,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         });
 
         Route::controller(CategoryController::class)->group(function () {
-            Route::get('/categoryGetOptionsData', 'categoryGetOptionsData');
+            Route::get('/categoryGetOptionsData', 'categoryDistribGetOptionsData');
             Route::post('/categoryStoreData', 'storeCategory');
             Route::put('/categoryUpdateData/{id}', 'update');
             Route::put('/categoryDeleteData/{id}', 'destroy');
