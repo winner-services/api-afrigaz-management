@@ -137,7 +137,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::put('/distributorDelete/{id}', 'delete');
             Route::put('/distributorDisable/{id}', 'disableDistributor');
             Route::put('/distributorActivate/{id}', 'activateDistributor');
-            Route::get('/distributorsOptionData','getData');
+            Route::get('/distributorsOptionData', 'getData');
         });
 
         Route::controller(SupplierController::class)->group(function () {
@@ -243,6 +243,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/shippingStoreData', 'storeData');
             Route::get('/shippingByBranchGetData', 'indexByBranche');
             Route::get('/shippingsGetAllData', 'index');
+            Route::post('/shippingDeliver/{id}', 'deliver');
         });
         Route::controller(PaymentDristributorController::class)->group(function () {
             Route::post('/payDistributorDebt', 'payDebt');

@@ -1788,7 +1788,7 @@
                     "Category Distributors"
                 ],
                 "summary": "Lister",
-                "operationId": "6607ce4128070ca7451c1a90250ef057",
+                "operationId": "7c61da1290f87c4d29152b7dde666d97",
                 "responses": {
                     "200": {
                         "description": "Liste dses categories de distributeurs"
@@ -1802,7 +1802,7 @@
                     "Category Distributors"
                 ],
                 "summary": "Créer",
-                "operationId": "f08ba296e7bc3bf784bd000a31ed887c",
+                "operationId": "e1c364f0ef49fd0b8da19f47bf5d65c1",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -1951,6 +1951,20 @@
                 "responses": {
                     "200": {
                         "description": "Liste paginée"
+                    }
+                }
+            }
+        },
+        "/api/v1/distributorsOptionData": {
+            "get": {
+                "tags": [
+                    "Distributeurs"
+                ],
+                "summary": "Lister",
+                "operationId": "289835bcfc8059872de3598db06cf0b4",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
                     }
                 }
             }
@@ -3775,50 +3789,130 @@
                 "tags": [
                     "Shippings"
                 ],
-                "summary": "Créer une livraison avec paiement ou dette",
-                "operationId": "1fd87d99bf0d80532290b1180c9ee655",
+                "summary": "Programmer une livraison",
+                "description": "Crée une livraison planifiée à partir d’une caution déjà payée. Aucun produit n’est encore livré.",
+                "operationId": "9cf814686527c2c70c11ccaf884c14f4",
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "required": [
+                                    "caussion_id",
                                     "branch_id",
-                                    "products",
-                                    "transaction_date",
-                                    "commentaire"
+                                    "distributor_id",
+                                    "planned_date",
+                                    "transaction_date"
                                 ],
                                 "properties": {
+                                    "caussion_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
                                     "branch_id": {
                                         "type": "integer",
                                         "example": 1
                                     },
                                     "distributor_id": {
                                         "type": "integer",
-                                        "example": 1,
-                                        "nullable": true
+                                        "example": 5
+                                    },
+                                    "planned_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-04-25"
                                     },
                                     "transaction_date": {
                                         "type": "string",
                                         "format": "date",
-                                        "example": "2023-10-10"
+                                        "example": "2026-04-19"
                                     },
                                     "commentaire": {
                                         "type": "string",
-                                        "example": "Commentaire sur la livraison",
-                                        "nullable": true
+                                        "example": "Livraison prévue matin"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Livraison programmée avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Livraison programmée avec succès"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
                                     },
-                                    "products": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/shippingDeliver/{id}": {
+            "post": {
+                "tags": [
+                    "Shippings"
+                ],
+                "summary": "Exécuter une livraison",
+                "description": "Permet de livrer partiellement ou totalement les produits d’un shipping programmé.",
+                "operationId": "937ef9f367e3582aee2a9a98c4867e95",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID du shipping",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "items"
+                                ],
+                                "properties": {
+                                    "items": {
+                                        "description": "Liste des produits à livrer",
                                         "type": "array",
                                         "items": {
                                             "properties": {
-                                                "product_id": {
+                                                "id": {
+                                                    "description": "ID du shipping_item",
                                                     "type": "integer",
                                                     "example": 1
                                                 },
-                                                "quantity": {
+                                                "delivered_quantity": {
+                                                    "description": "Quantité livrée pour cet item",
                                                     "type": "integer",
-                                                    "example": 2
+                                                    "example": 3
                                                 }
                                             },
                                             "type": "object"
@@ -3831,19 +3925,27 @@
                     }
                 },
                 "responses": {
-                    "201": {
-                        "description": "Livraison créée avec succès",
+                    "200": {
+                        "description": "Livraison exécutée avec succès",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
                                         "message": {
                                             "type": "string",
-                                            "example": "Livraison enregistrée avec paiement/dette"
+                                            "example": "Livraison exécutée avec succès"
                                         },
-                                        "shipping_id": {
-                                            "type": "integer",
-                                            "example": 10
+                                        "status": {
+                                            "type": "string",
+                                            "example": "partial"
+                                        },
+                                        "data": {
+                                            "description": "Shipping avec items mis à jour",
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -3851,44 +3953,14 @@
                             }
                         }
                     },
-                    "409": {
-                        "description": "Stock insuffisant",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Stock insuffisant pour certains produits"
-                                        },
-                                        "errors": {
-                                            "type": "array",
-                                            "items": {
-                                                "properties": {
-                                                    "product_id": {
-                                                        "type": "integer",
-                                                        "example": 1
-                                                    },
-                                                    "message": {
-                                                        "type": "string",
-                                                        "example": "Stock insuffisant"
-                                                    },
-                                                    "available": {
-                                                        "type": "integer",
-                                                        "example": 2
-                                                    }
-                                                },
-                                                "type": "object"
-                                            }
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                    "404": {
+                        "description": "Shipping introuvable"
+                    },
+                    "422": {
+                        "description": "Erreur de validation ou stock insuffisant"
                     },
                     "500": {
-                        "description": "Erreur interne serveur"
+                        "description": "Erreur serveur"
                     }
                 }
             }

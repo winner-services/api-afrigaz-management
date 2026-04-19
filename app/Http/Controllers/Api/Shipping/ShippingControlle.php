@@ -138,6 +138,91 @@ class ShippingControlle extends Controller
         }
     }
 
+    #[OA\Post(
+        path: '/api/v1/shippingDeliver/{id}',
+        summary: 'Exécuter une livraison',
+        description: 'Permet de livrer partiellement ou totalement les produits d’un shipping programmé.',
+        tags: ['Shippings'],
+
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                in: "path",
+                required: true,
+                description: "ID du shipping",
+                schema: new OA\Schema(type: "integer", example: 1)
+            )
+        ],
+
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['items'],
+                properties: [
+
+                    new OA\Property(
+                        property: "items",
+                        type: "array",
+                        description: "Liste des produits à livrer",
+
+                        items: new OA\Items(
+                            properties: [
+
+                                new OA\Property(
+                                    property: "id",
+                                    type: "integer",
+                                    example: 1,
+                                    description: "ID du shipping_item"
+                                ),
+
+                                new OA\Property(
+                                    property: "delivered_quantity",
+                                    type: "integer",
+                                    example: 3,
+                                    description: "Quantité livrée pour cet item"
+                                )
+                            ]
+                        )
+                    )
+                ]
+            )
+        ),
+
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Livraison exécutée avec succès',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "success", type: "boolean", example: true),
+                        new OA\Property(property: "message", type: "string", example: "Livraison exécutée avec succès"),
+                        new OA\Property(property: "status", type: "string", example: "partial"),
+
+                        new OA\Property(
+                            property: "data",
+                            type: "object",
+                            description: "Shipping avec items mis à jour"
+                        )
+                    ]
+                )
+            ),
+
+            new OA\Response(
+                response: 404,
+                description: 'Shipping introuvable'
+            ),
+
+            new OA\Response(
+                response: 422,
+                description: 'Erreur de validation ou stock insuffisant'
+            ),
+
+            new OA\Response(
+                response: 500,
+                description: 'Erreur serveur'
+            )
+        ]
+    )]
     public function deliver(Request $request, $id)
     {
         $request->validate([
