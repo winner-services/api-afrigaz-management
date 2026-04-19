@@ -154,9 +154,9 @@ class SaleService
         });
     }
 
-    public static function deliverShipping($shippingId, $itemsDelivered)
+    public static function deliverShipping($shippingId, $itemsDelivered, $planned_date)
     {
-        return DB::transaction(function () use ($shippingId, $itemsDelivered) {
+        return DB::transaction(function () use ($shippingId, $itemsDelivered, $planned_date) {
 
             $shipping = Shipping::with('items')->lockForUpdate()->findOrFail($shippingId);
 
@@ -244,7 +244,8 @@ class SaleService
             };
 
             $shipping->update([
-                'status' => $status
+                'status' => $status,
+                'planned_date' => $planned_date
             ]);
 
             return [

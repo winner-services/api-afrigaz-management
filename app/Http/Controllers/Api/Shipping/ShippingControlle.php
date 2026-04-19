@@ -226,6 +226,7 @@ class ShippingControlle extends Controller
     public function deliver(Request $request, $id)
     {
         $request->validate([
+            'planned_date' => 'nullable|data',
             'items' => 'required|array|min:1',
             'items.*.id' => 'required|exists:shipping_items,id',
             'items.*.delivered_quantity' => 'required|integer|min:0',
@@ -235,7 +236,8 @@ class ShippingControlle extends Controller
 
             $result = SaleService::deliverShipping(
                 $id,
-                $request->items
+                $request->items,
+                $request->planned_date
             );
 
             return response()->json([
