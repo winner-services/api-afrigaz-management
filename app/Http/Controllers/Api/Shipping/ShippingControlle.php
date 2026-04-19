@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\Shipping;
 use App\Models\ShippingItem;
 use App\Services\SaleService;
+use App\Services\StockException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -136,6 +137,100 @@ class ShippingControlle extends Controller
             ], 500);
         }
     }
+
+    public function deliver(Request $request, $id)
+    {
+        $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.id' => 'required|exists:shipping_items,id',
+            'items.*.delivered_quantity' => 'required|integer|min:0',
+        ]);
+
+        try {
+
+            $result = SaleService::deliverShipping(
+                $id,
+                $request->items
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Livraison exécutée avec succès',
+                'status' => $result['status'],
+                'data' => $result['shipping']->load('items.product')
+            ]);
+        } catch (StockException $e) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur de stock',
+                'errors' => $e->getMessage()
+            ], 422);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur serveur',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // public function deliver(Request $request, $id)
+    // {
+    //     $request->validate([
+    //         'items' => 'required|array',
+    //         'items.*.id' => 'required|exists:shipping_items,id',
+    //         'items.*.delivered_quantity' => 'required|integer|min:0',
+    //     ]);
+
+    //     try {
+
+    //         DB::beginTransaction();
+
+    //         $shipping = Shipping::with('items')->findOrFail($id);
+
+    //         foreach ($request->items as $itemData) {
+
+    //             $item = ShippingItem::findOrFail($itemData['id']);
+
+    //             $item->delivered_quantity += $itemData['delivered_quantity'];
+    //             $item->save();
+    //         }
+
+    //         // 🔥 recalcul status
+    //         $total = $shipping->items->sum('quantity');
+    //         $delivered = $shipping->items->sum('delivered_quantity');
+
+    //         if ($delivered == 0) {
+    //             $status = 'pending';
+    //         } elseif ($delivered < $total) {
+    //             $status = 'partial';
+    //         } else {
+    //             $status = 'completed';
+    //         }
+
+    //         $shipping->update([
+    //             'status' => $status
+    //         ]);
+
+    //         DB::commit();
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Livraison mise à jour',
+    //             'status' => $status
+    //         ]);
+    //     } catch (\Exception $e) {
+
+    //         DB::rollBack();
+
+    //         return response()->json([
+    //             'success' => false,
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
     // public function store(Request $request): JsonResponse
     // {

@@ -8,6 +8,7 @@ use App\Models\DebtDistributor;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\Shipping;
+use App\Models\ShippingItem;
 use App\Models\StockByBranch;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -153,12 +154,35 @@ class SaleService
         });
     }
 
-    public static function createShipping($branchId, $products, $distributor_id = null, $transaction_date, $commentaire)
+    public static function deliverShipping($shippingId, $itemsDelivered)
     {
-        return DB::transaction(function () use ($branchId, $products, $distributor_id, $transaction_date, $commentaire) {
+        return DB::transaction(function () use ($shippingId, $itemsDelivered) {
+
+            $shipping = Shipping::with('items')->lockForUpdate()->findOrFail($shippingId);
+
+            $branchId = $shipping->branch_id;
+
             $errors = [];
 
-            foreach ($products as $item) {
+            foreach ($itemsDelivered as $data) {
+
+                $item = $shipping->items->firstWhere('id', $data['id']);
+
+                if (!$item) {
+                    continue;
+                }
+
+                $remainingQty = $item->quantity - $item->delivered_quantity;
+
+                if ($data['delivered_quantity'] > $remainingQty) {
+                    $errors[] = [
+                        'product_id' => $item->product_id,
+                        'message' => 'Quantité dépasse le reste à livrer',
+                        'remaining' => $remainingQty
+                    ];
+                    continue;
+                }
+
                 $stock = StockByBranch::where('branche_id', $branchId)
                     ->where('product_id', $item['product_id'])
                     ->where(
@@ -169,9 +193,9 @@ class SaleService
                     ->lockForUpdate()
                     ->first();
 
-                if (!$stock || $stock->stock_quantity < $item['quantity']) {
+                if (!$stock || $stock->stock_quantity < $data['delivered_quantity']) {
                     $errors[] = [
-                        'product_id' => $item['product_id'],
+                        'product_id' => $item->product_id,
                         'message' => 'Stock insuffisant',
                         'available' => $stock->stock_quantity ?? 0
                     ];
@@ -181,39 +205,116 @@ class SaleService
             if (!empty($errors)) {
                 throw new StockException($errors);
             }
+            if ($shipping->status === 'completed') {
+                throw new \Exception('Livraison déjà terminée');
+            }
 
-            $reference1 = 'LIV-' . date('YmdHis');
+            foreach ($itemsDelivered as $data) {
 
-            $livraision = Shipping::create([
-                'reference' => $reference1,
-                'branch_id' => $branchId,
-                'addedBy' => Auth::id(),
-                'transaction_date' => $transaction_date ?? now(),
-                'distributor_id' => $distributor_id,
-                'commentaire' => $commentaire,
-            ]);
+                $item = ShippingItem::findOrFail($data['id']);
 
-            foreach ($products as $item) {
+                if ($data['delivered_quantity'] <= 0) {
+                    continue;
+                }
 
-                $product = Product::findOrFail($item['product_id']);
-                $quantity = $item['quantity'];
-                $livraision->items()->create([
-                    'product_id' => $product->id,
-                    'quantity' => $quantity
-                ]);
+                $item->delivered_quantity += $data['delivered_quantity'];
+                $item->save();
 
                 StockService::removeStockShippinng(
                     $branchId,
-                    $product->id,
-                    $quantity,
-                    "Livraison PROD-{$product->id}",
+                    $item->product_id,
+                    $data['delivered_quantity'],
+                    "Livraison SHIP-{$shipping->id}",
                     [
-                        'id' => $livraision->id,
+                        'id' => $shipping->id,
                         'type' => 'shipping'
                     ]
                 );
             }
-            return $livraision;
+
+            $shipping->load('items');
+
+            $total = $shipping->items->sum('quantity');
+            $delivered = $shipping->items->sum('delivered_quantity');
+
+            $status = match (true) {
+                $delivered == 0 => 'pending',
+                $delivered < $total => 'partial',
+                default => 'completed',
+            };
+
+            $shipping->update([
+                'status' => $status
+            ]);
+
+            return [
+                'shipping' => $shipping,
+                'status' => $status
+            ];
         });
     }
+
+    // public static function createShipping($branchId, $products, $distributor_id = null, $transaction_date, $commentaire)
+    // {
+    //     return DB::transaction(function () use ($branchId, $products, $distributor_id, $transaction_date, $commentaire) {
+    //         $errors = [];
+
+    //         foreach ($products as $item) {
+    //             $stock = StockByBranch::where('branche_id', $branchId)
+    //                 ->where('product_id', $item['product_id'])
+    //                 ->where(
+    //                     fn($q) =>
+    //                     $q->where('is_empty', false)
+    //                         ->orWhereNull('is_empty')
+    //                 )
+    //                 ->lockForUpdate()
+    //                 ->first();
+
+    //             if (!$stock || $stock->stock_quantity < $item['quantity']) {
+    //                 $errors[] = [
+    //                     'product_id' => $item['product_id'],
+    //                     'message' => 'Stock insuffisant',
+    //                     'available' => $stock->stock_quantity ?? 0
+    //                 ];
+    //             }
+    //         }
+
+    //         if (!empty($errors)) {
+    //             throw new StockException($errors);
+    //         }
+
+    //         $reference1 = 'LIV-' . date('YmdHis');
+
+    //         $livraision = Shipping::create([
+    //             'reference' => $reference1,
+    //             'branch_id' => $branchId,
+    //             'addedBy' => Auth::id(),
+    //             'transaction_date' => $transaction_date ?? now(),
+    //             'distributor_id' => $distributor_id,
+    //             'commentaire' => $commentaire,
+    //         ]);
+
+    //         foreach ($products as $item) {
+
+    //             $product = Product::findOrFail($item['product_id']);
+    //             $quantity = $item['quantity'];
+    //             $livraision->items()->create([
+    //                 'product_id' => $product->id,
+    //                 'quantity' => $quantity
+    //             ]);
+
+    //             StockService::removeStockShippinng(
+    //                 $branchId,
+    //                 $product->id,
+    //                 $quantity,
+    //                 "Livraison PROD-{$product->id}",
+    //                 [
+    //                     'id' => $livraision->id,
+    //                     'type' => 'shipping'
+    //                 ]
+    //             );
+    //         }
+    //         return $livraision;
+    //     });
+    // }
 }
