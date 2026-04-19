@@ -4974,6 +4974,80 @@
                 }
             }
         },
+        "/api/v1/transferFundStore": {
+            "post": {
+                "tags": [
+                    "Cash Transactions"
+                ],
+                "summary": "Transfert de fonds entre comptes",
+                "description": "Permet de transférer un montant d’un compte de caisse vers un autre avec mise à jour automatique des soldes.",
+                "operationId": "95e2708e57e929f60ae9c657b97cae29",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "from_account_id",
+                                    "to_account_id",
+                                    "amount"
+                                ],
+                                "properties": {
+                                    "from_account_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "to_account_id": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 100
+                                    },
+                                    "transaction_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-04-19"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Transfert interne"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Transfert effectué avec succès"
+                    },
+                    "422": {
+                        "description": "Erreur de validation ou solde insuffisant"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/getHistoryTransferFund": {
+            "get": {
+                "tags": [
+                    "Cash Transactions"
+                ],
+                "summary": "Lister",
+                "operationId": "df6564fd9c8930d86d79095ebf42e9ea",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
         "/api/v1/transfersGetAllData": {
             "get": {
                 "tags": [

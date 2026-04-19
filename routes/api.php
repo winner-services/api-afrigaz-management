@@ -249,8 +249,10 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::controller(TransactionController::class)->group(function () {
             // Route::get('/transactionsGetAllData', 'index');
             Route::get('/transactionsByBranchGetData', 'indexByBranche');
-             Route::post('/transactionStoreData', 'store');
-             Route::put('/transactionUpdate/{id}', 'updateData');
+            Route::post('/transactionStoreData', 'store');
+            Route::put('/transactionUpdate/{id}', 'updateData');
+            Route::post('/transferFundStore', 'transferFunds');
+            Route::get('/getHistoryTransferFund', 'index');
         });
     });
 });

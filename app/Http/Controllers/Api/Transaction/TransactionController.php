@@ -7,68 +7,16 @@ use App\Models\About;
 use App\Models\Branche;
 use App\Models\CashAccount;
 use App\Models\CashTransaction;
+use App\Models\TransactionHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
 
 class TransactionController extends Controller
 {
-
-
-    // public function getTransactionData()
-    // {
-    //     $about = About::first();
-    //     if ($about && $about->logo) {
-    //         $path = storage_path('app/public/' . $about->logo);
-
-    //         if (file_exists($path)) {
-    //             $mime = mime_content_type($path);
-    //             $data = base64_encode(file_get_contents($path));
-    //             $about->logo = "data:$mime;base64,$data";
-    //         } else {
-    //             $about->logo = asset('images/default-logo.png');
-    //         }
-    //     } else {
-    //         $about->logo = asset('images/default-logo.png');
-    //     }
-    //     $caisse = CashAccount::first();
-    //     if (is_null($caisse)) {
-    //         return response()->json([
-    //             'message' => "Compte introuvable",
-    //             'success' => false,
-    //             'status' => 404
-    //         ]);
-    //     }
-    //     $idCompte = request("account_id", null);
-
-    //     if ($idCompte === null || $idCompte === 'null') {
-    //         $idCompte = $caisse->id;
-    //     }
-
-    //     $page = request("paginate", 10);
-    //     $q = request("q", "");
-    //     $sort_direction = request('sort_direction', 'desc');
-    //     $sort_field = request('sort_field', 'id');
-    //     $data = Cash::join('users', 'trasaction_tresoreries.addedBy', '=', 'users.id')
-    //         ->join('tresoreries', 'trasaction_tresoreries.account_id', '=', 'tresoreries.id')
-    //         ->select('trasaction_tresoreries.*', 'users.name as addedBy', 'tresoreries.designation as account_name')
-    //         ->where('trasaction_tresoreries.status', true)
-    //         ->where('account_id', $idCompte)
-    //         ->searh(trim($q))
-    //         ->orderBy($sort_field, $sort_direction)
-    //         ->paginate($page);
-    //     $result = [
-    //         'message' => "OK",
-    //         'success' => true,
-    //         'data' => $data,
-    //         'company_info' => $about,
-    //         'status' => 200,
-    //     ];
-    //     return response()->json($result);
-    // }
-
     #[OA\Post(
         path: '/api/v1/transactionStoreData',
         summary: 'Créer une transaction de caisse',
@@ -378,6 +326,210 @@ class TransactionController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la récupération des transactions',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    #[OA\Post(
+        path: '/api/v1/transferFundStore',
+        summary: 'Transfert de fonds entre comptes',
+        description: 'Permet de transférer un montant d’un compte de caisse vers un autre avec mise à jour automatique des soldes.',
+        tags: ['Cash Transactions'],
+
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['from_account_id', 'to_account_id', 'amount'],
+                properties: [
+                    new OA\Property(property: "from_account_id", type: "integer", example: 1),
+                    new OA\Property(property: "to_account_id", type: "integer", example: 2),
+                    new OA\Property(property: "amount", type: "number", format: "float", example: 100.00),
+                    new OA\Property(property: "transaction_date", type: "string", format: "date", example: "2026-04-19"),
+                    new OA\Property(property: "description", type: "string", example: "Transfert interne"),
+                ]
+            )
+        ),
+
+        responses: [
+            new OA\Response(response: 201, description: 'Transfert effectué avec succès'),
+            new OA\Response(response: 422, description: 'Erreur de validation ou solde insuffisant'),
+            new OA\Response(response: 500, description: 'Erreur serveur'),
+        ]
+    )]
+    public function transferFunds(Request $request)
+    {
+        $rules = [
+            'from_account_id' => ['required', 'integer', 'exists:cash_accounts,id'],
+            'to_account_id'   => ['required', 'integer', 'exists:cash_accounts,id', 'different:from_account_id'],
+            'amount'          => ['required', 'numeric', 'min:0.01'],
+            'transaction_date' => ['nullable', 'date'],
+            'description'     => ['nullable', 'string']
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Données invalides.',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        DB::beginTransaction();
+
+        try {
+
+            $user = Auth::user();
+
+            $from = CashTransaction::where('cash_account_id', $request->from_account_id)
+                ->latest('id')
+                ->lockForUpdate()
+                ->first();
+
+            $to = CashTransaction::where('cash_account_id', $request->to_account_id)
+                ->latest('id')
+                ->lockForUpdate()
+                ->first();
+
+            $solde_from = $from ? $from->solde : 0;
+            $solde_to   = $to ? $to->solde : 0;
+
+            if ($solde_from < $request->amount) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Solde insuffisant.',
+                    'success' => false
+                ], 422);
+            }
+
+            $date = $request->transaction_date ?? now();
+            $reference = 'TRANS-' . strtoupper(uniqid());
+
+            // 🔥 Historique global
+            TransactionHistory::create([
+                'from_account_id' => $request->from_account_id,
+                'to_account_id'   => $request->to_account_id,
+                'amount'          => $request->amount,
+                'type_transaction' => 'Transfert de fonds',
+                'description'     => $request->description ?? 'Transfert interne',
+                'addedBy'         => $user->id,
+                'transaction_date' => $date
+            ]);
+
+            CashTransaction::create([
+                'reason' => 'Transfert vers compte #' . $request->to_account_id,
+                'type' => 'Depense',
+                'amount' => $request->amount,
+                'transaction_date' => $date,
+                'solde' => $solde_from - $request->amount,
+                'reference' => $reference,
+                'cash_account_id' => $request->from_account_id,
+                'addedBy' => $user->id
+            ]);
+
+            // 🔺 Revenu
+            CashTransaction::create([
+                'reason' => 'Réception depuis compte #' . $request->from_account_id,
+                'type' => 'Revenue',
+                'amount' => $request->amount,
+                'transaction_date' => $date,
+                'solde' => $solde_to + $request->amount,
+                'reference' => $reference,
+                'cash_account_id' => $request->to_account_id,
+                'addedBy' => $user->id
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Transfert effectué avec succès.',
+                'success' => true,
+                'reference' => $reference
+            ], 201);
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+            return response()->json([
+                'message' => 'Erreur lors du transfert.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    #[OA\Get(
+        path: "/api/v1/getHistoryTransferFund",
+        summary: "Lister",
+        tags: ["Cash Transactions"],
+        responses: [
+            new OA\Response(response: 200, description: "Liste")
+        ]
+    )]
+    public function index(Request $request)
+    {
+        try {
+
+            $perPage = $request->query('per_page', 10);
+            $search = $request->query('q', '');
+            $sortField = $request->query('sort_field', 'id');
+            $sortDirection = $request->query('sort_direction', 'desc');
+
+            $allowedSortFields = [
+                'id',
+                'amount',
+                'transaction_date',
+                'created_at'
+            ];
+
+            if (!in_array($sortField, $allowedSortFields)) {
+                $sortField = 'id';
+            }
+
+            $query = TransactionHistory::with([
+                'fromAccount:id,designation',
+                'toAccount:id,designation',
+                'user:id,name'
+            ]);
+
+            // 🔍 Recherche
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('type_transaction', 'LIKE', "%$search%")
+                        ->orWhere('description', 'LIKE', "%$search%");
+                });
+            }
+
+            // 🎯 Filtre par compte
+            if ($request->has('account_id')) {
+                $query->where(function ($q) use ($request) {
+                    $q->where('from_account_id', $request->account_id)
+                        ->orWhere('to_account_id', $request->account_id);
+                });
+            }
+
+            // 📅 Filtre date
+            if ($request->has('date_from')) {
+                $query->whereDate('transaction_date', '>=', $request->date_from);
+            }
+
+            if ($request->has('date_to')) {
+                $query->whereDate('transaction_date', '<=', $request->date_to);
+            }
+
+            $data = $query
+                ->orderBy($sortField, $sortDirection)
+                ->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération',
                 'error' => $e->getMessage()
             ], 500);
         }
