@@ -23,6 +23,10 @@ class Caussion extends Model
     {
         return $this->belongsTo(CategoryDistributor::class, 'category_distributor_id');
     }
+    public function category()
+    {
+        return $this->belongsTo(CategoryDistributor::class, 'category_distributor_id');
+    }
     public function addedBy()
     {
         return $this->belongsTo(User::class, 'addedBy');

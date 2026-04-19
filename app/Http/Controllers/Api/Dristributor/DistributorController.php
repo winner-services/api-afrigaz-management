@@ -78,20 +78,24 @@ class DistributorController extends Controller
             $search = $request->query('q', '');
 
             $data = Caussion::with([
-                'distributor:id,designation',
-                'user:id,name',
+                'category:id,designation',
+                'category.distributors:id,name,phone,zone', // 🔥 ICI
                 'items.product:id,name'
             ])
-                // 🔍 recherche
+
                 ->when($search, function ($q) use ($search) {
                     $q->where(function ($q2) use ($search) {
-                        $q2->where('amount', 'like', "%$search%")
-                            ->orWhereDate('transaction_date', $search)
-                            ->orWhereHas('category', function ($q3) use ($search) {
-                                $q3->where('designation', 'like', "%$search%");
-                            })
-                            ->orWhereHas('items.product', function ($q4) use ($search) {
+
+                        $q2->whereHas('category', function ($q3) use ($search) {
+                            $q3->where('designation', 'like', "%$search%");
+                        })
+
+                            ->orWhereHas('category.distributors', function ($q4) use ($search) {
                                 $q4->where('name', 'like', "%$search%");
+                            })
+
+                            ->orWhereHas('items.product', function ($q5) use ($search) {
+                                $q5->where('name', 'like', "%$search%");
                             });
                     });
                 })
@@ -101,15 +105,18 @@ class DistributorController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Liste des cautions',
+                'message' => 'Configuration des cautions',
                 'data' => $data
             ]);
-        } catch (\Throwable $e) {
+        } catch (\Exception $e) {
+
+            Log::error('Caussion getData error', [
+                'error' => $e->getMessage()
+            ]);
 
             return response()->json([
-                'message' => 'Erreur serveur',
-                'error' => $e->getMessage(),
-                'status' => 500
+                'success' => false,
+                'message' => 'Erreur lors de la récupération'
             ], 500);
         }
     }

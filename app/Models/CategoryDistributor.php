@@ -10,6 +10,11 @@ class CategoryDistributor extends Model
 {
     public function caussions()
     {
-        return $this->hasMany(Caussion::class, 'category_distributor_id');
+        return $this->hasMany(Caussion::class);
+    }
+
+    public function distributors()
+    {
+        return $this->hasMany(Distributor::class);
     }
 }
