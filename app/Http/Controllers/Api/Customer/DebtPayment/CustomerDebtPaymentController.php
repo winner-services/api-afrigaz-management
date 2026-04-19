@@ -220,7 +220,7 @@ class CustomerDebtPaymentController extends Controller
                 'id' => $payment->id,
                 'amount' => $payment->paid_amount,
                 'status' => $payment->status,
-                'date' => $payment->created_at,
+                'date' => $payment->operation_date,
 
                 'customer' => [
                     'id' => $payment->debt?->customer?->id,

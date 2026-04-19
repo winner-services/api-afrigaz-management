@@ -32,7 +32,7 @@ class DistributorController extends Controller
         $perPage = $request->query('paginate', 10);
         $search = $request->query('q', '');
 
-        $items = Distributor::with('addedBy:id,name', 'debts')
+        $items = Distributor::with('addedBy:id,name', 'categoryDistributor:id,designation', 'debts')
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($q2) use ($search) {
                     $q2->where('name', 'like', "%$search%")
@@ -41,6 +41,9 @@ class DistributorController extends Controller
                         ->orWhere('zone', 'like', "%$search%")
                         ->orWhereHas('addedBy', function ($q3) use ($search) {
                             $q3->where('name', 'like', "%$search%");
+                        })
+                        ->orWhereHas('categoryDistributor', function ($q4) use ($search) {
+                            $q4->where('designation', 'like', "%$search%");
                         });
                 });
             })
@@ -80,7 +83,7 @@ class DistributorController extends Controller
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ["name", "email", "caution_amount"],
+                required: ["name", "email", "caution_amount", "operation_date", "category_distributor_id"],
                 properties: [
                     new OA\Property(property: "name", type: "string", example: "Entreprise X"),
                     new OA\Property(property: "address", type: "string", example: "Kinshasa"),
@@ -88,7 +91,8 @@ class DistributorController extends Controller
                     new OA\Property(property: "phone", type: "string", example: "099999999"),
                     new OA\Property(property: "zone", type: "string", example: "Gombe"),
                     new OA\Property(property: "caution_amount", type: "number", example: 1000),
-                    new OA\Property(property: "operation_date", type: "string", format: "date", example: "2024-01-01")
+                    new OA\Property(property: "operation_date", type: "string", format: "date", example: "2024-01-01"),
+                    new OA\Property(property: "category_distributor_id", type: "integer", example: 1)
                 ]
             )
         ),
@@ -110,7 +114,8 @@ class DistributorController extends Controller
                 'caution_amount' => 'nullable|numeric|min:0',
                 'operation_date' => 'nullable|date',
                 'loan_amount' => 'nullable|numeric|min:0',
-                'account_id' => 'nullable|integer|exists:cash_accounts,id'
+                'account_id' => 'nullable|integer|exists:cash_accounts,id',
+                'category_distributor_id' => 'nullable|integer|exists:category_distributors,id'
             ]);
 
             $result = DB::transaction(function () use ($data) {
@@ -225,7 +230,8 @@ class DistributorController extends Controller
                 ],
                 'zone' => ['nullable', 'string'],
                 'caution_amount' => 'nullable|numeric|min:0',
-                'operation_date' => 'nullable|date'
+                'operation_date' => 'nullable|date',
+                'category_distributor_id' => 'nullable|integer|exists:category_distributors,id'
             ]);
 
             $item->update($data);

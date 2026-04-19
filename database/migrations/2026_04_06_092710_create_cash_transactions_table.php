@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('reason')->nullable();
             $table->enum('type', ['Revenue', 'Depense']);
-            $table->decimal('amount', 10, 1);
+            $table->decimal('amount', 10, 2);
             $table->date('transaction_date');
-            $table->decimal('solde', 10, 1);
+            $table->decimal('solde', 10, 2);
             $table->string('reference')->nullable();
             $table->string('reference_id')->nullable();
             $table->string('status')->default('created');

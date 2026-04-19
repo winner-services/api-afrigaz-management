@@ -236,4 +236,58 @@ class PaymentDristributorController extends Controller
             'data' => $distributor
         ]);
     }
+    #[OA\Get(
+        path: "/api/v1/getAllPaymentDebts",
+        summary: "Lister",
+        tags: ["Distributors Debts"],
+        responses: [
+            new OA\Response(response: 200, description: "Liste")
+        ]
+    )]
+    public function getAllPayments()
+    {
+        $payments = PaymentDistributor::with([
+            'debt.distributor',
+            'cashAccount',
+            'user'
+        ])
+            ->latest()
+            ->paginate(10);
+
+        // ✅ Format propre
+        $data = $payments->getCollection()->map(function ($payment) {
+            return [
+                'id' => $payment->id,
+                'amount' => $payment->paid_amount,
+                'status' => $payment->status,
+                'date' => $payment->operation_date,
+
+                'distributor' => [
+                    'id' => $payment->debt?->distributor?->id,
+                    'name' => $payment->debt?->distributor?->name,
+                ],
+
+                'debt' => [
+                    'id' => $payment->debt?->id,
+                    'total' => $payment->debt?->loan_amount,
+                    'paid' => $payment->debt?->paid_amount,
+                ],
+
+                'cash_account' => [
+                    'id' => $payment->cashAccount?->id,
+                    'name' => $payment->cashAccount?->name,
+                ],
+
+                'addedBy' => [
+                    'id' => $payment->user?->id,
+                    'name' => $payment->user?->name,
+                ]
+            ];
+        });
+
+        return response()->json([
+            'success' => 200,
+            'data' => $data,
+        ]);
+    }
 }

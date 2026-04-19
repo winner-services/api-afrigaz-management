@@ -202,7 +202,7 @@ class SaleService
                     'quantity' => $quantity
                 ]);
 
-                StockService::removeStock(
+                StockService::removeStockShippinng(
                     $branchId,
                     $product->id,
                     $quantity,

@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Api\Products;
+namespace App\Http\Controllers\Api\Dristributor\Category;
 
 use App\Http\Controllers\Controller;
-use App\Models\ProductCategory;
+use App\Models\CategoryDistributor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use OpenApi\Attributes as OA;
@@ -11,17 +11,17 @@ use OpenApi\Attributes as OA;
 class CategoryController extends Controller
 {
     #[OA\Get(
-        path: "/api/v1/categoryGetOptionsData",
+        path: "/api/v1/categoryDistribGetOptionsData",
         summary: "Lister",
-        tags: ["Products"],
+        tags: ["Category Distributors"],
         responses: [
-            new OA\Response(response: 200, description: "Liste des branches")
+            new OA\Response(response: 200, description: "Liste dses categories de distributeurs")
         ]
     )]
 
     public function getCategoryOptions()
     {
-        $data = ProductCategory::latest()->get();
+        $data = CategoryDistributor::where('status', '!=', 'deleted')->latest()->get();
 
         return response()->json([
             'status' => true,
@@ -30,15 +30,16 @@ class CategoryController extends Controller
     }
 
     #[OA\Post(
-        path: '/api/v1/categoryStoreData',
+        path: '/api/v1/categoryDistribStoreData',
         summary: 'Créer',
-        tags: ['Products'],
+        tags: ['Category Distributors'],
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['designation'],
+                required: ['designation', 'description'],
                 properties: [
                     new OA\Property(property: "designation", type: "string", example: "John Doe"),
+                    new OA\Property(property: "description", type: "string", example: "Description de la catégorie")
                 ]
             )
         ),
@@ -61,7 +62,9 @@ class CategoryController extends Controller
     public function storeCategory(Request $request)
     {
         $rule = [
-            'designation' => ['required', 'unique:product_categories,designation']
+            'designation' => ['required', 'unique:category_distributors,designation'],
+            'description' => ['nullable', 'string', 'max:255']
+
         ];
         $message = [
             'designation.unique'   => 'Cette categorie existe déjà.',
@@ -75,7 +78,7 @@ class CategoryController extends Controller
                 'errors'  => $validator->errors()
             ], 422);
         }
-        $exists = ProductCategory::where('designation', $request->designation)
+        $exists = CategoryDistributor::where('designation', $request->designation)
             ->first();
 
         if ($exists) {
@@ -86,8 +89,9 @@ class CategoryController extends Controller
         }
 
         try {
-            $categorie = ProductCategory::create([
-                'designation' => $request->designation
+            $categorie = CategoryDistributor::create([
+                'designation' => $request->designation,
+                'description' => $request->description
             ]);
             return response()->json([
                 'status'  => true,
@@ -96,7 +100,7 @@ class CategoryController extends Controller
         } catch (\Throwable $e) {
             return response()->json([
                 'status'  => false,
-                'message' => 'Une erreur est survenue lors de la création de l\'utilisateur.',
+                'message' => 'Une erreur est survenue lors de l\'ajout.',
                 'error'   => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }
@@ -105,7 +109,7 @@ class CategoryController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $category = ProductCategory::findOrFail($id);
+            $category = CategoryDistributor::findOrFail($id);
             if (!$category) {
                 return response()->json([
                     'status'  => false,
@@ -114,7 +118,8 @@ class CategoryController extends Controller
             }
 
             $rule = [
-                'designation' => ['required', 'string', 'max:20', 'unique:product_categories,designation,' . $category->id],
+                'designation' => ['required', 'string', 'max:20', 'unique:category_distributors,designation,' . $category->id],
+                'description' => ['nullable', 'string', 'max:255']
             ];
             $message = [
                 'designation.unique'   => 'Cette categorie existe déjà.',
@@ -129,6 +134,7 @@ class CategoryController extends Controller
                 ], 422);
             }
             $category->designation = $request->designation;
+            $category->description = $request->description;
             $category->save();
             return response()->json([
                 'status'  => 200,
@@ -146,7 +152,7 @@ class CategoryController extends Controller
     public function destroy($id)
     {
         try {
-            $category = ProductCategory::findOrFail($id);
+            $category = CategoryDistributor::findOrFail($id);
             if (!$category) {
                 return response()->json([
                     'status'  => false,
@@ -157,7 +163,7 @@ class CategoryController extends Controller
             $category->save();
             return response()->json([
                 'status'  => 200,
-                'message' => 'modifié avec succès.',
+                'message' => 'supprimé avec succès.',
             ], 200);
         } catch (\Throwable $th) {
             return response()->json([

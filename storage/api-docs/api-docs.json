@@ -1556,6 +1556,64 @@
                 }
             }
         },
+        "/api/v1/categoryDistribGetOptionsData": {
+            "get": {
+                "tags": [
+                    "Category Distributors"
+                ],
+                "summary": "Lister",
+                "operationId": "4b0c651003d5020e6d0176f5fa567049",
+                "responses": {
+                    "200": {
+                        "description": "Liste dses categories de distributeurs"
+                    }
+                }
+            }
+        },
+        "/api/v1/categoryDistribStoreData": {
+            "post": {
+                "tags": [
+                    "Category Distributors"
+                ],
+                "summary": "Créer",
+                "operationId": "f08ba296e7bc3bf784bd000a31ed887c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "designation",
+                                    "description"
+                                ],
+                                "properties": {
+                                    "designation": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Description de la catégorie"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Données créées avec succès"
+                    },
+                    "422": {
+                        "description": "Validation des données échouée"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
         "/api/v1/payDistributorDebt": {
             "post": {
                 "tags": [
@@ -1625,6 +1683,20 @@
                 }
             }
         },
+        "/api/v1/getAllPaymentDebts": {
+            "get": {
+                "tags": [
+                    "Distributors Debts"
+                ],
+                "summary": "Lister",
+                "operationId": "3991e773e9fc7b6152a2f4debe935b05",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
         "/api/v1/distributorGetAllData": {
             "get": {
                 "tags": [
@@ -1686,7 +1758,9 @@
                                 "required": [
                                     "name",
                                     "email",
-                                    "caution_amount"
+                                    "caution_amount",
+                                    "operation_date",
+                                    "category_distributor_id"
                                 ],
                                 "properties": {
                                     "name": {
@@ -1717,6 +1791,10 @@
                                         "type": "string",
                                         "format": "date",
                                         "example": "2024-01-01"
+                                    },
+                                    "category_distributor_id": {
+                                        "type": "integer",
+                                        "example": 1
                                     }
                                 },
                                 "type": "object"
@@ -4691,6 +4769,211 @@
                 }
             }
         },
+        "/api/v1/transactionStoreData": {
+            "post": {
+                "tags": [
+                    "Cash Transactions"
+                ],
+                "summary": "Créer une transaction de caisse",
+                "description": "Permet de créer une transaction (Revenue ou Dépense) et met à jour automatiquement le solde.",
+                "operationId": "91a56d84926876b5de55c06cd3ccb5d9",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "type",
+                                    "amount",
+                                    "transaction_date",
+                                    "account_id"
+                                ],
+                                "properties": {
+                                    "type": {
+                                        "description": "Type: Revenue ou Depense",
+                                        "type": "string",
+                                        "example": "Revenue"
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 100
+                                    },
+                                    "transaction_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-04-19"
+                                    },
+                                    "account_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "cash_categorie_id": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "reason": {
+                                        "type": "string",
+                                        "example": "Paiement client"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Transaction créée avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Transaction ajoutée avec succès"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Solde insuffisant"
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/transactionUpdate/{id}": {
+            "put": {
+                "tags": [
+                    "Cash Transactions"
+                ],
+                "summary": "Modifier une transaction",
+                "description": "Met à jour une transaction existante et recalcule le solde.",
+                "operationId": "e05cb590bd8c48608b62bd77eb3a86ef",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la transaction",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "type",
+                                    "amount",
+                                    "transaction_date",
+                                    "account_id"
+                                ],
+                                "properties": {
+                                    "type": {
+                                        "type": "string",
+                                        "example": "Depense"
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 50
+                                    },
+                                    "transaction_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-04-19"
+                                    },
+                                    "account_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "cash_categorie_id": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "reason": {
+                                        "type": "string",
+                                        "example": "Achat carburant"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Transaction mise à jour",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Transaction mise à jour"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Solde insuffisant"
+                    },
+                    "404": {
+                        "description": "Transaction non trouvée"
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/transactionsByBranchGetData": {
+            "get": {
+                "tags": [
+                    "Cash Transactions"
+                ],
+                "summary": "Lister",
+                "operationId": "66347af8b113108c02eee8f7d7f63a12",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
         "/api/v1/transfersGetAllData": {
             "get": {
                 "tags": [
@@ -5489,6 +5772,10 @@
             "description": "payment Debts customers"
         },
         {
+            "name": "Category Distributors",
+            "description": "Category Distributors"
+        },
+        {
             "name": "Distributors Debts",
             "description": "Distributors Debts"
         },
@@ -5551,6 +5838,10 @@
         {
             "name": "Tanks",
             "description": "Tanks"
+        },
+        {
+            "name": "Cash Transactions",
+            "description": "Cash Transactions"
         },
         {
             "name": "Transfers",

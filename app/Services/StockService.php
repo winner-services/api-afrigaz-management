@@ -93,6 +93,50 @@ class StockService
         });
     }
 
+    public static function removeStockShippinng($branchId, $productId, $quantity, $description = null, $reference = null)
+    {
+        return DB::transaction(function () use ($branchId, $productId, $quantity, $description, $reference) {
+
+            $stock = StockByBranch::where(
+                'branche_id',
+                $branchId
+            )->where('product_id', $productId)
+                ->where(
+                    fn($q) =>
+                    $q->where('is_empty', false)
+                        ->orWhereNull('is_empty')
+                )
+                ->lockForUpdate()
+                ->first();
+
+            if ($stock->stock_quantity < $quantity) {
+                throw new \Exception("Stock insuffisant");
+            }
+
+            $before = $stock->stock_quantity;
+            $after = $before - $quantity;
+
+            $stock->update([
+                'stock_quantity' => $after
+            ]);
+
+            StockMovement::create([
+                'branche_id' => $branchId,
+                'product_id' => $productId,
+                'type' => 'out',
+                'quantity' => $quantity,
+                'stock_before' => $before,
+                'stock_after' => $after,
+                'description' => $description,
+                'reference_id' => $stock->id,
+                'reference' => $stock->reference ?? null,
+                'addedBy' => Auth::id(),
+            ]);
+
+            return $stock;
+        });
+    }
+
     /**
      * Transfert entre branches
      */

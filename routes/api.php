@@ -27,6 +27,7 @@ use App\Http\Controllers\Api\Shipping\ShippingControlle;
 use App\Http\Controllers\Api\Sipplier\SupplierController;
 use App\Http\Controllers\Api\StockByBranche\StockController;
 use App\Http\Controllers\Api\Tank\TankController;
+use App\Http\Controllers\Api\Transaction\TransactionController;
 use App\Http\Controllers\Api\Transfer\TransefrController;
 use App\Http\Controllers\Api\Users\UserController;
 use Illuminate\Support\Facades\Route;
@@ -115,6 +116,14 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/charoitsStoreData', 'store');
             Route::put('/charoitsUpdate/{id}', 'update');
             Route::put('/charoitsDelete/{id}', 'destroy');
+        });
+
+
+        Route::controller(CategoryController::class)->group(function () {
+            Route::get('/categoryDistribGetOptionsData', 'getCategoryOptions');
+            Route::post('/categoryDistribStoreData', 'storeCategory');
+            Route::put('/categoryDistribUpdateData/{id}', 'update');
+            Route::put('/categoryDistribDeleteData/{id}', 'destroy');
         });
 
         Route::controller(DistributorController::class)->group(function () {
@@ -234,6 +243,14 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::controller(PaymentDristributorController::class)->group(function () {
             Route::post('/payDistributorDebt', 'payDebt');
             Route::get('/distributorDebtsGetAllData', 'distributorWithDebts');
+            Route::get('/getAllPaymentDebts', 'getAllPayments');
+        });
+
+        Route::controller(TransactionController::class)->group(function () {
+            // Route::get('/transactionsGetAllData', 'index');
+            Route::get('/transactionsByBranchGetData', 'indexByBranche');
+             Route::post('/transactionStoreData', 'store');
+             Route::put('/transactionUpdate/{id}', 'updateData');
         });
     });
 });

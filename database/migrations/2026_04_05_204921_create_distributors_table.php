@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('zone')->nullable();
             $table->string('status')->default('actif');
             $table->boolean('is_deleted')->default(false);
+            $table->foreignId('category_distributor_id')->nullable()->constrained('category_distributors')->nullOnDelete();
             $table->foreignId('addedBy')->nullable()->constrained('users')->nullOnDelete();
             $table->decimal('caution_amount', 10, 2)->default(0);
             $table->date('operation_date')->default(now());
