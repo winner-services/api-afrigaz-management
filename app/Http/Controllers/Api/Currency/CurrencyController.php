@@ -66,7 +66,7 @@ class CurrencyController extends Controller
     {
         try {
             DB::beginTransaction();
-            $userId = Auth::user();
+            $userId = Auth::user()->id;
 
             // ✅ Vérifier devise principale
             if ($request->currency_type === 'devise_principale') {
