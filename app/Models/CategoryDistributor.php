@@ -15,6 +15,6 @@ class CategoryDistributor extends Model
 
     public function distributors()
     {
-        return $this->hasMany(Distributor::class);
+        return $this->hasMany(Distributor::class,'category_distributor_id');
     }
 }
