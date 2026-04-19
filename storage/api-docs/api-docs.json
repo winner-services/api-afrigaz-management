@@ -1350,16 +1350,16 @@
                             "schema": {
                                 "required": [
                                     "name",
-                                    "category"
+                                    "referred_by"
                                 ],
                                 "properties": {
                                     "name": {
                                         "type": "string",
                                         "example": "John Doe"
                                     },
-                                    "category": {
-                                        "type": "enum",
-                                        "example": "consommateur ou distributeur"
+                                    "referred_by": {
+                                        "type": "string",
+                                        "example": "Jane Doe"
                                     },
                                     "address": {
                                         "type": "string",
@@ -1425,9 +1425,9 @@
                                         "example": "+243990000000",
                                         "nullable": true
                                     },
-                                    "category": {
-                                        "type": "enum",
-                                        "example": "consommateur ou distributeur"
+                                    "referred_by": {
+                                        "type": "string",
+                                        "example": "Jane Doe"
                                     }
                                 },
                                 "type": "object"
