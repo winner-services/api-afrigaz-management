@@ -15,21 +15,12 @@ return new class extends Migration
     {
         Schema::create('referral_rewards', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')
-                ->constrained('customers')
-                ->cascadeOnDelete();
-
-            $table->foreignId('referral_id')
-                ->constrained('referrals')
-                ->cascadeOnDelete();
-
-            $table->foreignId('sale_id')
-                ->nullable()
-                ->constrained('sales')
-                ->nullOnDelete();
-            $table->date('transaction_date')->default(now());
+            $table->foreignId('customer_id')->nullable()->constrained('customers')->cascadeOnDelete();
+            $table->foreignId('referral_id')->nullable()->constrained('referrals')->cascadeOnDelete();
+            $table->foreignId('sale_id')->nullable()->constrained('sales')->cascadeOnDelete();
+            $table->date('transaction_date')->nullable();
             $table->decimal('amount', 10, 2);
-            $table->string('status')->default('pending');
+            $table->string('status')->nullable();
             $table->foreignId('addedBy')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });

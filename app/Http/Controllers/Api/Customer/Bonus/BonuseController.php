@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Customer\Bonus;
 use App\Http\Controllers\Controller;
 use App\Models\Bonuse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
 
@@ -53,25 +54,17 @@ class BonuseController extends Controller
 
             return response()->json([
                 'success' => true,
+                'status' => 201,
                 'message' => 'Règle créée avec succès',
                 'data' => $rule
             ], 201);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur de validation',
-                'errors' => $e->errors()
-            ], 422);
         } catch (\Exception $e) {
-
-            Log::error('ReferralRule store error', [
-                'error' => $e->getMessage()
-            ]);
+            DB::rollBack();
 
             return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de la création'
+                'status' => false,
+                'message' => 'Erreur serveur',
+                'error' => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }
     }
