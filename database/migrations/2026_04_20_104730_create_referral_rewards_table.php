@@ -29,6 +29,8 @@ return new class extends Migration
                 ->nullOnDelete();
             $table->date('transaction_date')->default(now());
             $table->decimal('amount', 10, 2);
+            $table->string('status')->default('pending');
+            $table->foreignId('addedBy')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });
     }
