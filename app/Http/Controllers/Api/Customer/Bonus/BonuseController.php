@@ -63,8 +63,9 @@ class BonuseController extends Controller
             DB::rollBack();
 
             return response()->json([
-                'status' => false,
-                'message' => 'Erreur serveur',
+                'success' => false,
+                'status' => 422,
+                'message' => 'Erreur',
                 'error' => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }
@@ -222,7 +223,7 @@ class BonuseController extends Controller
     )]
     public function getData()
     {
-        $data = Bonuse::latest()->get();
+        $data = Bonuse::with(['user', 'product'])->where('is_active', true)->latest()->get();
         return response()->json([
             'success' => true,
             'status' => 200,
