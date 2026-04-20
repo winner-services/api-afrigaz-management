@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Caussion\CaussionController;
 use App\Http\Controllers\Api\Charoit\CharoitController;
 use App\Http\Controllers\Api\Company\CompanyController;
 use App\Http\Controllers\Api\Currency\CurrencyController;
+use App\Http\Controllers\Api\Customer\Bonus\BonuseController;
 use App\Http\Controllers\Api\Customer\CustomerController;
 use App\Http\Controllers\Api\Customer\DebtPayment\CustomerDebtPaymentController;
 use App\Http\Controllers\Api\Dristributor\Category\CategoryDistribController;
@@ -244,7 +245,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::get('/shippingByBranchGetData', 'indexByBranche');
             Route::get('/shippingsGetAllData', 'index');
             Route::post('/shippingDeliver/{id}', 'deliver');
-            Route::put('/shippingUpdate/{id}','updateData');
+            Route::put('/shippingUpdate/{id}', 'updateData');
         });
         Route::controller(PaymentDristributorController::class)->group(function () {
             Route::post('/payDistributorDebt', 'payDebt');
@@ -266,6 +267,13 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/caussionStoreData', 'storeData');
             Route::put('/caussionUpdate/{id}', 'updateData');
             Route::put('/caussionDelete/{id}', 'destroy');
+        });
+
+        Route::controller(BonuseController::class)->group(function () {
+            Route::get('/bonusGetAllData', 'getData');
+            Route::post('/programRacompanceStore', 'storeData');
+            Route::put('/programRacompanceUpdate/{id}', 'updateData');
+            Route::put('/programDisable/{id}', 'delete');
         });
     });
 });

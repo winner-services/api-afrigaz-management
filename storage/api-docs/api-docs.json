@@ -1534,13 +1534,13 @@
                 }
             }
         },
-        "/api/programRacompanceStore": {
+        "/api/v1/programRacompanceStore": {
             "post": {
                 "tags": [
                     "Bonus"
                 ],
                 "summary": "Créer une règle de parrainage",
-                "operationId": "d15dbe65654196113b10442eba3c390d",
+                "operationId": "a1a125d73f5d37cd7a3766fd52806256",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -1599,13 +1599,13 @@
                 }
             }
         },
-        "/api/programRacompanceUpdate/{id}": {
+        "/api/v1/programRacompanceUpdate/{id}": {
             "put": {
                 "tags": [
                     "Bonus"
                 ],
                 "summary": "Modifier une règle de parrainage",
-                "operationId": "bdf7036381c9fc53da0cbdb453b3cd4d",
+                "operationId": "0115dc0129fa6c713ce1fbcee005eecd",
                 "parameters": [
                     {
                         "name": "id",
@@ -1674,13 +1674,13 @@
                 }
             }
         },
-        "/api/programDisable/{id}": {
+        "/api/v1/programDisable/{id}": {
             "put": {
                 "tags": [
                     "Bonus"
                 ],
                 "summary": "Desactiver une règle de parrainage",
-                "operationId": "e810ea2762a68bb5a0c98a3d53fb502c",
+                "operationId": "2ef806078a6a5d994e636df3e24ccb9d",
                 "parameters": [
                     {
                         "name": "id",
@@ -1724,6 +1724,20 @@
                     },
                     "500": {
                         "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/bonusGetAllData": {
+            "get": {
+                "tags": [
+                    "Bonus"
+                ],
+                "summary": "Lister",
+                "operationId": "2db2c6ea77c722416df651cfb3ce5574",
+                "responses": {
+                    "200": {
+                        "description": "Liste des branches"
                     }
                 }
             }

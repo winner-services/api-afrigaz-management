@@ -11,7 +11,7 @@ use OpenApi\Attributes as OA;
 class BonuseController extends Controller
 {
     #[OA\Post(
-        path: "/api/programRacompanceStore",
+        path: "/api/v1/programRacompanceStore",
         summary: "Créer une règle de parrainage",
         tags: ["Bonus"],
         requestBody: new OA\RequestBody(
@@ -77,7 +77,7 @@ class BonuseController extends Controller
     }
 
     #[OA\Put(
-        path: "/api/programRacompanceUpdate/{id}",
+        path: "/api/v1/programRacompanceUpdate/{id}",
         summary: "Modifier une règle de parrainage",
         tags: ["Bonus"],
         parameters: [
@@ -154,7 +154,7 @@ class BonuseController extends Controller
     }
 
     #[OA\Put(
-        path: "/api/programDisable/{id}",
+        path: "/api/v1/programDisable/{id}",
         summary: "Desactiver une règle de parrainage",
         tags: ["Bonus"],
         parameters: [
@@ -216,5 +216,23 @@ class BonuseController extends Controller
                 'message' => 'Erreur lors de la mise à jour'
             ], 500);
         }
+    }
+
+    #[OA\Get(
+        path: "/api/v1/bonusGetAllData",
+        summary: "Lister",
+        tags: ["Bonus"],
+        responses: [
+            new OA\Response(response: 200, description: "Liste des branches")
+        ]
+    )]
+    public function getData()
+    {
+        $data = Bonuse::latest()->get();
+        return response()->json([
+            'success' => true,
+            'status' => 200,
+            'data' => $data
+        ], 201);
     }
 }
