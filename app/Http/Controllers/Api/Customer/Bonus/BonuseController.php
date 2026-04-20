@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Customer\Bonus;
 use App\Http\Controllers\Controller;
 use App\Models\Bonuse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
@@ -49,7 +50,7 @@ class BonuseController extends Controller
                 'product_id' => 'required|exists:products,id|unique:bonuses,product_id',
                 'reward_amount' => 'required|numeric|min:0'
             ]);
-
+            $data['addedBy'] = Auth::id();
             $rule = Bonuse::create($data);
 
             return response()->json([
