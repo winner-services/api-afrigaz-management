@@ -3870,6 +3870,110 @@
                 }
             }
         },
+        "/api/v1/shippingUpdate/{id}": {
+            "put": {
+                "tags": [
+                    "Shippings"
+                ],
+                "summary": "Mettre à jour une livraison planifiée",
+                "description": "Met à jour une livraison (dates, distributeur, commentaire). Les produits sont automatiquement recalculés à partir de la caution associée.",
+                "operationId": "d216e688ef03ff15422a0e765f293e62",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la livraison",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "distributor_id",
+                                    "planned_date",
+                                    "transaction_date"
+                                ],
+                                "properties": {
+                                    "branch_id": {
+                                        "description": "ID de la branche (optionnel)",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "distributor_id": {
+                                        "description": "ID du distributeur",
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "planned_date": {
+                                        "description": "Date prévue de livraison",
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-04-25"
+                                    },
+                                    "transaction_date": {
+                                        "description": "Date de création/modification",
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-04-20"
+                                    },
+                                    "commentaire": {
+                                        "description": "Commentaire optionnel",
+                                        "type": "string",
+                                        "example": "Livraison reportée au matin"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Livraison mise à jour avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Livraison mise à jour (basée sur la caution)"
+                                        },
+                                        "data": {
+                                            "description": "Shipping avec items recalculés",
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Livraison déjà commencée, modification refusée"
+                    },
+                    "404": {
+                        "description": "Livraison introuvable"
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
         "/api/v1/shippingDeliver/{id}": {
             "post": {
                 "tags": [
