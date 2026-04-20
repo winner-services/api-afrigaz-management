@@ -289,6 +289,7 @@ class ShippingControlle extends Controller
 
             return response()->json([
                 'success' => true,
+                'status' => 200,
                 'message' => 'Livraison mise à jour (basée sur la caution)',
                 'data' => $shipping->load('items.product')
             ]);
