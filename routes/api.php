@@ -244,6 +244,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::get('/shippingByBranchGetData', 'indexByBranche');
             Route::get('/shippingsGetAllData', 'index');
             Route::post('/shippingDeliver/{id}', 'deliver');
+            Route::put('/shippingUpdate/{id}','updateData');
         });
         Route::controller(PaymentDristributorController::class)->group(function () {
             Route::post('/payDistributorDebt', 'payDebt');

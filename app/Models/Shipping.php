@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['reference', 'branch_id', 'addedBy', 'distributor_id', 'status', 'transaction_date', 'commentaire','planned_date','caussion_id'])]
+#[Fillable(['reference', 'branch_id', 'addedBy', 'distributor_id', 'status', 'transaction_date', 'commentaire', 'planned_date', 'caussion_id'])]
 class Shipping extends Model
 {
     public function items()
@@ -25,5 +25,9 @@ class Shipping extends Model
     public function branch()
     {
         return $this->belongsTo(Branche::class, 'branch_id');
+    }
+    public function caussion()
+    {
+        return $this->belongsTo(Caussion::class);
     }
 }

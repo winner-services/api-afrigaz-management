@@ -138,6 +138,171 @@ class ShippingControlle extends Controller
         }
     }
 
+    #[OA\Put(
+        path: '/api/v1/shippingUpdate/{id}',
+        summary: 'Mettre à jour une livraison planifiée',
+        description: 'Met à jour une livraison (dates, distributeur, commentaire). Les produits sont automatiquement recalculés à partir de la caution associée.',
+        tags: ['Shippings'],
+
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                in: "path",
+                required: true,
+                description: "ID de la livraison",
+                schema: new OA\Schema(type: "integer", example: 1)
+            )
+        ],
+
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['distributor_id', 'planned_date', 'transaction_date'],
+                properties: [
+
+                    new OA\Property(
+                        property: "branch_id",
+                        type: "integer",
+                        example: 1,
+                        description: "ID de la branche (optionnel)"
+                    ),
+
+                    new OA\Property(
+                        property: "distributor_id",
+                        type: "integer",
+                        example: 5,
+                        description: "ID du distributeur"
+                    ),
+
+                    new OA\Property(
+                        property: "planned_date",
+                        type: "string",
+                        format: "date",
+                        example: "2026-04-25",
+                        description: "Date prévue de livraison"
+                    ),
+
+                    new OA\Property(
+                        property: "transaction_date",
+                        type: "string",
+                        format: "date",
+                        example: "2026-04-20",
+                        description: "Date de création/modification"
+                    ),
+
+                    new OA\Property(
+                        property: "commentaire",
+                        type: "string",
+                        example: "Livraison reportée au matin",
+                        description: "Commentaire optionnel"
+                    ),
+                ]
+            )
+        ),
+
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Livraison mise à jour avec succès',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "success", type: "boolean", example: true),
+                        new OA\Property(property: "message", type: "string", example: "Livraison mise à jour (basée sur la caution)"),
+
+                        new OA\Property(
+                            property: "data",
+                            type: "object",
+                            description: "Shipping avec items recalculés"
+                        )
+                    ]
+                )
+            ),
+
+            new OA\Response(
+                response: 400,
+                description: 'Livraison déjà commencée, modification refusée'
+            ),
+
+            new OA\Response(
+                response: 404,
+                description: 'Livraison introuvable'
+            ),
+
+            new OA\Response(
+                response: 422,
+                description: 'Erreur de validation'
+            ),
+
+            new OA\Response(
+                response: 500,
+                description: 'Erreur serveur'
+            )
+        ]
+    )]
+    public function updateData(Request $request, $id)
+    {
+        $request->validate([
+            'branch_id' => 'nullable|exists:branches,id',
+            'distributor_id' => 'required|exists:distributors,id',
+            'planned_date' => 'required|date',
+            'transaction_date' => 'required|date',
+            'commentaire' => 'nullable|string',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $shipping = Shipping::with(['items', 'caussion.items'])
+                ->lockForUpdate()
+                ->findOrFail($id);
+
+            if ($shipping->status !== 'pending') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Impossible de modifier une livraison déjà commencée'
+                ], 400);
+            }
+
+            $shipping->update([
+                'branch_id' => $request->branch_id ?? $shipping->branch_id,
+                'distributor_id' => $request->distributor_id,
+                'planned_date' => $request->planned_date,
+                'transaction_date' => $request->transaction_date,
+                'commentaire' => $request->commentaire,
+            ]);
+
+            $shipping->items()->delete();
+
+            $caussionItems = $shipping->caussion->items;
+
+            foreach ($caussionItems as $item) {
+                ShippingItem::create([
+                    'shipping_id' => $shipping->id,
+                    'product_id' => $item->product_id,
+                    'quantity' => $item->quantity,
+                    'delivered_quantity' => 0,
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Livraison mise à jour (basée sur la caution)',
+                'data' => $shipping->load('items.product')
+            ]);
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la mise à jour',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     #[OA\Post(
         path: '/api/v1/shippingDeliver/{id}',
         summary: 'Exécuter une livraison',
@@ -262,109 +427,6 @@ class ShippingControlle extends Controller
             ], 500);
         }
     }
-
-    // public function deliver(Request $request, $id)
-    // {
-    //     $request->validate([
-    //         'items' => 'required|array',
-    //         'items.*.id' => 'required|exists:shipping_items,id',
-    //         'items.*.delivered_quantity' => 'required|integer|min:0',
-    //     ]);
-
-    //     try {
-
-    //         DB::beginTransaction();
-
-    //         $shipping = Shipping::with('items')->findOrFail($id);
-
-    //         foreach ($request->items as $itemData) {
-
-    //             $item = ShippingItem::findOrFail($itemData['id']);
-
-    //             $item->delivered_quantity += $itemData['delivered_quantity'];
-    //             $item->save();
-    //         }
-
-    //         // 🔥 recalcul status
-    //         $total = $shipping->items->sum('quantity');
-    //         $delivered = $shipping->items->sum('delivered_quantity');
-
-    //         if ($delivered == 0) {
-    //             $status = 'pending';
-    //         } elseif ($delivered < $total) {
-    //             $status = 'partial';
-    //         } else {
-    //             $status = 'completed';
-    //         }
-
-    //         $shipping->update([
-    //             'status' => $status
-    //         ]);
-
-    //         DB::commit();
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => 'Livraison mise à jour',
-    //             'status' => $status
-    //         ]);
-    //     } catch (\Exception $e) {
-
-    //         DB::rollBack();
-
-    //         return response()->json([
-    //             'success' => false,
-    //             'error' => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
-
-    // public function store(Request $request): JsonResponse
-    // {
-    //     try {
-
-    //         $request->validate([
-    //             'products' => 'required|array|min:1',
-    //             'products.*.product_id' => 'required|exists:products,id',
-    //             'products.*.quantity' => 'required|integer|min:1',
-    //             'distributor_id' => 'nullable|exists:distributors,id',
-    //             'commentaire' => 'nullable|string',
-    //             'transaction_date' => 'date|string',
-    //         ]);
-    //         $branch_id = request($request->branch_id, 1);
-
-    //         $livraison = SaleService::createShipping(
-    //             $branch_id,
-    //             $request->products,
-    //             $request->distributor_id,
-    //             $request->transaction_date ?? now(),
-    //             $request->commentaire
-    //         );
-    //         return response()->json([
-    //             'message' => 'Vente enregistrée',
-    //             'status' => 201,
-    //             'data' => $livraison
-    //         ], 201);
-    //     } catch (\Illuminate\Validation\ValidationException $e) {
-
-    //         return response()->json([
-    //             'message' => 'Erreur de validation',
-    //             'errors' => $e->errors()
-    //         ], 422);
-    //     } catch (\App\Services\StockException $e) {
-
-    //         return response()->json([
-    //             'message' => 'Erreur de stock',
-    //             'errors' => $e->getErrors()
-    //         ], 400);
-    //     } catch (\Exception $e) {
-
-    //         return response()->json([
-    //             'message' => 'Erreur lors de la création de la vente',
-    //             'error' => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
 
     #[OA\Get(
         path: "/api/v1/shippingsGetAllData",
