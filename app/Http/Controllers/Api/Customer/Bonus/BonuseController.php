@@ -46,7 +46,7 @@ class BonuseController extends Controller
         try {
 
             $data = $request->validate([
-                'product_id' => 'required|exists:products,id|unique:referral_rules,product_id',
+                'product_id' => 'required|exists:products,id|unique:bonuses,product_id',
                 'reward_amount' => 'required|numeric|min:0'
             ]);
 
@@ -115,7 +115,7 @@ class BonuseController extends Controller
             $rule = Bonuse::findOrFail($id);
 
             $data = $request->validate([
-                'product_id' => "nullable|exists:products,id|unique:referral_rules,product_id,$id",
+                'product_id' => "nullable|exists:products,id|unique:bonuses,product_id,$id",
                 'reward_amount' => 'nullable|numeric|min:0'
             ]);
 
