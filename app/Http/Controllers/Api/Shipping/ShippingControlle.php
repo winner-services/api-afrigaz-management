@@ -259,6 +259,7 @@ class ShippingControlle extends Controller
             if ($shipping->status !== 'pending') {
                 return response()->json([
                     'success' => false,
+                    'status' => 200,
                     'message' => 'Impossible de modifier une livraison déjà commencée'
                 ], 400);
             }

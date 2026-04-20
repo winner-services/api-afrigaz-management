@@ -16,4 +16,9 @@ class Customer extends Model
     {
         return $this->belongsTo(User::class, 'addedBy');
     }
+
+    public function referrals()
+    {
+        return $this->hasMany(Referral::class, 'referrer_id');
+    }
 }
