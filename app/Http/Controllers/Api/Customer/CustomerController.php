@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Customer;
 use App\Http\Controllers\Controller;
 use App\Models\Currency;
 use App\Models\Customer;
+use App\Models\Referral;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -159,6 +160,19 @@ class CustomerController extends Controller
                 'referred_by' => $request->referred_by,
                 'addedBy' => $authId
             ]);
+
+            if ($request->filled('referred_by')) {
+                $referredBy = $request->referred_by;
+
+                $referrer = Customer::where('referral_code', $referredBy)->first();
+
+                if ($referrer && $referrer->id !== $customer->id) {
+                    Referral::firstOrCreate([
+                        'referrer_id' => $referrer->id,
+                        'referred_id' => $customer->id
+                    ]);
+                }
+            }
 
             DB::commit();
 

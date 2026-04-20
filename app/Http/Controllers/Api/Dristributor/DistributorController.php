@@ -4,14 +4,12 @@ namespace App\Http\Controllers\Api\Dristributor;
 
 use App\Http\Controllers\Controller;
 use App\Models\CashTransaction;
-use App\Models\Caussion;
 use App\Models\Currency;
 use App\Models\DebtDistributor;
 use App\Models\Distributor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
