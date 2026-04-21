@@ -109,13 +109,10 @@ class ProductController extends Controller
         //     })
         //     ->select('products.*', 'stock_by_branches.stock_quantity as stock_quantity')
         //     ->get();
+
+        $gasProduct = Product::where('category_id', 1)->first();
+
         $kit = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
-
-            // 🔥 JOIN PRODUIT GAZ
-            ->leftJoin('products as gas_product', function ($join) {
-                $join->on('gas_product.category_id', 1);
-            })
-
             ->where('stock_by_branches.branche_id', 1)
             ->where('products.status', 'created')
 
@@ -131,13 +128,14 @@ class ProductController extends Controller
                 DB::raw("
             CASE 
                 WHEN products.type = 'bouteille'
-                THEN gas_product.wholesale_price
+                THEN " . ($gasProduct->wholesale_price ?? 0) . "
                 ELSE NULL
             END as gas_price
         ")
             )
 
             ->get();
+
 
         $echange = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
             ->where('stock_by_branches.branche_id', 1)
