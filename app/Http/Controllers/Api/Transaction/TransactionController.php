@@ -292,7 +292,7 @@ class TransactionController extends Controller
             }
 
             if ($accountId) {
-                $query->where('account_id', $accountId);
+                $query->where('cash_account_id', $accountId);
             }
 
             if (!empty($search)) {
