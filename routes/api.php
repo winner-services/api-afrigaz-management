@@ -107,7 +107,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::get('/getTransfertProductOptionsData', 'getTransfertProductOptionsData');
             Route::get('/getProductGazCategories', 'getProductGazCategories');
             Route::get('/getProductOptionsByBranche', 'getProductOptionsByBranche');
-            Route::get('/getProductOptionsRecharge', 'getProductOptionsRecharge');
+            Route::get('/getProductOptionsSale', 'getProductOptionsRecharge');
         });
 
         Route::controller(FillingController::class)->group(function () {

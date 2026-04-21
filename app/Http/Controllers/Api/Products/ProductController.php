@@ -87,7 +87,7 @@ class ProductController extends Controller
     }
 
     #[OA\Get(
-        path: "/api/v1/getProductOptionsRecharge",
+        path: "/api/v1/getProductOptionsSale",
         summary: "Lister",
         tags: ["Products"],
         responses: [
@@ -96,11 +96,43 @@ class ProductController extends Controller
     )]
     public function getProductOptionsRecharge()
     {
-        $data = Product::where('status', 'created')
+        $recharge = Product::where('status', 'created')
             ->where('type', 'bouteille')
             ->latest()->get();
+
+        $kit = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
+            ->where('stock_by_branches.branche_id', 1)
+            ->where('products.status', 'created')
+            ->where(function ($query) {
+                $query->where('stock_by_branches.is_empty', false)
+                    ->orWhereNull('stock_by_branches.is_empty');
+            })
+            ->select('products.*', 'stock_by_branches.stock_quantity as stock_quantity')
+            ->get();
+
+        $echange = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
+            ->where('stock_by_branches.branche_id', 1)
+            ->where('products.status', 'created')
+            ->where(function ($query) {
+                $query->where('stock_by_branches.is_empty', false);
+            })
+            ->select('products.*', 'stock_by_branches.stock_quantity as stock_quantity')
+            ->get();
+
+        $accessoirs = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
+            ->where('stock_by_branches.branche_id', 1)
+            ->where('products.status', 'created')
+            ->where(function ($query) {
+                $query->where('products.type', 'accessoire');
+            })
+            ->select('products.*', 'stock_by_branches.stock_quantity as stock_quantity')
+            ->get();
+
         return response()->json([
-            'data' => $data,
+            'recharge' => $recharge,
+            'echange' => $echange,
+            'kit' => $kit,
+            'accessoirs' => $accessoirs,
             'status' => 200
         ]);
     }
