@@ -113,7 +113,7 @@ class ProductController extends Controller
 
             // 🔥 JOIN PRODUIT GAZ
             ->leftJoin('products as gas_product', function ($join) {
-                $join->on('gas_product.type', '=', DB::raw("'gaz'"));
+                $join->on('gas_product.category_id', 1);
             })
 
             ->where('stock_by_branches.branche_id', 1)
