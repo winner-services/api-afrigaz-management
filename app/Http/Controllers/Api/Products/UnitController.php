@@ -94,7 +94,8 @@ class UnitController extends Controller
                 'abreviation' => $request->abreviation
             ]);
             return response()->json([
-                'status'  => true,
+                'status'  => 200,
+                'success' => true,
                 'message' => 'ajouté avec succès.',
             ], 201);
         } catch (\Throwable $e) {
@@ -139,6 +140,7 @@ class UnitController extends Controller
             $unit->save();
             return response()->json([
                 'status'  => 200,
+                'success' => true,
                 'message' => 'modifié avec succès.',
             ], 200);
         } catch (\Throwable $e) {
