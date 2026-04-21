@@ -7,6 +7,7 @@ use App\Models\About;
 use App\Models\Branche;
 use App\Models\CashAccount;
 use App\Models\CashTransaction;
+use App\Models\Currency;
 use App\Models\TransactionHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -105,7 +106,7 @@ class TransactionController extends Controller
                 'transaction_date' => $request->transaction_date,
                 'cash_account_id' => $request->account_id,
                 'amount' => $request->amount,
-                'transaction_type' => $request->type,
+                'type' => $request->type,
                 'solde' => $newSolde,
                 'cash_categorie_id' => $request->cash_categorie_id,
                 'reference' => 'TRANS-' . strtoupper(uniqid()),
@@ -233,7 +234,7 @@ class TransactionController extends Controller
                 'transaction_date' => $request->transaction_date,
                 'cash_account_id' => $request->account_id,
                 'amount' => $request->amount,
-                'transaction_type' => $request->type,
+                'type' => $request->type,
                 'solde' => $newSolde,
                 'cash_categorie_id' => $request->cash_categorie_id,
                 'reason' => $request->reason ?? '-',
@@ -267,6 +268,7 @@ class TransactionController extends Controller
     public function indexByBranche(Request $request)
     {
         try {
+            $devise = Currency::latest()->get();
             $branche = Branche::where('user_id', Auth::id())->first();
 
             if (!$branche) {
@@ -319,7 +321,8 @@ class TransactionController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $transactions
+                'data' => $transactions,
+                'devise' => $devise
             ]);
         } catch (\Exception $e) {
 

@@ -2839,6 +2839,20 @@
                 }
             }
         },
+        "/api/v1/getProductOptionsRecharge": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Lister",
+                "operationId": "be1d11593ecb5cfac296d6f66a3c977f",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
         "/api/v1/getTransfertProductOptionsData": {
             "get": {
                 "tags": [

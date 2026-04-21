@@ -16,7 +16,6 @@ class CustomerSeeder extends Seeder
         DB::table('customers')->insert([
             'name' => 'Walk-in customer',
             'addedBy' => '1',
-            'category' => 'consommateur',
         ]);
     }
 }

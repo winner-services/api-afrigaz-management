@@ -87,6 +87,25 @@ class ProductController extends Controller
     }
 
     #[OA\Get(
+        path: "/api/v1/getProductOptionsRecharge",
+        summary: "Lister",
+        tags: ["Products"],
+        responses: [
+            new OA\Response(response: 200, description: "Liste")
+        ]
+    )]
+    public function getProductOptionsRecharge()
+    {
+        $data = Product::where('status', 'created')
+            ->where('type', 'bouteille')
+            ->latest()->get();
+        return response()->json([
+            'data' => $data,
+            'status' => 200
+        ]);
+    }
+
+    #[OA\Get(
         path: "/api/v1/getTransfertProductOptionsData",
         summary: "Lister",
         tags: ["Products"],
@@ -110,7 +129,7 @@ class ProductController extends Controller
             'data' => $data
         ]);
     }
-     #[OA\Get(
+    #[OA\Get(
         path: "/api/v1/getProductOptionsByBranche",
         summary: "Lister",
         tags: ["Products"],
