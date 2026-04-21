@@ -3,9 +3,7 @@
 namespace App\Http\Controllers\Api\Transaction;
 
 use App\Http\Controllers\Controller;
-use App\Models\About;
 use App\Models\Branche;
-use App\Models\CashAccount;
 use App\Models\CashTransaction;
 use App\Models\Currency;
 use App\Models\TransactionHistory;
@@ -13,7 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
 
 class TransactionController extends Controller
@@ -89,7 +86,6 @@ class TransactionController extends Controller
 
             $currentSolde = $lastTransaction ? $lastTransaction->solde : 0;
 
-            // 🔥 Vérification solde
             if ($request->type === 'Depense' && $currentSolde < $request->amount) {
                 DB::rollBack();
                 return response()->json([
@@ -265,58 +261,49 @@ class TransactionController extends Controller
             new OA\Response(response: 200, description: "Liste")
         ]
     )]
-    public function indexByBranche(Request $request)
+
+    public function indexByBranche()
     {
         try {
             $devise = Currency::latest()->get();
-            $branche = Branche::where('user_id', Auth::id())->first();
 
-            if (!$branche) {
-                return response()->json([
-                    'message' => 'Branche non trouvée'
-                ], 404);
-            }
 
-            $brancheId = request('branche_id', $branche->id);
+            $brancheId = request("branche_id", 1);
+            $accountId = request("account_id", 1);
 
-            $perPage = $request->query('per_page', 10);
-            $search = $request->query('q', '');
-            $sortField = $request->query('sort_field', 'id');
-            $sortDirection = $request->query('sort_direction', 'desc');
+            $perPage = request('per_page', 10);
+            $search = request('q', '');
+            $sortField = request('sort_field', 'id');
+            $sortDirection = request('sort_direction', 'desc');
 
             // 🔒 Sécurité tri
-            $allowedSortFields = [
-                'id',
-                'amount',
-                'transaction_date',
-                'type',
-                'transaction_date'
-            ];
-
+            $allowedSortFields = ['id', 'amount', 'transaction_date', 'type'];
             if (!in_array($sortField, $allowedSortFields)) {
                 $sortField = 'id';
             }
 
             $query = CashTransaction::query()
-                ->with(['account:id,designation,branche_id'])
-                ->whereHas('account', function ($q) use ($brancheId) {
-                    if ($brancheId) {
-                        $q->where('branche_id', $brancheId);
-                    }
+                ->with(['account:id,designation,branche_id']);
+
+            if ($brancheId) {
+                $query->whereHas('account', function ($q) use ($brancheId) {
+                    $q->where('branche_id', $brancheId);
                 });
+            }
+
+            if ($accountId) {
+                $query->where('account_id', $accountId);
+            }
 
             if (!empty($search)) {
                 $query->where(function ($q) use ($search) {
                     $q->where('reason', 'LIKE', "%$search%")
                         ->orWhere('reference', 'LIKE', "%$search%")
-                        ->orWhere('type', 'LIKE', "%$search%")
-                        ->orWhere('amount', 'LIKE', "%$search%");
+                        ->orWhere('type', 'LIKE', "%$search%");
                 });
             }
 
-            // 📊 Tri + pagination
-            $transactions = $query
-                ->orderBy($sortField, $sortDirection)
+            $transactions = $query->orderBy($sortField, $sortDirection)
                 ->paginate($perPage);
 
             return response()->json([
@@ -325,7 +312,6 @@ class TransactionController extends Controller
                 'devise' => $devise
             ]);
         } catch (\Exception $e) {
-
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la récupération des transactions',
