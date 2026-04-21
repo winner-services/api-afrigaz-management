@@ -5,91 +5,97 @@ namespace App\Http\Controllers\Api\Sale;
 use App\Http\Controllers\Controller;
 use App\Models\Branche;
 use App\Models\Currency;
+use App\Models\Customer;
+use App\Models\Distributor;
+use App\Models\ItemSale;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Services\SaleService;
+use App\Services\StockService;
+use App\Services\TankService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use OpenApi\Attributes as OA;
 
 class SaleController extends Controller
 {
-    #[OA\Post(
-        path: "/api/v1/saleStoreData",
-        summary: "Créer une vente avec paiement ou dette",
-        tags: ["Sales"],
+    // #[OA\Post(
+    //     path: "/api/v1/saleStoreData",
+    //     summary: "Créer une vente avec paiement ou dette",
+    //     tags: ["Sales"],
 
-        requestBody: new OA\RequestBody(
-            required: true,
-            content: new OA\JsonContent(
-                required: ["branch_id", "products", "distributor_id"],
-                properties: [
+    //     requestBody: new OA\RequestBody(
+    //         required: true,
+    //         content: new OA\JsonContent(
+    //             required: ["branch_id", "products", "distributor_id"],
+    //             properties: [
 
-                    new OA\Property(property: "branch_id", type: "integer", example: 1),
-                    new OA\Property(property: "customer_id", type: "integer", nullable: true, example: 1),
-                    new OA\Property(property: "account_id", type: "integer", nullable: true, example: 1),
-                    new OA\Property(property: "paid_amount", type: "number", format: "float", example: 5000),
-                    new OA\Property(property: "sale_type", type: "string", example: "proforma"),
-                    new OA\Property(property: "sale_category", type: "string", example: "detail"),
-                    new OA\Property(property: "distributor_id", type: "integer", example: 1),
+    //                 new OA\Property(property: "branch_id", type: "integer", example: 1),
+    //                 new OA\Property(property: "customer_id", type: "integer", nullable: true, example: 1),
+    //                 new OA\Property(property: "account_id", type: "integer", nullable: true, example: 1),
+    //                 new OA\Property(property: "paid_amount", type: "number", format: "float", example: 5000),
+    //                 new OA\Property(property: "sale_type", type: "string", example: "proforma"),
+    //                 new OA\Property(property: "sale_category", type: "string", example: "detail"),
+    //                 new OA\Property(property: "distributor_id", type: "integer", example: 1),
 
-                    new OA\Property(
-                        property: "products",
-                        type: "array",
-                        items: new OA\Items(
-                            properties: [
-                                new OA\Property(property: "product_id", type: "integer", example: 1),
-                                new OA\Property(property: "quantity", type: "integer", example: 2),
-                                new OA\Property(property: "unit_price", type: "number", format: "float", example: 1000),
-                            ]
-                        )
-                    ),
-                ]
-            )
-        ),
+    //                 new OA\Property(
+    //                     property: "products",
+    //                     type: "array",
+    //                     items: new OA\Items(
+    //                         properties: [
+    //                             new OA\Property(property: "product_id", type: "integer", example: 1),
+    //                             new OA\Property(property: "quantity", type: "integer", example: 2),
+    //                             new OA\Property(property: "unit_price", type: "number", format: "float", example: 1000),
+    //                         ]
+    //                     )
+    //                 ),
+    //             ]
+    //         )
+    //     ),
 
-        responses: [
+    //     responses: [
 
-            new OA\Response(
-                response: 201,
-                description: "Vente créée avec succès",
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: "message", type: "string", example: "Vente enregistrée avec paiement/dette"),
-                        new OA\Property(property: "sale_id", type: "integer", example: 10),
-                        new OA\Property(property: "reference", type: "string", example: "SALE-20260405120000"),
-                        new OA\Property(property: "total", type: "number", example: 15000)
-                    ]
-                )
-            ),
+    //         new OA\Response(
+    //             response: 201,
+    //             description: "Vente créée avec succès",
+    //             content: new OA\JsonContent(
+    //                 properties: [
+    //                     new OA\Property(property: "message", type: "string", example: "Vente enregistrée avec paiement/dette"),
+    //                     new OA\Property(property: "sale_id", type: "integer", example: 10),
+    //                     new OA\Property(property: "reference", type: "string", example: "SALE-20260405120000"),
+    //                     new OA\Property(property: "total", type: "number", example: 15000)
+    //                 ]
+    //             )
+    //         ),
 
-            new OA\Response(
-                response: 409,
-                description: "Stock insuffisant",
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: "message", type: "string", example: "Stock insuffisant pour certains produits"),
-                        new OA\Property(
-                            property: "errors",
-                            type: "array",
-                            items: new OA\Items(
-                                properties: [
-                                    new OA\Property(property: "product_id", type: "integer", example: 1),
-                                    new OA\Property(property: "message", type: "string", example: "Stock insuffisant"),
-                                    new OA\Property(property: "available", type: "integer", example: 2),
-                                ]
-                            )
-                        )
-                    ]
-                )
-            ),
-            new OA\Response(
-                response: 500,
-                description: "Erreur interne serveur"
-            )
-        ]
-    )]
+    //         new OA\Response(
+    //             response: 409,
+    //             description: "Stock insuffisant",
+    //             content: new OA\JsonContent(
+    //                 properties: [
+    //                     new OA\Property(property: "message", type: "string", example: "Stock insuffisant pour certains produits"),
+    //                     new OA\Property(
+    //                         property: "errors",
+    //                         type: "array",
+    //                         items: new OA\Items(
+    //                             properties: [
+    //                                 new OA\Property(property: "product_id", type: "integer", example: 1),
+    //                                 new OA\Property(property: "message", type: "string", example: "Stock insuffisant"),
+    //                                 new OA\Property(property: "available", type: "integer", example: 2),
+    //                             ]
+    //                         )
+    //                     )
+    //                 ]
+    //             )
+    //         ),
+    //         new OA\Response(
+    //             response: 500,
+    //             description: "Erreur interne serveur"
+    //         )
+    //     ]
+    // )]
 
     public function store(Request $request): JsonResponse
     {
@@ -405,5 +411,271 @@ class SaleController extends Controller
             'branches' => $branches,
             'data' => $sales
         ]);
+    }
+
+
+
+    #[OA\Post(
+        path: "/api/v1/saleStoreData",
+        summary: "Créer une vente avec paiement ou dette",
+        tags: ["Sales"],
+
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["branch_id", "products", "distributor_id"],
+                properties: [
+
+                    new OA\Property(property: "branch_id", type: "integer", example: 1),
+                    new OA\Property(property: "customer_id", type: "integer", nullable: true, example: 1),
+                    new OA\Property(property: "account_id", type: "integer", nullable: true, example: 1),
+                    new OA\Property(property: "paid_amount", type: "number", format: "float", example: 5000),
+                    new OA\Property(property: "sale_type", type: "string", example: "proforma"),
+                    new OA\Property(property: "sale_category", type: "string", example: "detail"),
+                    new OA\Property(property: "distributor_id", type: "integer", example: 1),
+
+                    new OA\Property(
+                        property: "products",
+                        type: "array",
+                        items: new OA\Items(
+                            properties: [
+                                new OA\Property(property: "product_id", type: "integer", example: 1),
+                                new OA\Property(property: "quantity", type: "integer", example: 2),
+                                new OA\Property(property: "unit_price", type: "number", format: "float", example: 1000),
+                            ]
+                        )
+                    ),
+                ]
+            )
+        ),
+
+        responses: [
+
+            new OA\Response(
+                response: 201,
+                description: "Vente créée avec succès",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "message", type: "string", example: "Vente enregistrée avec paiement/dette"),
+                        new OA\Property(property: "sale_id", type: "integer", example: 10),
+                        new OA\Property(property: "reference", type: "string", example: "SALE-20260405120000"),
+                        new OA\Property(property: "total", type: "number", example: 15000)
+                    ]
+                )
+            ),
+
+            new OA\Response(
+                response: 409,
+                description: "Stock insuffisant",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "message", type: "string", example: "Stock insuffisant pour certains produits"),
+                        new OA\Property(
+                            property: "errors",
+                            type: "array",
+                            items: new OA\Items(
+                                properties: [
+                                    new OA\Property(property: "product_id", type: "integer", example: 1),
+                                    new OA\Property(property: "message", type: "string", example: "Stock insuffisant"),
+                                    new OA\Property(property: "available", type: "integer", example: 2),
+                                ]
+                            )
+                        )
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 500,
+                description: "Erreur interne serveur"
+            )
+        ]
+    )]
+    public function processSale(Request $request)
+    {
+        try {
+
+            $data = $request->validate([
+                'customer_id' => 'nullable|exists:customers,id',
+                'distributor_id' => 'nullable|exists:distributors,id',
+                'branch_id' => 'nullable|exists:branches,id',
+                'type' => 'required|in:exchange,kit,refill,accessory',
+                'tank_id' => 'nullable|exists:tanks,id',
+                'items' => 'required|array|min:1',
+                'items.*.product_id' => 'required|exists:products,id',
+                'items.*.quantity' => 'required|integer|min:1',
+            ]);
+
+            $sale = DB::transaction(function () use ($data) {
+
+                $customer = Customer::findOrFail($data['customer_id']);
+                $distributor = Distributor::findOrFail($data['distributor_id']);
+                $branchId = $data['branch_id'] ?? 1;
+                $type = $data['type'];
+                $items = $data['items'];
+                $tankId = $data['tank_id'] ?? 1;
+
+                $total = 0;
+                $totalGas = 0;
+
+                // 🔥 produit gaz (ID = 1)
+                $gasProduct = Product::where('category_id', 1);
+
+                if ($type === 'Recharge' && !$gasProduct) {
+                    throw new \Exception("Produit gaz introuvable");
+                }
+
+                // 🔥 création vente
+                $sale = Sale::create([
+                    'reference' => fake()->unique()->numerify('VENTE-#####'),
+                    'customer_id' => $customer->id,
+                    'distributor_id' => $distributor->id,
+                    'branch_id' => $branchId,
+                    'type' => $type,
+                    'total_amount' => 0,
+                    'paid_amount' => 0,
+                    'addedBy' => Auth::id(),
+                    'transaction_date' => $data['transaction_date'],
+                    'sale_type' => $data['type']
+                ]);
+
+                foreach ($items as $item) {
+
+                    $product = Product::findOrFail($item['product_id']);
+                    $qty = (int) $item['quantity'];
+
+                    // =========================
+                    // 🔥 PRIX
+                    // =========================
+                    if ($type === 'Recharge') {
+
+                        if (!$tankId) {
+                            throw new \Exception("Tank requis pour Recharge");
+                        }
+
+                        if (!$product->weight_kg) {
+                            throw new \Exception("Poids non défini pour {$product->name}");
+                        }
+
+                        $pricePerKg = $gasProduct->wholesale_price;
+
+                        if ($pricePerKg <= 0) {
+                            throw new \Exception("Prix gaz invalide");
+                        }
+
+                        $gasQty = $product->weight_kg * $qty;
+
+                        $unitPrice = $pricePerKg;
+                        $lineTotal = $pricePerKg * $gasQty;
+
+                        $totalGas += $gasQty;
+                    } elseif ($type === 'Echange') {
+
+                        if (!$product->weight_kg) {
+                            throw new \Exception("Poids non défini pour {$product->name}");
+                        }
+                        $pricePerKg = $gasProduct->wholesale_price;
+
+                        if ($pricePerKg <= 0) {
+                            throw new \Exception("Prix gaz invalide");
+                        }
+                        $gasQty = $product->weight_kg * $qty;
+
+                        $unitPrice = $pricePerKg;
+                        $lineTotal = $pricePerKg * $gasQty;
+
+                        $totalGas += $gasQty;
+                    } else {
+
+                        $unitPrice = $product->wholesale_price;
+
+                        if ($unitPrice <= 0) {
+                            throw new \Exception("Prix non défini pour {$product->name}");
+                        }
+
+                        $lineTotal = $unitPrice * $qty;
+                    }
+
+                    $total += $lineTotal;
+
+                    // =========================
+                    // 🔥 STOCK
+                    // =========================
+                    if ($type === 'Echange') {
+
+                        // pleine ↓
+                        app(StockService::class)->decreaseStock($branchId, $product->id, $qty, false, null);
+
+                        // vide ↑
+                        app(StockService::class)->increaseStock($branchId, $product->id, $qty, true, 'good');
+                    } elseif ($type === 'Kit') {
+
+                        app(StockService::class)->decreaseKitStock($branchId, $product->id, $qty, false, null);
+                    } elseif ($type === 'Accessoires') {
+
+                        app(StockService::class)->decreaseKitStock($branchId, $product->id, $qty, false, null);
+                    }
+
+                    // =========================
+                    // 🔥 SAVE ITEM
+                    // =========================
+                    ItemSale::create([
+                        'sale_id' => $sale->id,
+                        'product_id' => $product->id,
+                        'quantity' => $qty,
+                        'unit_price' => $unitPrice,
+                        'total_price' => $lineTotal
+                    ]);
+                }
+
+                // =========================
+                // 🔥 REFILL → TANK
+                // =========================
+                if ($type === 'Recharge') {
+
+                    app(TankService::class)->consumeGas(
+                        $tankId,
+                        $totalGas,
+                        'Recharge pour Distributeur',
+                        $sale->id
+                    );
+                }
+
+                // =========================
+                // 🔥 BONUS PARRAINAGE
+                // =========================
+                // if ($type === 'kit') {
+                //     app(ReferralService::class)->handle($sale);
+                // }
+
+                // =========================
+                // 🔥 FINAL
+                // =========================
+                $sale->update([
+                    'total_amount' => $total
+                ]);
+
+                return $sale->load('items.product');
+            });
+
+            return response()->json([
+                'success' => true,
+                'status' => 201,
+                'message' => 'Vente enregistrée avec succès',
+                'data' => $sale
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur de validation',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

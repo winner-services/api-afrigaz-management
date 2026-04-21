@@ -344,6 +344,38 @@ class StockService
         return $stock;
     }
 
+    public function decreaseKitStock(
+        $branchId,
+        $productId,
+        $qty,
+        $isEmpty = null,
+        $condition = null
+    ) {
+        $stock = StockByBranch::where(
+            'branche_id',
+            $branchId
+        )->where('product_id', $productId)
+            ->where(
+                fn($q) =>
+                $q->where('is_empty', false)
+                    ->orWhereNull('is_empty')
+            )
+            ->lockForUpdate()
+            ->first();
+
+        if (!$stock) {
+            throw new \Exception("Stock introuvable");
+        }
+
+        if ($stock->stock_quantity < $qty) {
+            throw new \Exception("Stock insuffisant");
+        }
+
+        $stock->decrement('stock_quantity', $qty);
+
+        return $stock;
+    }
+
     public function checkAllStocksOrFail($branchId, $items)
     {
         $errors = [];

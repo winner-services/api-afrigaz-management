@@ -3,8 +3,10 @@
 namespace App\Services;
 
 use App\Models\CashTransaction;
+use App\Models\Customer;
 use App\Models\CustomerDebt;
 use App\Models\DebtDistributor;
+use App\Models\Distributor;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\Shipping;
