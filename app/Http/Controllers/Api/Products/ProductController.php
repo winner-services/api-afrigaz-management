@@ -110,23 +110,33 @@ class ProductController extends Controller
         //     ->select('products.*', 'stock_by_branches.stock_quantity as stock_quantity')
         //     ->get();
         $kit = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
+
+            // 🔥 JOIN PRODUIT GAZ
+            ->leftJoin('products as gas_product', function ($join) {
+                $join->on('gas_product.type', '=', DB::raw("'gaz'"));
+            })
+
             ->where('stock_by_branches.branche_id', 1)
             ->where('products.status', 'created')
+
             ->where(function ($query) {
                 $query->where('stock_by_branches.is_empty', false)
                     ->orWhereNull('stock_by_branches.is_empty');
             })
+
             ->select(
                 'products.*',
-                'stock_by_branches.stock_quantity as stock_quantity',
+                'stock_by_branches.stock_quantity',
+
                 DB::raw("
             CASE 
-                WHEN products.type = 'bouteille' AND products.category_id = 1 
-                THEN products.wholesale_price
+                WHEN products.type = 'bouteille'
+                THEN gas_product.wholesale_price
                 ELSE NULL
             END as gas_price
         ")
             )
+
             ->get();
 
         $echange = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
