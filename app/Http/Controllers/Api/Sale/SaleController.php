@@ -495,8 +495,15 @@ class SaleController extends Controller
         try {
 
             $data = $request->validate([
-                'customer_id' => 'nullable|exists:customers,id',
-                'distributor_id' => 'nullable|exists:distributors,id',
+                'customer_id' => [
+                    'nullable',
+                    'exists:customers,id',
+                ],
+                'distributor_id' => [
+                    'nullable',
+                    'exists:distributors,id',
+                ],
+                'date_vente' => 'required|date',
                 'branch_id' => 'nullable|exists:branches,id',
                 'type' => 'required|in:exchange,kit,refill,accessory',
                 'tank_id' => 'nullable|exists:tanks,id',
@@ -507,8 +514,8 @@ class SaleController extends Controller
 
             $sale = DB::transaction(function () use ($data) {
 
-                $customer = Customer::findOrFail($data['customer_id']);
-                $distributor = Distributor::findOrFail($data['distributor_id']);
+                $customerId = $data['customer_id'] ?? null;
+                $distributorId = $data['distributor_id'] ?? null;
                 $branchId = $data['branch_id'] ?? 1;
                 $type = $data['type'];
                 $items = $data['items'];
@@ -518,7 +525,7 @@ class SaleController extends Controller
                 $totalGas = 0;
 
                 // 🔥 produit gaz (ID = 1)
-                $gasProduct = Product::where('category_id', 1);
+                $gasProduct = Product::where('category_id', 1)->first();
 
                 if ($type === 'Recharge' && !$gasProduct) {
                     throw new \Exception("Produit gaz introuvable");
@@ -527,14 +534,14 @@ class SaleController extends Controller
                 // 🔥 création vente
                 $sale = Sale::create([
                     'reference' => fake()->unique()->numerify('VENTE-#####'),
-                    'customer_id' => $customer->id,
-                    'distributor_id' => $distributor->id,
+                    'customer_id' => $customerId,
+                    'distributor_id' => $distributorId,
                     'branch_id' => $branchId,
                     'type' => $type,
                     'total_amount' => 0,
                     'paid_amount' => 0,
                     'addedBy' => Auth::id(),
-                    'transaction_date' => $data['transaction_date'],
+                    'transaction_date' => $data['date_vente'],
                     'sale_type' => $data['type']
                 ]);
 
@@ -546,10 +553,10 @@ class SaleController extends Controller
                     // =========================
                     // 🔥 PRIX
                     // =========================
-                    if ($type === 'Recharge') {
+                    if ($type === 'refill') {
 
                         if (!$tankId) {
-                            throw new \Exception("Tank requis pour Recharge");
+                            throw new \Exception("Tank requis pour refill");
                         }
 
                         if (!$product->weight_kg) {
@@ -568,7 +575,7 @@ class SaleController extends Controller
                         $lineTotal = $pricePerKg * $gasQty;
 
                         $totalGas += $gasQty;
-                    } elseif ($type === 'Echange') {
+                    } elseif ($type === 'exchange') {
 
                         if (!$product->weight_kg) {
                             throw new \Exception("Poids non défini pour {$product->name}");
@@ -600,17 +607,17 @@ class SaleController extends Controller
                     // =========================
                     // 🔥 STOCK
                     // =========================
-                    if ($type === 'Echange') {
+                    if ($type === 'exchange') {
 
                         // pleine ↓
                         app(StockService::class)->decreaseStock($branchId, $product->id, $qty, false, null);
 
                         // vide ↑
                         app(StockService::class)->increaseStock($branchId, $product->id, $qty, true, 'good');
-                    } elseif ($type === 'Kit') {
+                    } elseif ($type === 'kit') {
 
                         app(StockService::class)->decreaseKitStock($branchId, $product->id, $qty, false, null);
-                    } elseif ($type === 'Accessoires') {
+                    } elseif ($type === 'accessory') {
 
                         app(StockService::class)->decreaseKitStock($branchId, $product->id, $qty, false, null);
                     }
@@ -630,13 +637,14 @@ class SaleController extends Controller
                 // =========================
                 // 🔥 REFILL → TANK
                 // =========================
-                if ($type === 'Recharge') {
+                if ($type === 'refill') {
 
                     app(TankService::class)->consumeGas(
                         $tankId,
                         $totalGas,
-                        'Recharge pour Distributeur',
-                        $sale->id
+                        'filling',
+                        $sale->id,
+                        $data['date_vente']
                     );
                 }
 
@@ -663,18 +671,12 @@ class SaleController extends Controller
                 'message' => 'Vente enregistrée avec succès',
                 'data' => $sale
             ], 201);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-
+        } catch (\Throwable $e) {
+            DB::rollBack();
             return response()->json([
-                'success' => false,
-                'message' => 'Erreur de validation',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
+                'status'  => false,
+                'message' => 'Une erreur est survenue lors de la création',
+                'error'   => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }
     }

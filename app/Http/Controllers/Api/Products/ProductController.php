@@ -100,16 +100,6 @@ class ProductController extends Controller
             ->where('type', 'bouteille')
             ->latest()->get();
 
-        // $kit = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
-        //     ->where('stock_by_branches.branche_id', 1)
-        //     ->where('products.status', 'created')
-        //     ->where(function ($query) {
-        //         $query->where('stock_by_branches.is_empty', false)
-        //             ->orWhereNull('stock_by_branches.is_empty');
-        //     })
-        //     ->select('products.*', 'stock_by_branches.stock_quantity as stock_quantity')
-        //     ->get();
-
         $gasProduct = Product::where('category_id', 1)->first();
 
         $kit = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
@@ -143,7 +133,7 @@ class ProductController extends Controller
             ->where(function ($query) {
                 $query->where('stock_by_branches.is_empty', false);
             })
-            ->select('products.*', 'stock_by_branches.stock_quantity as stock_quantity')
+            ->select('products.*', 'stock_by_branches.stock_quantity as stock_quantity', 'stock_by_branches.is_empty')
             ->get();
 
         $accessoirs = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
@@ -174,6 +164,7 @@ class ProductController extends Controller
     )]
     public function getTransfertProductOptionsData()
     {
+        $gasPrice = Product::where('category_id', 1)->value('wholesale_price');
         $data = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
             ->where('stock_by_branches.branche_id', 1)
             ->where('products.status', 'created')
@@ -181,7 +172,17 @@ class ProductController extends Controller
                 $query->where('stock_by_branches.is_empty', false)
                     ->orWhereNull('stock_by_branches.is_empty');
             })
-            ->select('products.*', 'stock_by_branches.stock_quantity as stock_quantity')
+            ->select(
+                'products.*',
+                'stock_by_branches.stock_quantity as stock_quantity',
+                DB::raw("
+            CASE 
+                WHEN products.type = 'bouteille'
+                THEN {$gasPrice}
+                ELSE NULL
+            END as gas_price
+        ")
+            )
             ->get();
         return response()->json([
             'status' => true,
