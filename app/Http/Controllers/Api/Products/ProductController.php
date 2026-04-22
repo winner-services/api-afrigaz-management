@@ -78,6 +78,7 @@ class ProductController extends Controller
             ->where('stock_by_branches.branche_id', 1)
             ->where('products.status', 'created')
             ->where('stock_by_branches.is_empty', true)
+            ->where('stock_by_branches.condition_state', 'good')
             ->select('products.*', 'stock_by_branches.stock_quantity as empty_quantity')
             ->get();
         return response()->json([
@@ -97,7 +98,7 @@ class ProductController extends Controller
     public function getProductOptionsRecharge()
     {
         $recharge = Product::where('status', 'created')
-            ->where('type', 'bouteille')
+            ->where('category_id', 2)
             ->latest()->get();
 
         $gasProduct = Product::where('category_id', 1)->first();
@@ -117,7 +118,7 @@ class ProductController extends Controller
 
                 DB::raw("
             CASE 
-                WHEN products.type = 'bouteille'
+                WHEN products.category_id = 1
                 THEN " . ($gasProduct->wholesale_price ?? 0) . "
                 ELSE NULL
             END as gas_price
@@ -177,7 +178,7 @@ class ProductController extends Controller
                 'stock_by_branches.stock_quantity as stock_quantity',
                 DB::raw("
             CASE 
-                WHEN products.type = 'bouteille'
+                WHEN products.category_id = 1
                 THEN {$gasPrice}
                 ELSE NULL
             END as gas_price

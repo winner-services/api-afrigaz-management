@@ -16,12 +16,31 @@ class RoleSeeder extends Seeder
     {
         $rolesPermissions = [
             'admin' => [
-                'partennaires',
                 'produits',
-                'finance',
-                'tresorerie',
-                'transaction-tresorerie',
+                'produits-unite',
+                'produits-categorie',
+                'partennaires',
+                'fournisseur',
+                'distributeur',
+                'categorie-distributeur',
+                'client',
+                'tank',
+                'approvisionnement',
+                'recharge-bouteille',
+                'transfert-stock',
+                'retour-cylindre',
+                'livraison-distributeur',
+                'vente',
+                'transaction',
+                'dette-distributeur',
+                'comptes',
+                'devises',
                 'paramettre',
+                'composition-caution',
+                'role-utilisateur',
+                'profile-entreprise',
+                'point-de-vente',
+                'charroi-automobile'
             ]
         ];
         $actions = ['voir', 'ajouter', 'modifier', 'supprimer'];
@@ -45,7 +64,6 @@ class RoleSeeder extends Seeder
                     [
                         'voir'      => true,
                         'ajouter'   => $roleName === 'admin',
-                        // 'modifier'  => in_array($roleName, ['admin', 'technicien']),
                         'modifier' => $roleName === 'admin',
                         'supprimer' => $roleName === 'admin',
                         'created_at' => now(),

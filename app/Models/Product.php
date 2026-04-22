@@ -16,7 +16,6 @@ use Illuminate\Support\Facades\DB;
     'addedBy',
     'unit_id',
     'reference',
-    'type',
     'is_returnable',
     'manage_stock',
     'minimum_quantity'
@@ -70,7 +69,7 @@ class Product extends Model
 
             $now = now();
 
-            $isBottle = $product->type === 'bouteille';
+            $isBottle = $product->category_id === 1;
 
             $data = $branches->map(fn($branche) => [
                 'branche_id' => $branche->id,

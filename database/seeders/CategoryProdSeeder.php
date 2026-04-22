@@ -13,8 +13,17 @@ class CategoryProdSeeder extends Seeder
      */
     public function run(): void
     {
+        $categories = [
+            'gaz',
+            'bouteille',
+        ];
         ProductCategory::create([
             'designation' => 'gaz',
         ]);
+        foreach ($categories as $index => $categorie) {
+            ProductCategory::create([
+                'designation' => $categorie
+            ]);
+        }
     }
 }

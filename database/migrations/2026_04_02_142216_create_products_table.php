@@ -17,7 +17,6 @@ return new class extends Migration
             $table->foreignId('category_id')->nullable()->constrained('product_categories')->nullOnDelete();
             $table->foreignId('unit_id')->nullable()->constrained('units')->nullOnDelete();
             $table->string('reference')->nullable()->unique();
-            $table->enum('type', ['bouteille', 'accessoire', 'service']);
             $table->integer('weight_kg')->nullable();
             $table->boolean('is_returnable')->default(false);
             $table->boolean('manage_stock')->default(true);

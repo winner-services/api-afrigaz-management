@@ -265,7 +265,11 @@ class TransactionController extends Controller
     public function indexByBranche()
     {
         try {
-            $devise = Currency::latest()->get();
+            // $devise = Currency::latest()->get();
+            $devise = Currency::where('status', 'created')
+                ->orderByRaw("currency_type = 'devise_principale' DESC")
+                ->latest()
+                ->get();
 
 
             $brancheId = request("branche_id", 1);

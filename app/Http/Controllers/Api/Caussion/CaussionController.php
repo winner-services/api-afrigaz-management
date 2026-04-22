@@ -308,11 +308,15 @@ class CaussionController extends Controller
     public function getData(Request $request)
     {
         try {
-            $devise = Currency::where('status', 'created')->latest()->get();
+            // $devise = Currency::where('status', 'created')->latest()->get();
+            $devise = Currency::where('status', 'created')
+                ->orderByRaw("currency_type = 'devise_principale' DESC")
+                ->latest()
+                ->get();
             $perPage = $request->query('per_page', 10);
             $search = $request->query('q', '');
 
-            $query = Caussion::with(['items.product', 'distributor','addedBy']);
+            $query = Caussion::with(['items.product', 'distributor', 'addedBy']);
 
             if (!empty($search)) {
                 $query->whereHas('distributor', function ($q) use ($search) {

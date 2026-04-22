@@ -275,7 +275,11 @@ class SaleController extends Controller
     public function index(Request $request)
     {
         $perPage = $request->query('per_page', 20);
-        $devise = Currency::where('status', 'created')->latest()->get();
+        // $devise = Currency::where('status', 'created')->latest()->get();
+        $devise = Currency::where('status', 'created')
+                ->orderByRaw("currency_type = 'devise_principale' DESC")
+                ->latest()
+                ->get();
         $branches = Branche::latest()->get();
 
         $sales = Sale::with(['branch', 'customer', 'distributor', 'user', 'saleItems.product'])

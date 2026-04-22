@@ -30,7 +30,11 @@ class DistributorController extends Controller
     )]
     public function index(Request $request): JsonResponse
     {
-        $devise = Currency::where('status', 'created')->latest()->get();
+        // $devise = Currency::where('status', 'created')->latest()->get();
+        $devise = Currency::where('status', 'created')
+                ->orderByRaw("currency_type = 'devise_principale' DESC")
+                ->latest()
+                ->get();
         $perPage = $request->query('paginate', 10);
         $search = $request->query('q', '');
 

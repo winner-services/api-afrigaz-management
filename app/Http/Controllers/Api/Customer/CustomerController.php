@@ -25,7 +25,11 @@ class CustomerController extends Controller
     )]
     public function index(): JsonResponse
     {
-        $devise = Currency::where('status', 'created')->latest()->get();
+        // $devise = Currency::where('status', 'created')->latest()->get();
+        $devise = Currency::where('status', 'created')
+            ->orderByRaw("currency_type = 'devise_principale' DESC")
+            ->latest()
+            ->get();
         $page = request('paginate', 10);
         $q = request('q', '');
         $sort_direction = request('sort_direction', 'desc');

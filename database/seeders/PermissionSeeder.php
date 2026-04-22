@@ -14,13 +14,32 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
-            'partennaires',
             'produits',
-            'finance',
-            'tresorerie',
-            'transaction-tresorerie',
+            'produits-unite',
+            'produits-categorie',
+            'partennaires',
+            'fournisseur',
+            'distributeur',
+            'categorie-distributeur',
+            'client',
+            'tank',
+            'approvisionnement',
+            'recharge-bouteille',
+            'transfert-stock',
+            'retour-cylindre',
+            'livraison-distributeur',
+            'vente',
+            'transaction',
+            'dette-distributeur',
+            'comptes',
+            'devises',
             'paramettre',
-            
+            'composition-caution',
+            'role-utilisateur',
+            'profile-entreprise',
+            'point-de-vente',
+            'charroi-automobile'
+
         ];
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission]);

@@ -169,7 +169,11 @@ class StockController extends Controller
     public function getStockByBranche(): JsonResponse
     {
         $user = Auth::user();
-        $devide = Currency::latest()->get();
+        // $devide = Currency::latest()->get();
+        $devise = Currency::where('status', 'created')
+                ->orderByRaw("currency_type = 'devise_principale' DESC")
+                ->latest()
+                ->get();
         $branches = Branche::latest()->get();
 
         $page = request("paginate", 10);
@@ -208,7 +212,7 @@ class StockController extends Controller
 
         return response()->json(
             [
-                'devise' => $devide,
+                'devise' => $devise,
                 'branches' => $branches,
                 'data' => $stocks
             ]
