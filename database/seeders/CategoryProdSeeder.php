@@ -16,10 +16,8 @@ class CategoryProdSeeder extends Seeder
         $categories = [
             'gaz',
             'bouteille',
+            'accessoire'
         ];
-        ProductCategory::create([
-            'designation' => 'gaz',
-        ]);
         foreach ($categories as $index => $categorie) {
             ProductCategory::create([
                 'designation' => $categorie

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Products;
 
 use App\Http\Controllers\Controller;
 use App\Models\Branche;
+use App\Models\Currency;
 use App\Models\Product;
 use App\Models\StockByBranch;
 use Illuminate\Http\Request;
@@ -97,9 +98,25 @@ class ProductController extends Controller
     )]
     public function getProductOptionsRecharge()
     {
+        $devise = Currency::where('status', 'created')
+            ->orderByRaw("currency_type = 'devise_principale' DESC")
+            ->latest()
+            ->get();
+        $gasPrice = Product::where('category_id', 1)->value('wholesale_price');
         $recharge = Product::where('status', 'created')
             ->where('category_id', 2)
-            ->latest()->get();
+            ->select(
+                'products.*',
+                DB::raw("
+            CASE 
+        WHEN products.category_id = 2 
+        THEN " . ($gasPrice ?? 0) . "
+        ELSE 0
+    END AS gas_price
+        ")
+            )
+            ->latest()
+            ->get();
 
         $gasProduct = Product::where('category_id', 1)->first();
 
@@ -117,36 +134,57 @@ class ProductController extends Controller
                 'stock_by_branches.stock_quantity',
 
                 DB::raw("
-            CASE 
-                WHEN products.category_id = 1
-                THEN " . ($gasProduct->wholesale_price ?? 0) . "
-                ELSE NULL
-            END as gas_price
-        ")
+    CASE 
+        WHEN products.category_id = 2 
+        THEN " . ($gasProduct->wholesale_price ?? 0) . "
+        ELSE 0
+    END AS gas_price
+")
             )
 
             ->get();
 
-
+        // $echange = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
+        //     ->where('stock_by_branches.branche_id', 1)
+        //     ->where('products.status', 'created')
+        //     ->where(function ($query) {
+        //         $query->where('stock_by_branches.is_empty', false);
+        //     })
+        //     ->select('products.*', 'stock_by_branches.stock_quantity as stock_quantity', 'stock_by_branches.is_empty')
+        //     ->get();
         $echange = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
             ->where('stock_by_branches.branche_id', 1)
             ->where('products.status', 'created')
-            ->where(function ($query) {
-                $query->where('stock_by_branches.is_empty', false);
-            })
-            ->select('products.*', 'stock_by_branches.stock_quantity as stock_quantity', 'stock_by_branches.is_empty')
+
+            // 🔥 bouteilles pleines uniquement
+            ->where('stock_by_branches.is_empty', false)
+
+            ->select(
+                'products.*',
+                'stock_by_branches.stock_quantity as stock_quantity',
+                'stock_by_branches.is_empty',
+
+                DB::raw("
+            CASE 
+        WHEN products.category_id = 2 
+        THEN " . ($gasProduct->wholesale_price ?? 0) . "
+        ELSE 0
+    END AS gas_price
+        ")
+            )
             ->get();
 
         $accessoirs = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
             ->where('stock_by_branches.branche_id', 1)
             ->where('products.status', 'created')
             ->where(function ($query) {
-                $query->where('products.type', 'accessoire');
+                $query->where('products.category_id', 3);
             })
             ->select('products.*', 'stock_by_branches.stock_quantity as stock_quantity')
             ->get();
 
         return response()->json([
+            'devise' => $devise,
             'recharge' => $recharge,
             'echange' => $echange,
             'kit' => $kit,
@@ -178,10 +216,9 @@ class ProductController extends Controller
                 'stock_by_branches.stock_quantity as stock_quantity',
                 DB::raw("
             CASE 
-                WHEN products.category_id = 1
-                THEN {$gasPrice}
-                ELSE NULL
-            END as gas_price
+    WHEN products.category_id = 2 THEN $gasPrice
+        ELSE NULL
+    END AS gas_price
         ")
             )
             ->get();
@@ -477,7 +514,6 @@ class ProductController extends Controller
                 'products.id',
                 'products.name',
                 'products.minimum_quantity',
-                'products.type'
             ])
             ->join('stock_by_branches', 'products.id', '=', 'stock_by_branches.product_id')
             ->where('stock_by_branches.branche_id', $brancheId)

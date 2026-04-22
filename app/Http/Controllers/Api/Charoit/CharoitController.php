@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Charoit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use OpenApi\Attributes as OA;
@@ -130,7 +131,7 @@ class CharoitController extends Controller
             $data = $request->validate([
                 'name' => 'nullable|string|max:255|unique:charoits,name',
                 'brand' => 'nullable|string|max:255',
-                'plate_number' => 'nullable|string|max:255',
+                'plate_number' => 'nullable|string|max:255|unique:charoits,name',
                 'color' => 'nullable|string|max:255'
             ]);
 
@@ -201,9 +202,9 @@ class CharoitController extends Controller
             $item = Charoit::findOrFail($id);
 
             $data = $request->validate([
-                'name' => "nullable|name|unique:your_table,name,$id",
+                'name' => "nullable|string|unique:charoits,name,$id",
                 'brand' => "nullable|string|max:255",
-                'plate_number' => "nullable|plate_number|unique:your_table,plate_number,$id",
+                'plate_number' => "nullable|string|unique:charoits,plate_number,$id",
                 'color' => "nullable|string|max:255",
             ]);
 
@@ -214,27 +215,12 @@ class CharoitController extends Controller
                 'status' => 200,
                 'data' => $item
             ]);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-
+        }  catch (\Throwable $e) {
+            DB::rollBack();
             return response()->json([
-                'message' => 'Élément introuvable',
-                'status' => 404
-            ], 404);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-
-            return response()->json([
-                'message' => 'Erreur de validation',
-                'errors' => $e->errors(),
-                'status' => 422
-            ], 422);
-        } catch (\Throwable $e) {
-
-            Log::error('Update error', ['error' => $e->getMessage()]);
-
-            return response()->json([
-                'message' => 'Erreur lors de la mise à jour',
-                'errors' => [$e->getMessage()],
-                'status' => 500
+                'status'  => false,
+                'message' => 'Une erreur est survenue lors de la création',
+                'error'   => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }
     }
