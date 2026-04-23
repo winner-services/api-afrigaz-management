@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Api\Sale;
 use App\Http\Controllers\Controller;
 use App\Models\Branche;
 use App\Models\Currency;
-use App\Models\Customer;
-use App\Models\Distributor;
 use App\Models\ItemSale;
 use App\Models\Product;
 use App\Models\Sale;
@@ -21,82 +19,6 @@ use OpenApi\Attributes as OA;
 
 class SaleController extends Controller
 {
-    // #[OA\Post(
-    //     path: "/api/v1/saleStoreData",
-    //     summary: "Créer une vente avec paiement ou dette",
-    //     tags: ["Sales"],
-
-    //     requestBody: new OA\RequestBody(
-    //         required: true,
-    //         content: new OA\JsonContent(
-    //             required: ["branch_id", "products", "distributor_id"],
-    //             properties: [
-
-    //                 new OA\Property(property: "branch_id", type: "integer", example: 1),
-    //                 new OA\Property(property: "customer_id", type: "integer", nullable: true, example: 1),
-    //                 new OA\Property(property: "account_id", type: "integer", nullable: true, example: 1),
-    //                 new OA\Property(property: "paid_amount", type: "number", format: "float", example: 5000),
-    //                 new OA\Property(property: "sale_type", type: "string", example: "proforma"),
-    //                 new OA\Property(property: "sale_category", type: "string", example: "detail"),
-    //                 new OA\Property(property: "distributor_id", type: "integer", example: 1),
-
-    //                 new OA\Property(
-    //                     property: "products",
-    //                     type: "array",
-    //                     items: new OA\Items(
-    //                         properties: [
-    //                             new OA\Property(property: "product_id", type: "integer", example: 1),
-    //                             new OA\Property(property: "quantity", type: "integer", example: 2),
-    //                             new OA\Property(property: "unit_price", type: "number", format: "float", example: 1000),
-    //                         ]
-    //                     )
-    //                 ),
-    //             ]
-    //         )
-    //     ),
-
-    //     responses: [
-
-    //         new OA\Response(
-    //             response: 201,
-    //             description: "Vente créée avec succès",
-    //             content: new OA\JsonContent(
-    //                 properties: [
-    //                     new OA\Property(property: "message", type: "string", example: "Vente enregistrée avec paiement/dette"),
-    //                     new OA\Property(property: "sale_id", type: "integer", example: 10),
-    //                     new OA\Property(property: "reference", type: "string", example: "SALE-20260405120000"),
-    //                     new OA\Property(property: "total", type: "number", example: 15000)
-    //                 ]
-    //             )
-    //         ),
-
-    //         new OA\Response(
-    //             response: 409,
-    //             description: "Stock insuffisant",
-    //             content: new OA\JsonContent(
-    //                 properties: [
-    //                     new OA\Property(property: "message", type: "string", example: "Stock insuffisant pour certains produits"),
-    //                     new OA\Property(
-    //                         property: "errors",
-    //                         type: "array",
-    //                         items: new OA\Items(
-    //                             properties: [
-    //                                 new OA\Property(property: "product_id", type: "integer", example: 1),
-    //                                 new OA\Property(property: "message", type: "string", example: "Stock insuffisant"),
-    //                                 new OA\Property(property: "available", type: "integer", example: 2),
-    //                             ]
-    //                         )
-    //                     )
-    //                 ]
-    //             )
-    //         ),
-    //         new OA\Response(
-    //             response: 500,
-    //             description: "Erreur interne serveur"
-    //         )
-    //     ]
-    // )]
-
     public function store(Request $request): JsonResponse
     {
         try {
@@ -277,9 +199,9 @@ class SaleController extends Controller
         $perPage = $request->query('per_page', 20);
         // $devise = Currency::where('status', 'created')->latest()->get();
         $devise = Currency::where('status', 'created')
-                ->orderByRaw("currency_type = 'devise_principale' DESC")
-                ->latest()
-                ->get();
+            ->orderByRaw("currency_type = 'devise_principale' DESC")
+            ->latest()
+            ->get();
         $branches = Branche::latest()->get();
 
         $sales = Sale::with(['branch', 'customer', 'distributor', 'user', 'saleItems.product'])
@@ -417,8 +339,6 @@ class SaleController extends Controller
         ]);
     }
 
-
-
     #[OA\Post(
         path: "/api/v1/saleStoreData",
         summary: "Créer une vente avec paiement ou dette",
@@ -554,9 +474,6 @@ class SaleController extends Controller
                     $product = Product::findOrFail($item['product_id']);
                     $qty = (int) $item['quantity'];
 
-                    // =========================
-                    // 🔥 PRIX
-                    // =========================
                     if ($type === 'refill') {
 
                         if (!$tankId) {
@@ -608,9 +525,6 @@ class SaleController extends Controller
 
                     $total += $lineTotal;
 
-                    // =========================
-                    // 🔥 STOCK
-                    // =========================
                     if ($type === 'exchange') {
 
                         // pleine ↓
@@ -626,9 +540,6 @@ class SaleController extends Controller
                         app(StockService::class)->decreaseKitStock($branchId, $product->id, $qty, false, null);
                     }
 
-                    // =========================
-                    // 🔥 SAVE ITEM
-                    // =========================
                     ItemSale::create([
                         'sale_id' => $sale->id,
                         'product_id' => $product->id,
@@ -638,9 +549,6 @@ class SaleController extends Controller
                     ]);
                 }
 
-                // =========================
-                // 🔥 REFILL → TANK
-                // =========================
                 if ($type === 'refill') {
 
                     app(TankService::class)->consumeGas(
@@ -652,9 +560,6 @@ class SaleController extends Controller
                     );
                 }
 
-                // =========================
-                // 🔥 BONUS PARRAINAGE
-                // =========================
                 // if ($type === 'kit') {
                 //     app(ReferralService::class)->handle($sale);
                 // }

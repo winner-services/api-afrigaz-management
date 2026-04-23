@@ -76,6 +76,8 @@ class TankService
                 'note' => 'Remplissage des bouteilles',
                 'operation_date' => $operation_date
             ]);
+            $gaz = Product::where('category_id', 1)->first();
+            app(StockService::class)->decreaseStock(1, $gaz->id, $qty, null, null);
 
             return $tank;
         });
