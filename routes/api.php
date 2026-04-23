@@ -33,7 +33,6 @@ use App\Http\Controllers\Api\Tank\TankController;
 use App\Http\Controllers\Api\Transaction\TransactionController;
 use App\Http\Controllers\Api\Transfer\TransefrController;
 use App\Http\Controllers\Api\Users\UserController;
-use App\Models\CategoryDistributor;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
