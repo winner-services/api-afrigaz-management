@@ -12,6 +12,10 @@ class ItemsTransfer extends Model
     {
         return $this->belongsTo(Product::class);
     }
+    public function toBranch()
+    {
+        return $this->belongsTo(Branche::class, 'to_branch_id');
+    }
     public function transfer()
     {
         return $this->belongsTo(Transfer::class, 'transfer_id');

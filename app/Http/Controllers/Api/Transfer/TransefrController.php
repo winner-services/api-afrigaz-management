@@ -127,7 +127,8 @@ class TransefrController extends Controller
             'charoit',
             'driver',
             'user',
-            'items.product'
+            'items.product',
+            'items.toBranch'
         ])->orderBy('created_at', 'desc');
 
         // 🔍 Filtre par branche source
