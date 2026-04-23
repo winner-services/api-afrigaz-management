@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Product;
+use App\Models\StockByBranch;
 use App\Models\Tank;
 use App\Models\TankMovement;
 use Illuminate\Support\Facades\Auth;
@@ -35,6 +37,18 @@ class TankService
                 'note' => 'Achat gaz',
                 'operation_date' => $operation_date
             ]);
+
+            $gaz = Product::where('category_id', 1)->first();
+
+            $stock = StockByBranch::firstOrCreate([
+                'branche_id' => 1,
+                'product_id' => $gaz->id,
+            ], [
+                'stock_quantity' => 0,
+                'status' => 'created'
+            ]);
+
+            $stock->increment('stock_quantity', $qty);
 
             return $tank;
         });
