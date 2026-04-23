@@ -398,6 +398,7 @@ class TransefrController extends Controller
             ->join('products', 'items_transfers.product_id', '=', 'products.id')
             ->select('items_transfers.id', 'transfers.transfer_date', 'transfers.reference', 'from_branch.name as from_branch_name', 'products.name as product_name', 'items_transfers.quantity as sent_quantity', 'items_transfers.received_quantity as received_quantity', 'items_transfers.status')
             ->where('items_transfers.to_branch_id', '=', $branche->id)
+            ->orWhere('items_transfers.from_branch_id', '=', 1)
             ->where(function ($query) use ($q) {
                 $query->where('transfers.reference', 'like', "%$q%")
                     ->orWhere('transfers.transfer_date', 'like', "%$q%")
