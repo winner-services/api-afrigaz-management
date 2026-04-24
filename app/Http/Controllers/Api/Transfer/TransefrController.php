@@ -8,6 +8,7 @@ use App\Models\ItemsTransfer;
 use App\Models\Transfer;
 use App\Services\StockService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -389,6 +390,11 @@ class TransefrController extends Controller
     {
         $user = Auth::user();
 
+        $start_date = request('start_date', date('Y-m-d'));
+        $end_date = request('end_date', date('Y-m-d'));
+        $start = Carbon::parse($start_date)->startOfDay();
+        $end = Carbon::parse($end_date)->endOfDay();
+
         $page = request("paginate", 10);
         $q = request("q", "");
 
@@ -407,38 +413,20 @@ class TransefrController extends Controller
                 'items_transfers.received_quantity as received_quantity',
                 'items_transfers.status'
             )
-
-            // 🔒 CONTRÔLE D'ACCÈS
             ->where(function ($query) use ($branche) {
                 $query->where('items_transfers.to_branch_id', $branche->id)
                     ->orWhere('transfers.from_branch_id', 1);
             })
 
-            // 🔍 RECHERCHE
+            ->whereBetween('transfers.transfer_date', [$start, $end])
             ->where(function ($query) use ($q) {
                 $query->where('transfers.reference', 'like', "%$q%")
                     ->orWhere('transfers.transfer_date', 'like', "%$q%")
                     ->orWhere('from_branch.name', 'like', "%$q%")
                     ->orWhere('products.name', 'like', "%$q%");
             })
-
             ->orderBy('transfers.created_at', 'desc')
             ->paginate($page);
-
-        // $data = Transfer::join('items_transfers', 'transfers.id', '=', 'items_transfers.transfer_id')
-        //     ->join('branches as from_branch', 'transfers.from_branch_id', '=', 'from_branch.id')
-        //     ->join('products', 'items_transfers.product_id', '=', 'products.id')
-        //     ->select('items_transfers.id', 'transfers.transfer_date', 'transfers.reference', 'from_branch.name as from_branch_name', 'products.name as product_name', 'items_transfers.quantity as sent_quantity', 'items_transfers.received_quantity as received_quantity', 'items_transfers.status')
-        //     ->where('items_transfers.to_branch_id', '=', $branche->id)
-        //     ->orWhere('transfers.from_branch_id', '=', 1)
-        //     ->where(function ($query) use ($q) {
-        //         $query->where('transfers.reference', 'like', "%$q%")
-        //             ->orWhere('transfers.transfer_date', 'like', "%$q%")
-        //             ->orWhere('from_branch.name', 'like', "%$q%")
-        //             ->orWhere('products.name', 'like', "%$q%");
-        //     })
-        //     ->orderBy('transfers.created_at', 'desc')
-        //     ->paginate($page);
         return response()->json([
             'status' => 200,
             'message' => 'succès',
