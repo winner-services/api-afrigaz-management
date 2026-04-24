@@ -127,6 +127,28 @@ class DashBoardController extends Controller
                 ->orderBy('date')
                 ->get();
 
+            $data = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
+                ->where('stock_by_branches.branche_id', $branchId)
+                ->select(
+                    'products.id',
+                    'products.name',
+                    'products.minimum_quantity',
+                    'stock_by_branches.is_empty',
+                    'stock_by_branches.condition_state',
+
+                    'stock_by_branches.stock_quantity',
+
+                    DB::raw("
+                CASE 
+                    WHEN stock_by_branches.stock_quantity <= products.minimum_quantity
+                    THEN 'LOW'
+                    ELSE 'OK'
+                END as alert
+            ")
+                )
+                ->having('alert', 'LOW')
+                ->get();
+
             return response()->json([
                 'kpis' => [
                     'totalSales' => $totalSales,
@@ -142,7 +164,8 @@ class DashBoardController extends Controller
                 'salesByType' => $salesByType,
                 'stockMovement' => $stockMovement,
                 'tresorerie' => $tresorerie,
-                'devise' => $devise
+                'devise' => $devise,
+                'stock_alert' => $data
             ]);
         } catch (\Exception $e) {
 
