@@ -1756,6 +1756,20 @@
                 }
             }
         },
+        "/api/v1/customerGetWithDebt": {
+            "get": {
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Lister",
+                "operationId": "5a9c471042e75d994a69ce7dde715a0c",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
         "/api/v1/customersGetOptionsData": {
             "get": {
                 "tags": [
@@ -1990,6 +2004,20 @@
                 }
             }
         },
+        "/api/v1/dashBoardGetData": {
+            "get": {
+                "tags": [
+                    "DashBoard"
+                ],
+                "summary": "Lister",
+                "operationId": "86ac300567a388fb4304e0721d310208",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
         "/api/v1/categoryDistribGetOptionsData": {
             "get": {
                 "tags": [
@@ -2138,6 +2166,38 @@
                 ],
                 "summary": "Liste des Distributeurs",
                 "operationId": "3ec8045df335a1d018f6c3a05c875fd5",
+                "parameters": [
+                    {
+                        "name": "paginate",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    },
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "example": "Kinshasa"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Liste paginée"
+                    }
+                }
+            }
+        },
+        "/api/v1/distributorGetWithDebt": {
+            "get": {
+                "tags": [
+                    "Distributeurs"
+                ],
+                "summary": "Liste des Distributeurs",
+                "operationId": "7f1ceaedfb7ea31137442dae08ce8db4",
                 "parameters": [
                     {
                         "name": "paginate",
@@ -2839,13 +2899,13 @@
                 }
             }
         },
-        "/api/v1/getProductOptionsRecharge": {
+        "/api/v1/getProductOptionsSale": {
             "get": {
                 "tags": [
                     "Products"
                 ],
                 "summary": "Lister",
-                "operationId": "be1d11593ecb5cfac296d6f66a3c977f",
+                "operationId": "08f18ebb0052438082a77ac4e798dc20",
                 "responses": {
                     "200": {
                         "description": "Liste"
@@ -3124,6 +3184,146 @@
                     },
                     "500": {
                         "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/productsList": {
+            "get": {
+                "tags": [
+                    "Rapports"
+                ],
+                "summary": "Lister",
+                "operationId": "74dcd889d4904cc95176ab8c874f80f2",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/stockReport": {
+            "get": {
+                "tags": [
+                    "Rapports"
+                ],
+                "summary": "Lister",
+                "operationId": "3d4b515afc2e273fa87b1631c326e50f",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/distributorsList": {
+            "get": {
+                "tags": [
+                    "Rapports"
+                ],
+                "summary": "Lister",
+                "operationId": "4963d1d0f4a899fe34e43e1f8cfec377",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/customersList": {
+            "get": {
+                "tags": [
+                    "Rapports"
+                ],
+                "summary": "Lister",
+                "operationId": "2a2f066b80cd7244883023e86ae2e22b",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/tankMovements": {
+            "get": {
+                "tags": [
+                    "Rapports"
+                ],
+                "summary": "Lister",
+                "operationId": "c241f2239e5926e01dbd5ce168025e95",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/purchasesReport": {
+            "get": {
+                "tags": [
+                    "Rapports"
+                ],
+                "summary": "Lister",
+                "operationId": "5eabc30a8dff3f771447dfe6ee526820",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/fillingsReport": {
+            "get": {
+                "tags": [
+                    "Rapports"
+                ],
+                "summary": "Lister",
+                "operationId": "14cabbeba460f8b603b78a24516117fe",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/transfersReport": {
+            "get": {
+                "tags": [
+                    "Rapports"
+                ],
+                "summary": "Lister",
+                "operationId": "7da74778c79bef974e0280f2a3678322",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/deliveriesReport": {
+            "get": {
+                "tags": [
+                    "Rapports"
+                ],
+                "summary": "Lister",
+                "operationId": "392eadf43b5a41d2738954e14ea95e67",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/salesReport": {
+            "get": {
+                "tags": [
+                    "Rapports"
+                ],
+                "summary": "Lister",
+                "operationId": "62684d2c3bca977db86724822b1fa9dc",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
                     }
                 }
             }
@@ -3907,6 +4107,10 @@
                                     "distributor_id": {
                                         "type": "integer",
                                         "example": 1
+                                    },
+                                    "total_amount": {
+                                        "type": "integer",
+                                        "example": 100000
                                     },
                                     "products": {
                                         "type": "array",
@@ -6478,6 +6682,10 @@
             "description": "payment Debts customers"
         },
         {
+            "name": "DashBoard",
+            "description": "DashBoard"
+        },
+        {
             "name": "Category Distributors",
             "description": "Category Distributors"
         },
@@ -6512,6 +6720,10 @@
         {
             "name": "Units",
             "description": "Units"
+        },
+        {
+            "name": "Rapports",
+            "description": "Rapports"
         },
         {
             "name": "Bottle Returns",

@@ -98,7 +98,7 @@ class CustomerDebtPaymentController extends Controller
                     'operation_date' => $request->operation_date ?? now(),
                 ]);
 
-                // ✅ 2. Mise à jour dette
+                // Mise à jour dette
                 $debt->paid_amount += $payAmount;
 
                 if ($debt->paid_amount >= $debt->loan_amount) {

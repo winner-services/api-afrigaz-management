@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\Currency\CurrencyController;
 use App\Http\Controllers\Api\Customer\Bonus\BonuseController;
 use App\Http\Controllers\Api\Customer\CustomerController;
 use App\Http\Controllers\Api\Customer\DebtPayment\CustomerDebtPaymentController;
+use App\Http\Controllers\Api\DashBoard\DashBoardController;
 use App\Http\Controllers\Api\Dristributor\Category\CategoryDistribController;
 use App\Http\Controllers\Api\Dristributor\DeptPayment\PaymentDristributorController;
 use App\Http\Controllers\Api\Dristributor\DistributorController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\Api\Permission\PermissionController;
 use App\Http\Controllers\Api\Products\CategoryController;
 use App\Http\Controllers\Api\Products\ProductController;
 use App\Http\Controllers\Api\Products\UnitController;
+use App\Http\Controllers\Api\Repport\RepportController;
 use App\Http\Controllers\Api\ReturnBoitle\ReturnBootleController;
 use App\Http\Controllers\Api\Role\RoleController;
 use App\Http\Controllers\Api\Sale\ReturnSaleController;
@@ -276,6 +278,23 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/programRacompanceStore', 'storeData');
             Route::put('/programRacompanceUpdate/{id}', 'updateData');
             Route::put('/programDisable/{id}', 'delete');
+        });
+
+        Route::controller(DashBoardController::class)->group(function () {
+            Route::get('/dashBoardGetData', 'getDashboardData');
+        });
+
+        Route::controller(RepportController::class)->group(function () {
+            Route::get('/productsList', 'productsList');
+            Route::get('/stockReport','stockReport');
+            Route::get('/distributorsList','distributorsList');
+            Route::get('/customersList','customersList');
+            Route::get('/tankMovements','tankMovements');
+            Route::get('/purchasesReport','purchasesReport');
+            Route::get('/fillingsReport','fillingsReport');
+            Route::get('/transfersReport','transfersReport');
+            Route::get('/deliveriesReport','deliveriesReport');
+            Route::get('/salesReport','salesReport');
         });
     });
 });

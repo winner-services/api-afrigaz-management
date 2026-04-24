@@ -191,7 +191,7 @@ class CustomerController extends Controller
             'name' => ['nullable', 'string', 'max:255', 'unique:customers,name'],
             'address' => ['nullable', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:20', 'unique:customers,phone'],
-            'referred_by' => ['nullable', 'string'] // getCustomerByCode('WINNER123')
+            'referred_by' => ['nullable', 'string']
         ];
 
         $messages = [
