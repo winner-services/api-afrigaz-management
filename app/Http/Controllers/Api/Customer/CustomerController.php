@@ -25,7 +25,6 @@ class CustomerController extends Controller
     )]
     public function index(): JsonResponse
     {
-        // $devise = Currency::where('status', 'created')->latest()->get();
         $devise = Currency::where('status', 'created')
             ->orderByRaw("currency_type = 'devise_principale' DESC")
             ->latest()
@@ -35,7 +34,6 @@ class CustomerController extends Controller
         $sort_direction = request('sort_direction', 'desc');
         $sort_field = request('sort_field', 'id');
 
-        // 🔒 Sécurité tri
         $allowedSortFields = ['id', 'name', 'phone', 'address', 'created_at'];
 
         if (!in_array($sort_field, $allowedSortFields)) {
@@ -49,18 +47,80 @@ class CustomerController extends Controller
         $data = Customer::with(['user:id,name', 'debts'])
             ->where('status', 'created')
 
-            // 🔍 Recherche
             ->when($q, function ($query) use ($q) {
                 $query->where(function ($sub) use ($q) {
                     $sub->where('name', 'LIKE', "%{$q}%")
                         ->orWhere('phone', 'LIKE', "%{$q}%")
                         ->orWhere('address', 'LIKE', "%{$q}%")
 
-                        // 🔥 recherche dans la relation
                         ->orWhereHas('user', function ($q2) use ($q) {
                             $q2->where('name', 'LIKE', "%{$q}%");
                         });
                 });
+            })
+
+            ->orderBy($sort_field, $sort_direction)
+            ->paginate($page);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'succès',
+            'devise' => $devise,
+            'data' => $data
+        ]);
+    }
+
+    #[OA\Get(
+        path: "/api/v1/customerGetWithDebt",
+        summary: "Lister",
+        tags: ["Customers"],
+        responses: [
+            new OA\Response(response: 200, description: "Liste")
+        ]
+    )]
+
+    public function customerGetWithDebt(): JsonResponse
+    {
+        $devise = Currency::where('status', 'created')
+            ->orderByRaw("currency_type = 'devise_principale' DESC")
+            ->latest()
+            ->get();
+        $page = request('paginate', 10);
+        $q = request('q', '');
+        $sort_direction = request('sort_direction', 'desc');
+        $sort_field = request('sort_field', 'id');
+
+        $allowedSortFields = ['id', 'name', 'phone', 'address', 'created_at'];
+
+        if (!in_array($sort_field, $allowedSortFields)) {
+            $sort_field = 'id';
+        }
+
+        if (!in_array(strtolower($sort_direction), ['asc', 'desc'])) {
+            $sort_direction = 'desc';
+        }
+
+        $data = Customer::with([
+            'user:id,name',
+            'debts' => function ($q) {
+                $q->whereIn('status', ['pending', 'partial']);
+            }
+        ])
+            ->where('status', 'created')
+
+            ->when($q, function ($query) use ($q) {
+                $query->where(function ($sub) use ($q) {
+                    $sub->where('name', 'LIKE', "%{$q}%")
+                        ->orWhere('phone', 'LIKE', "%{$q}%")
+                        ->orWhere('address', 'LIKE', "%{$q}%")
+                        ->orWhereHas('user', function ($q2) use ($q) {
+                            $q2->where('name', 'LIKE', "%{$q}%");
+                        });
+                });
+            })
+
+            ->whereHas('debts', function ($q) {
+                $q->whereIn('status', ['pending', 'partial']);
             })
 
             ->orderBy($sort_field, $sort_direction)
