@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 
@@ -14,6 +13,7 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
+            'tableau-de-bord',
             'produits',
             'produits-unite',
             'produits-categorie',
@@ -29,17 +29,19 @@ class PermissionSeeder extends Seeder
             'retour-cylindre',
             'livraison-distributeur',
             'vente',
+            'finance',
             'transaction',
             'dette-distributeur',
             'comptes',
             'devises',
             'paramettre',
+            'utilisateur',
+            'bonus-client',
             'composition-caution',
             'role-utilisateur',
             'profile-entreprise',
             'point-de-vente',
             'charroi-automobile'
-
         ];
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission]);

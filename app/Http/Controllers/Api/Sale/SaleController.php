@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Api\Sale;
 
 use App\Http\Controllers\Controller;
 use App\Models\Branche;
+use App\Models\CashTransaction;
 use App\Models\Currency;
+use App\Models\CustomerDebt;
+use App\Models\DebtDistributor;
 use App\Models\ItemSale;
 use App\Models\Product;
 use App\Models\Sale;
@@ -357,6 +360,7 @@ class SaleController extends Controller
                     new OA\Property(property: "sale_type", type: "string", example: "proforma"),
                     new OA\Property(property: "sale_category", type: "string", example: "detail"),
                     new OA\Property(property: "distributor_id", type: "integer", example: 1),
+                    new OA\Property(property: "total_amount", type: "integer", example: 100000),
 
                     new OA\Property(
                         property: "products",
@@ -419,6 +423,9 @@ class SaleController extends Controller
         try {
 
             $data = $request->validate([
+                'montant_total' => 'nullable',
+                'paid_amount' => 'nullable',
+                'account_id' => 'nullable',
                 'customer_id' => [
                     'nullable',
                     'exists:customers,id',
@@ -444,6 +451,9 @@ class SaleController extends Controller
                 $type = $data['type'];
                 $items = $data['items'];
                 $tankId = $data['tank_id'] ?? 1;
+                $total_amount = $data['montant_total'];
+                $paid_amount = $data['paid_amount'];
+                $account_id = $data['account_id'];
 
                 $total = 0;
                 $totalGas = 0;
@@ -454,6 +464,7 @@ class SaleController extends Controller
                 if ($type === 'Recharge' && !$gasProduct) {
                     throw new \Exception("Produit gaz introuvable");
                 }
+                // $paid_amount = 0;
 
                 // 🔥 création vente
                 $sale = Sale::create([
@@ -462,12 +473,82 @@ class SaleController extends Controller
                     'distributor_id' => $distributorId,
                     'branch_id' => $branchId,
                     'type' => $type,
-                    'total_amount' => 0,
+                    'total_amount' => $total_amount,
                     'paid_amount' => 0,
                     'addedBy' => Auth::id(),
                     'transaction_date' => $data['date_vente'],
                     'sale_type' => $data['type']
                 ]);
+                $remaining_amount = $total_amount - $paid_amount;
+
+                $status = match (true) {
+                    $paid_amount == 0 => 'pending',
+                    $paid_amount < $total_amount => 'partial',
+                    default => 'completed',
+                };
+                $sale->status = $status;
+                $sale->save();
+                if ($status === 'completed') {
+                    return;
+                }
+
+                if ($distributorId) {
+                    DebtDistributor::create([
+                        'distributor_id' => $distributorId,
+                        'loan_amount' => $remaining_amount,
+                        'paid_amount' => $paid_amount,
+                        'transaction_date' => now(),
+                        'motif' => 'Dette de la Vente' . $sale->id,
+                        $sale->id,
+                        'status' => $status,
+                        'user_id' => Auth::id(),
+                    ]);
+                }
+
+                if ($customerId) {
+                    CustomerDebt::create([
+                        'customer_id' => $customerId,
+                        'amount' => $total_amount,
+                        'loan_amount' => $remaining_amount,
+                        'paid_amount' => $paid_amount,
+                        'sale_id' => $sale->id,
+                        'transaction_date' => now(),
+                        'motif' => 'Dette de la Vente' . $sale->id,
+                        'status' => $status,
+                        'user_id' => Auth::id(),
+                    ]);
+                }
+
+                if ($paid_amount > 0) {
+
+                    $payAmount = $paid_amount;
+
+                    $lastTransaction = CashTransaction::where('cash_account_id', $account_id)
+                        ->latest('id')
+                        ->first();
+
+                    $previousSolde = $lastTransaction ? $lastTransaction->solde : 0;
+
+                    $currentSolde = $previousSolde + $payAmount;
+
+                    CashTransaction::updateOrCreate(
+                        [
+                            'reference' => 'SALE-' . $sale->reference,
+                            'cash_account_id' => $account_id,
+                        ],
+                        [
+                            'reason' => 'Paiement vente #' . $sale->id,
+                            'type' => 'Revenue',
+                            'reference_id' => $sale->id,
+                            'amount' => $payAmount,
+                            'transaction_date' => now(),
+                            'solde' => $currentSolde,
+                            'cash_categorie_id' => 4,
+                            'addedBy' => Auth::id()
+                        ]
+
+                    );
+                }
 
                 foreach ($items as $item) {
 

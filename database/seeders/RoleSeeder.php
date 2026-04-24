@@ -16,6 +16,7 @@ class RoleSeeder extends Seeder
     {
         $rolesPermissions = [
             'admin' => [
+                'tableau-de-bord',
                 'produits',
                 'produits-unite',
                 'produits-categorie',
@@ -31,11 +32,14 @@ class RoleSeeder extends Seeder
                 'retour-cylindre',
                 'livraison-distributeur',
                 'vente',
+                'finance',
                 'transaction',
                 'dette-distributeur',
                 'comptes',
                 'devises',
                 'paramettre',
+                'utilisateur',
+                'bonus-client',
                 'composition-caution',
                 'role-utilisateur',
                 'profile-entreprise',
@@ -43,7 +47,6 @@ class RoleSeeder extends Seeder
                 'charroi-automobile'
             ]
         ];
-        $actions = ['voir', 'ajouter', 'modifier', 'supprimer'];
 
         foreach ($rolesPermissions as $roleName => $permissions) {
             $role = Role::firstOrCreate([

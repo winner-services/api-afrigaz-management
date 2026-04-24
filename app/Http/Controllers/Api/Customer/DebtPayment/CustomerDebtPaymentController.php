@@ -109,10 +109,8 @@ class CustomerDebtPaymentController extends Controller
 
                 $debt->save();
 
-                // ✅ 3. Mise à jour solde caisse
                 $currentSolde += $payAmount;
 
-                // ✅ 4. Transaction caisse (IMPORTANT 🔥)
                 CashTransaction::create([
                     'reason' => 'Paiement dette client',
                     'type' => 'Revenue',
@@ -122,7 +120,7 @@ class CustomerDebtPaymentController extends Controller
                     'reference' => 'DEBT-' . $debt->id,
                     'reference_id' => $debt->id,
                     'cash_account_id' => $request->account_id,
-                    'cash_categorie_id' => 4,
+                    'cash_categorie_id' => 3,
                     'addedBy' => Auth::id()
                 ]);
 

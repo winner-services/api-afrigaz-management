@@ -631,7 +631,7 @@ class ShippingControlle extends Controller
                             $q2->where('name', 'like', "%{$search}%");
                         })
                         ->orWhereHas('items.product', function ($q2) use ($search) {
-                            $q2->where('designation', 'like', "%{$search}%");
+                            $q2->where('name', 'like', "%{$search}%");
                         })
                         ->orWhere('reference', 'like', "%{$search}%");
                 });

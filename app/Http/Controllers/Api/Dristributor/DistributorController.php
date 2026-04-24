@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\Dristributor;
 
 use App\Http\Controllers\Controller;
-use App\Models\CashTransaction;
+use App\Models\Caussion;
 use App\Models\Currency;
 use App\Models\DebtDistributor;
 use App\Models\Distributor;
@@ -30,11 +30,10 @@ class DistributorController extends Controller
     )]
     public function index(Request $request): JsonResponse
     {
-        // $devise = Currency::where('status', 'created')->latest()->get();
         $devise = Currency::where('status', 'created')
-                ->orderByRaw("currency_type = 'devise_principale' DESC")
-                ->latest()
-                ->get();
+            ->orderByRaw("currency_type = 'devise_principale' DESC")
+            ->latest()
+            ->get();
         $perPage = $request->query('paginate', 10);
         $search = $request->query('q', '');
 
@@ -49,7 +48,7 @@ class DistributorController extends Controller
                             $q3->where('name', 'like', "%$search%");
                         })
                         ->orWhereHas('categoryDistributor', function ($q4) use ($search) {
-                            $q4->where('designation', 'like', "%$search%");
+                            $q4->where('name', 'like', "%$search%");
                         });
                 });
             })
@@ -190,42 +189,19 @@ class DistributorController extends Controller
 
                 $item = Distributor::create($data);
 
+                $causion = Caussion::where('category_distributor_id', $item->category_distributor_id)->first();
 
-                $lastTransaction = CashTransaction::where('cash_account_id', $account_id)
-                    ->latest('id')
-                    ->lockForUpdate()
-                    ->first();
+                $caution_amount = optional($causion)->amount ?? 0;
+                DebtDistributor::create([
+                    'distributor_id' => $item->id,
+                    'loan_amount' => $caution_amount,
+                    'paid_amount' => 0,
+                    'transaction_date' => now(),
+                    'motif' => 'Caution initiale',
+                    'status' => 'pending',
+                    'user_id' => Auth::id(),
+                ]);
 
-                $solde = $lastTransaction ? $lastTransaction->solde : 0;
-
-
-                if ($caution_amount > 0) {
-
-                    CashTransaction::create([
-                        'reason' => 'Paiement Caution initiale',
-                        'type' => 'Revenue',
-                        'amount' => $caution_amount,
-                        'transaction_date' => now(),
-                        'solde' => $solde + $caution_amount,
-                        'reference' => $item->reference,
-                        'reference_id' => $item->id,
-                        'cash_account_id' => $account_id,
-                        'cash_categorie_id' => 1,
-                        'addedBy' => Auth::id(),
-                    ]);
-
-                    if ($caution_amount < $loan_amount) {
-                        DebtDistributor::create([
-                            'distributor_id' => $item->id,
-                            'loan_amount' => $loan_amount,
-                            'paid_amount' => $caution_amount,
-                            'transaction_date' => now(),
-                            'motif' => 'Crédit initial',
-                            'status' => 'pending',
-                            'user_id' => Auth::id(),
-                        ]);
-                    }
-                }
 
                 return $item;
             });
@@ -294,7 +270,37 @@ class DistributorController extends Controller
                 'category_distributor_id' => 'nullable|integer|exists:category_distributors,id'
             ]);
 
-            $item->update($data);
+            $result = DB::transaction(function () use ($data, $item) {
+
+                $item->update($data);
+
+                $causion = Caussion::where('category_distributor_id', $item->category_distributor_id)->first();
+
+                $caution_amount = optional($causion)->amount ?? 0;
+
+                $debt = DebtDistributor::where('distributor_id', $item->id)
+                    ->where('motif', 'Caution initiale')
+                    ->first();
+
+                if ($debt) {
+                    $debt->update([
+                        'loan_amount' => $caution_amount,
+                        'user_id' => Auth::id(),
+                    ]);
+                } else {
+                    DebtDistributor::create([
+                        'distributor_id' => $item->id,
+                        'loan_amount' => $caution_amount,
+                        'paid_amount' => 0,
+                        'transaction_date' => now(),
+                        'motif' => 'Caution initiale',
+                        'status' => 'pending',
+                        'user_id' => Auth::id(),
+                    ]);
+                }
+
+                return $item;
+            });
 
             return response()->json([
                 'message' => 'Client mis à jour',

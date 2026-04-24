@@ -17,13 +17,15 @@ class CashCategorySeeder extends Seeder
             'Vente des produits',
             'Remboursement',
             'Achat des produits',
-            'Paiement dettes clients',
+            'Paiement dettes client',
+            'Paiement dettes Distributeur',
         ];
 
         $types = [
             'Revenue',
             'Depense',
             'Depense',
+            'Revenue',
             'Revenue'
         ];
 
