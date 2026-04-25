@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Repport;
 
 use App\Http\Controllers\Controller;
+use App\Models\About;
 use App\Models\Customer;
 use App\Models\Distributor;
 use App\Models\Filling;
@@ -29,6 +30,7 @@ class RepportController extends Controller
 
     public function productsList()
     {
+        $about = About::query()->first();
         $data = Product::with([
             'category',
             'unit'
@@ -36,7 +38,8 @@ class RepportController extends Controller
 
         return response()->json([
             'status' => 200,
-            'data' => $data
+            'data' => $data,
+            'info_company' => $about
         ]);
     }
 
@@ -50,6 +53,7 @@ class RepportController extends Controller
     )]
     public function stockReport()
     {
+        $about = About::query()->first();
         $startDate = request('start_date', now()->startOfMonth());
         $endDate = request('end_date', now());
         $branche_id = request('branche_id', 1);
@@ -64,7 +68,8 @@ class RepportController extends Controller
         return response()->json([
             'message' => 'success',
             'status' => 200,
-            'data' => $data
+            'data' => $data,
+            'info_company' => $about
         ]);
     }
 
@@ -78,6 +83,7 @@ class RepportController extends Controller
     )]
     public function distributorsList()
     {
+        $about = About::query()->first();
         $data =  Distributor::with([
             'category'
         ])->latest()->get();
@@ -85,7 +91,8 @@ class RepportController extends Controller
         return response()->json([
             'message' => 'success',
             'status' => 200,
-            'data' => $data
+            'data' => $data,
+            'info_company' => $about
         ]);
     }
 
@@ -100,11 +107,13 @@ class RepportController extends Controller
 
     public function customersList()
     {
+        $about = About::query()->first();
         $data = Customer::with(['user'])->latest()->get();
         return response()->json([
             'message' => 'success',
             'status' => 200,
-            'data' => $data
+            'data' => $data,
+            'info_company' => $about
         ]);
     }
 
@@ -153,6 +162,7 @@ class RepportController extends Controller
 
     public function tankMovements(Request $request)
     {
+        $about = About::query()->first();
         $validated = validator($request->all(), [
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
@@ -168,7 +178,8 @@ class RepportController extends Controller
         return response()->json([
             'message' => 'success',
             'status' => 200,
-            'data' => $data
+            'data' => $data,
+            'info_company' => $about
         ]);
     }
     #[OA\Post(
@@ -215,6 +226,7 @@ class RepportController extends Controller
     )]
     public function purchasesReport(Request $request)
     {
+        $about = About::query()->first();
         $validated = validator($request->all(), [
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
@@ -229,7 +241,8 @@ class RepportController extends Controller
         return response()->json([
             'message' => 'success',
             'status' => 200,
-            'data' => $data
+            'data' => $data,
+            'info_company' => $about
         ]);
     }
 
@@ -277,6 +290,7 @@ class RepportController extends Controller
     )]
     public function fillingsReport(Request $request)
     {
+        $about = About::query()->first();
         $validated = validator($request->all(), [
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
@@ -290,7 +304,8 @@ class RepportController extends Controller
         return response()->json([
             'message' => 'success',
             'status' => 200,
-            'data' => $data
+            'data' => $data,
+            'info_company' => $about
         ]);
     }
 
@@ -338,6 +353,7 @@ class RepportController extends Controller
     )]
     public function transfersReport(Request $request)
     {
+        $about = About::query()->first();
         $validated = validator($request->all(), [
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
@@ -367,7 +383,8 @@ class RepportController extends Controller
         return response()->json([
             'message' => 'success',
             'status' => 200,
-            'data' => $data
+            'data' => $data,
+            'info_company' => $about
         ]);
     }
 
@@ -486,6 +503,7 @@ class RepportController extends Controller
     )]
     public function deliveriesReport(Request $request)
     {
+        $about = About::query()->first();
         $validated = validator($request->all(), [
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
@@ -529,7 +547,8 @@ class RepportController extends Controller
                 'branch_id' => $branchId
             ],
             'stats' => $stats,
-            'data' => $data
+            'data' => $data,
+            'info_company' => $about
         ]);
     }
 
@@ -577,6 +596,7 @@ class RepportController extends Controller
     )]
     public function salesReport()
     {
+        $about = About::query()->first();
         $startDate = request('start_date', now()->startOfMonth());
         $endDate = request('end_date', now());
         $branche_id = request('branche_id', 1);
@@ -589,7 +609,8 @@ class RepportController extends Controller
         return response()->json([
             'message' => 'success',
             'status' => 200,
-            'data' => $data
+            'data' => $data,
+            'info_company' => $about
         ]);
     }
 }
