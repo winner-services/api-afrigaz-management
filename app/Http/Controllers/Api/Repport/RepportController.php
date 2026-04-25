@@ -118,8 +118,7 @@ class RepportController extends Controller
 
     public function tankMovements()
     {
-        $data = TankMovement::with('tank:id,name')
-            ->select('tank_id', 'type', 'quantity', 'created_at')
+        $data = TankMovement::with('tank:id,name','user')
             ->latest()
             ->get();
         return response()->json([
