@@ -293,7 +293,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/purchasesReport', 'purchasesReport');
             Route::post('/fillingsReport', 'fillingsReport');
             Route::post('/transfersReport', 'transfersReport');
-            Route::get('/deliveriesReport', 'deliveriesReport');
+            Route::post('/deliveriesReport', 'deliveriesReport');
             Route::post('/salesReport', 'salesReport');
         });
     });

@@ -371,7 +371,7 @@ class RepportController extends Controller
         ]);
     }
 
-    #[OA\Post(
+    #[OA\Post( 
         path: "/api/deliveriesReport",
         summary: "Rapport des livraisons (filtré par date, distributeur et branche)",
         tags: ["Rapports"],
