@@ -286,15 +286,15 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
         Route::controller(RepportController::class)->group(function () {
             Route::get('/productsList', 'productsList');
-            Route::get('/stockReport','stockReport');
-            Route::get('/distributorsList','distributorsList');
-            Route::get('/customersList','customersList');
-            Route::get('/tankMovements','tankMovements');
-            Route::get('/purchasesReport','purchasesReport');
-            Route::get('/fillingsReport','fillingsReport');
-            Route::get('/transfersReport','transfersReport');
-            Route::get('/deliveriesReport','deliveriesReport');
-            Route::get('/salesReport','salesReport');
+            Route::get('/stockReport', 'stockReport');
+            Route::get('/distributorsList', 'distributorsList');
+            Route::get('/customersList', 'customersList');
+            Route::post('/tankMovements', 'tankMovements');
+            Route::post('/purchasesReport', 'purchasesReport');
+            Route::post('/fillingsReport', 'fillingsReport');
+            Route::post('/transfersReport', 'transfersReport');
+            Route::get('/deliveriesReport', 'deliveriesReport');
+            Route::post('/salesReport', 'salesReport');
         });
     });
 });

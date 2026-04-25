@@ -3244,86 +3244,588 @@
                 }
             }
         },
-        "/api/v1/tankMovements": {
-            "get": {
+        "/api/tankMovements": {
+            "post": {
                 "tags": [
                     "Rapports"
                 ],
-                "summary": "Lister",
-                "operationId": "c241f2239e5926e01dbd5ce168025e95",
+                "summary": "Lister les mouvements des tanks par période",
+                "operationId": "e3df2c83f0a7eb47f05d95711770f83c",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "start_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-04-01"
+                                    },
+                                    "end_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-04-25"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
-                        "description": "Liste"
+                        "description": "Succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "operation_date": {
+                                                        "type": "string",
+                                                        "example": "2026-04-20"
+                                                    },
+                                                    "tank_id": {
+                                                        "type": "integer",
+                                                        "example": 2
+                                                    },
+                                                    "user_id": {
+                                                        "type": "integer",
+                                                        "example": 5
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
                     }
                 }
             }
         },
-        "/api/v1/purchasesReport": {
-            "get": {
+        "/api/purchasesReport": {
+            "post": {
                 "tags": [
                     "Rapports"
                 ],
                 "summary": "Lister",
-                "operationId": "5eabc30a8dff3f771447dfe6ee526820",
+                "operationId": "17756dc924eb57543b576c40e0d4e1e2",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "start_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-04-01"
+                                    },
+                                    "end_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-04-25"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
-                        "description": "Liste"
+                        "description": "Succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "operation_date": {
+                                                        "type": "string",
+                                                        "example": "2026-04-20"
+                                                    },
+                                                    "tank_id": {
+                                                        "type": "integer",
+                                                        "example": 2
+                                                    },
+                                                    "user_id": {
+                                                        "type": "integer",
+                                                        "example": 5
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
                     }
                 }
             }
         },
-        "/api/v1/fillingsReport": {
-            "get": {
+        "/api/fillingsReport": {
+            "post": {
                 "tags": [
                     "Rapports"
                 ],
                 "summary": "Lister",
-                "operationId": "14cabbeba460f8b603b78a24516117fe",
+                "operationId": "db1bb7fa6e9c8c614b4a8166c62d9689",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "start_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-04-01"
+                                    },
+                                    "end_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-04-25"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
-                        "description": "Liste"
+                        "description": "Succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "operation_date": {
+                                                        "type": "string",
+                                                        "example": "2026-04-20"
+                                                    },
+                                                    "tank_id": {
+                                                        "type": "integer",
+                                                        "example": 2
+                                                    },
+                                                    "user_id": {
+                                                        "type": "integer",
+                                                        "example": 5
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
                     }
                 }
             }
         },
-        "/api/v1/transfersReport": {
-            "get": {
+        "/api/transfersReport": {
+            "post": {
                 "tags": [
                     "Rapports"
                 ],
                 "summary": "Lister",
-                "operationId": "7da74778c79bef974e0280f2a3678322",
+                "operationId": "1ebb5b03c9797a4979931a94c728d80e",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "start_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-04-01"
+                                    },
+                                    "end_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-04-25"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
-                        "description": "Liste"
+                        "description": "Succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "operation_date": {
+                                                        "type": "string",
+                                                        "example": "2026-04-20"
+                                                    },
+                                                    "tank_id": {
+                                                        "type": "integer",
+                                                        "example": 2
+                                                    },
+                                                    "user_id": {
+                                                        "type": "integer",
+                                                        "example": 5
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
                     }
                 }
             }
         },
-        "/api/v1/deliveriesReport": {
-            "get": {
+        "/api/deliveriesReport": {
+            "post": {
                 "tags": [
                     "Rapports"
                 ],
-                "summary": "Lister",
-                "operationId": "392eadf43b5a41d2738954e14ea95e67",
+                "summary": "Rapport des livraisons (filtré par date, distributeur et branche)",
+                "operationId": "3fd8bc2db7ca0d432fa500a34981ab18",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "start_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-04-01"
+                                    },
+                                    "end_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-04-25"
+                                    },
+                                    "distributor_id": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "branch_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
-                        "description": "Liste"
+                        "description": "Succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "filters": {
+                                            "properties": {
+                                                "start_date": {
+                                                    "type": "string",
+                                                    "example": "2026-04-01"
+                                                },
+                                                "end_date": {
+                                                    "type": "string",
+                                                    "example": "2026-04-25"
+                                                },
+                                                "branch_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "stats": {
+                                            "properties": {
+                                                "total_deliveries": {
+                                                    "type": "integer",
+                                                    "example": 15
+                                                },
+                                                "total_quantity": {
+                                                    "type": "number",
+                                                    "example": 250
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "reference": {
+                                                        "type": "string",
+                                                        "example": "DEL-001"
+                                                    },
+                                                    "transaction_date": {
+                                                        "type": "string",
+                                                        "example": "2026-04-20"
+                                                    },
+                                                    "total_quantity": {
+                                                        "type": "number",
+                                                        "example": 50
+                                                    },
+                                                    "distributor": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 2
+                                                            },
+                                                            "name": {
+                                                                "type": "string",
+                                                                "example": "Distributor A"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    },
+                                                    "branch": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "name": {
+                                                                "type": "string",
+                                                                "example": "Main Branch"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    },
+                                                    "user": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 5
+                                                            },
+                                                            "name": {
+                                                                "type": "string",
+                                                                "example": "Admin"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    },
+                                                    "items": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "properties": {
+                                                                "id": {
+                                                                    "type": "integer",
+                                                                    "example": 10
+                                                                },
+                                                                "quantity": {
+                                                                    "type": "number",
+                                                                    "example": 20
+                                                                },
+                                                                "product": {
+                                                                    "properties": {
+                                                                        "id": {
+                                                                            "type": "integer",
+                                                                            "example": 3
+                                                                        },
+                                                                        "name": {
+                                                                            "type": "string",
+                                                                            "example": "Gaz 12kg"
+                                                                        }
+                                                                    },
+                                                                    "type": "object"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
                     }
                 }
             }
         },
-        "/api/v1/salesReport": {
-            "get": {
+        "/api/salesReport": {
+            "post": {
                 "tags": [
                     "Rapports"
                 ],
                 "summary": "Lister",
-                "operationId": "62684d2c3bca977db86724822b1fa9dc",
+                "operationId": "f74037a06b5e20ab6c4c07f6217533ac",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "start_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-04-01"
+                                    },
+                                    "end_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-04-25"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
-                        "description": "Liste"
+                        "description": "Succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "operation_date": {
+                                                        "type": "string",
+                                                        "example": "2026-04-20"
+                                                    },
+                                                    "tank_id": {
+                                                        "type": "integer",
+                                                        "example": 2
+                                                    },
+                                                    "user_id": {
+                                                        "type": "integer",
+                                                        "example": 5
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
                     }
                 }
             }
