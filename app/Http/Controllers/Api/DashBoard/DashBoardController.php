@@ -16,6 +16,7 @@ use App\Models\StockByBranch;
 use App\Models\Tank;
 use Illuminate\Support\Facades\DB;
 use OpenApi\Attributes as OA;
+use Illuminate\Http\Request;
 
 class DashBoardController extends Controller
 {
@@ -27,7 +28,7 @@ class DashBoardController extends Controller
             new OA\Response(response: 200, description: "Liste")
         ]
     )]
-    public function getDashboardData()
+    public function getDashboardData(Request $request)
     {
         try {
             $devise = Currency::where('status', 'created')
@@ -35,10 +36,21 @@ class DashBoardController extends Controller
                 ->latest()
                 ->get();
 
-            $branchId = request('branche_id', 1);
+            $validated = $request->validate([
+                'branche_id' => ['nullable', 'integer'],
+                'start_date' => ['nullable', 'date'],
+                'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+            ]);
 
-            $startDate = request('start_date', now()->startOfMonth());
-            $endDate = request('end_date', now());
+            $branchId = $validated['branche_id'] ?? 1;
+
+            $startDate = $validated['start_date'] ?? now()->startOfMonth();
+            $endDate = $validated['end_date'] ?? now();
+
+            // $branchId = request('branche_id', 1);
+
+            // $startDate = request('start_date', now()->startOfMonth());
+            // $endDate = request('end_date', now());
 
 
             $totalSales = Sale::where('branch_id', $branchId)

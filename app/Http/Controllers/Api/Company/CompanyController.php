@@ -62,10 +62,12 @@ class CompanyController extends Controller
                     new OA\Property(property: 'register', type: 'string', example: 'RC12345'),
                     new OA\Property(property: 'national_id', type: 'string', example: '123456789'),
                     new OA\Property(property: 'tax_number', type: 'string', example: 'TAX123456'),
+                    new OA\Property(property: 'import_export', type: 'string', example: 'TAX123456'),
                     new OA\Property(property: 'phone', type: 'string', example: '+243990000000'),
                     new OA\Property(property: 'address', type: 'string', example: 'Kinshasa, RDC'),
                     new OA\Property(property: 'email', type: 'string', example: 'contact@afrigaz.com'),
                     new OA\Property(property: 'logo', type: 'string', format: 'binary', description: 'Fichier image'),
+                    new OA\Property(property: 'logo2', type: 'string', format: 'binary', description: 'Fichier image'),
                 ]
             )
         ),

@@ -15,7 +15,7 @@ use App\Models\StockEntry;
 use App\Models\StockMovement;
 use App\Models\TankMovement;
 use App\Models\Transfer;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
 class RepportController extends Controller

@@ -17,11 +17,13 @@ return new class extends Migration
             $table->text('details')->nullable();
             $table->text('register')->nullable();
             $table->text('national_id')->nullable();
+            $table->text('import_export')->nullable();
             $table->text('tax_number')->nullable();
             $table->text('phone')->nullable();
             $table->text('address')->nullable();
             $table->text('email')->nullable();
             $table->text('logo')->nullable();
+            $table->text('logo2')->nullable();
             $table->timestamps();
         });
     }

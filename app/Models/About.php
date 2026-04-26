@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['denomination', 'details', 'register', 'national_id', 'tax_number', 'phone', 'address', 'email', 'logo'])]
+#[Fillable(['denomination', 'details', 'register', 'national_id', 'tax_number', 'phone', 'address', 'email', 'logo','import_export','logo2'])]
 class About extends Model
 {
     //
