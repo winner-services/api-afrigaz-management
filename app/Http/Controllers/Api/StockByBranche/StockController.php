@@ -166,28 +166,37 @@ class StockController extends Controller
         ]
     )]
 
-    public function getStockByBranche(): JsonResponse
+    public function getStockByBranche(Request $request): JsonResponse
     {
         $user = Auth::user();
-        // $devide = Currency::latest()->get();
+
         $devise = Currency::where('status', 'created')
-                ->orderByRaw("currency_type = 'devise_principale' DESC")
-                ->latest()
-                ->get();
+            ->orderByRaw("currency_type = 'devise_principale' DESC")
+            ->latest()
+            ->get();
+
         $branches = Branche::latest()->get();
 
-        $page = request("paginate", 10);
-        $q = request("q", "");
+        $validated = $request->validate([
+            'branche_id' => ['nullable', 'integer', 'exists:branches,id'],
+            'q' => ['nullable', 'string'],
+            'per_page' => ['nullable', 'integer', 'min:1'],
+        ]);
 
-        $branche = Branche::where('user_id', $user->id)->first();
+        $userBranch = Branche::where('user_id', $user->id)->first();
 
-        if (!$branche) {
+        if (!$userBranch && !isset($validated['branche_id'])) {
             return response()->json([
                 'message' => 'Branche non trouvée'
             ], 404);
         }
 
-        $brancheId = request('branche_id', $branche->id);
+        $brancheId = $validated['branche_id']
+            ?? $userBranch?->id
+            ?? 1;
+
+        $q = $validated['q'] ?? null;
+        $perPage = $validated['per_page'] ?? 10;
 
         $stocks = StockByBranch::with([
             'product.category',
@@ -195,7 +204,6 @@ class StockController extends Controller
         ])
             ->where('branche_id', $brancheId)
 
-            // 🔍 recherche simple
             ->when($q, function ($query) use ($q) {
                 $query->where(function ($q2) use ($q) {
                     $q2->whereHas('product', function ($q3) use ($q) {
@@ -207,55 +215,68 @@ class StockController extends Controller
                 });
             })
 
-            ->orderBy('id', 'desc')
-            ->paginate($page);
+            ->orderByDesc('id')
+            ->paginate($perPage);
 
-        return response()->json(
-            [
-                'devise' => $devise,
-                'branches' => $branches,
-                'data' => $stocks
-            ]
-        );
+        return response()->json([
+            'devise' => $devise,
+            'branches' => $branches,
+            'filters' => [
+                'branche_id' => $brancheId,
+                'q' => $q,
+                'per_page' => $perPage,
+            ],
+            'data' => $stocks
+        ]);
     }
-
-    // public function returnMultipleBottles(Request $request)
+    // public function getStockByBranche(): JsonResponse
     // {
-    //     try {
+    //     $user = Auth::user();
+    //     $devise = Currency::where('status', 'created')
+    //             ->orderByRaw("currency_type = 'devise_principale' DESC")
+    //             ->latest()
+    //             ->get();
+    //     $branches = Branche::latest()->get();
 
-    //         $data = $request->validate([
-    //             'branch_id' => 'required|exists:branches,id',
-    //             'note' => 'nullable|string',
+    //     $page = request("paginate", 10);
+    //     $q = request("q", "");
 
-    //             'products' => 'required|array|min:1',
-    //             'products.*.product_id' => 'required|exists:products,id',
+    //     $branche = Branche::where('user_id', $user->id)->first();
 
-    //             'products.*.returns' => 'required|array|min:1',
-    //             'products.*.returns.*.condition' => 'required|in:good,damaged,repair',
-    //             'products.*.returns.*.quantity' => 'required|integer|min:1',
-    //         ]);
-
-    //         $result = $this->stockService->storeReturn($data);
-
+    //     if (!$branche) {
     //         return response()->json([
-    //             'message' => 'Retour enregistré avec succès',
-    //             'data' => $result
-    //         ], 201);
-    //     } catch (\Illuminate\Validation\ValidationException $e) {
-
-    //         return response()->json([
-    //             'message' => 'Erreur de validation',
-    //             'errors' => $e->errors()
-    //         ], 422);
-    //     } catch (\Exception $e) {
-
-    //         Log::error('Bottle return error', [
-    //             'error' => $e->getMessage()
-    //         ]);
-
-    //         return response()->json([
-    //             'message' => 'Erreur lors du retour des bouteilles'
-    //         ], 500);
+    //             'message' => 'Branche non trouvée'
+    //         ], 404);
     //     }
+
+    //     $brancheId = request('branche_id', $branche->id);
+
+    //     $stocks = StockByBranch::with([
+    //         'product.category',
+    //         'product.unit'
+    //     ])
+    //         ->where('branche_id', $brancheId)
+
+    //         ->when($q, function ($query) use ($q) {
+    //             $query->where(function ($q2) use ($q) {
+    //                 $q2->whereHas('product', function ($q3) use ($q) {
+    //                     $q3->where('name', 'like', "%$q%");
+    //                 })
+    //                     ->orWhereHas('product.category', function ($q3) use ($q) {
+    //                         $q3->where('designation', 'like', "%$q%");
+    //                     });
+    //             });
+    //         })
+
+    //         ->orderBy('id', 'desc')
+    //         ->paginate($page);
+
+    //     return response()->json(
+    //         [
+    //             'devise' => $devise,
+    //             'branches' => $branches,
+    //             'data' => $stocks
+    //         ]
+    //     );
     // }
 }

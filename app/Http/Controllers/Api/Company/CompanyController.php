@@ -129,7 +129,7 @@ class CompanyController extends Controller
             });
 
             return response()->json([
-                'status'  => true,
+                'succees'  => true,
                 'message' => $about->wasRecentlyCreated
                     ? 'Données créées avec succès'
                     : 'Données mises à jour avec succès',

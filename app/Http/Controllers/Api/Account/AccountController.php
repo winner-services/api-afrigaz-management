@@ -204,11 +204,10 @@ class AccountController extends Controller
         $rules = [
             'designation' => ['nullable', 'string', 'max:255', 'unique:cash_accounts,designation,' . $account->id],
             'nature' => ['nullable', 'string', 'max:255'],
-            'branche_id' => ['required', 'integer', 'exists:branches,id'],
+            'branche_id' => ['nullable', 'integer', 'exists:branches,id'],
         ];
 
         $messages = [
-            'branche_id.required' => 'La branche est obligatoire.',
             'branche_id.exists' => 'La branche sélectionnée n\'existe pas.',
             'designation.unique' => 'Cette désignation existe déjà.',
         ];
@@ -276,18 +275,29 @@ class AccountController extends Controller
             new OA\Response(response: 200, description: "Liste")
         ]
     )]
-    public function getAccountOptionsByBranch()
+    public function getAccountOptionsByBranch(Request $request)
     {
         $user = Auth::user();
-        $branch = Branche::where('user_id', $user->id)->first();
 
-        $brancheId = request('branche_id', $branch->id);
-        $data = CashAccount::where('status', 'created')
+        $userBranch = Branche::where('user_id', $user->id)->first();
+
+        $validated = $request->validate([
+            'branche_id' => ['nullable', 'integer', 'exists:branches,id'],
+        ]);
+
+        $brancheId = $validated['branche_id']
+            ?? $userBranch?->id
+            ?? 1;
+
+        $data = CashAccount::query()
+            ->where('status', 'created')
             ->where('branche_id', $brancheId)
+            ->select('id', 'designation', 'reference')
             ->get();
 
         return response()->json([
             'status' => true,
+            'branch_id' => $brancheId,
             'data' => $data
         ]);
     }

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Branche;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -13,11 +14,11 @@ class BrancheSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('branches')->insert([
+        Branche::create([
             'name' => 'Entrepôt principal',
             'city' => 'Beni',
             'address' => 'Comm. Beu',
-            'user_id' => 1
+            'addedBy' => 1
         ]);
     }
 }

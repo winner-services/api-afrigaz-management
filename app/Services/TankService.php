@@ -35,7 +35,7 @@ class TankService
                 'type' => 'entry',
                 'quantity' => $qty,
                 'addedBy' => Auth::id(),
-                'note' => 'Achat gaz',
+                'note' => 'Approvisionnement du gaz',
                 'operation_date' => $operation_date
             ]);
 

@@ -106,13 +106,28 @@ class EntryStockController extends Controller
             new OA\Response(response: 200, description: "Liste")
         ]
     )]
+
     public function index()
     {
+        $q = request('q');
+
         $entries = StockEntry::with([
             'supplier:id,name',
             'user:id,name',
-            'items.product:id,name'
-        ])->where('status', '!=', 'deleted')
+            'items.product:id,name,unit_id',
+            'items.product.unit:id,abreviation'
+        ])
+            ->where('status', '!=', 'deleted')
+            ->when($q, function ($query) use ($q) {
+                $query->where(function ($sub) use ($q) {
+
+                    $sub->where('reference', 'like', "%$q%")
+
+                        ->orWhereHas('supplier', function ($s) use ($q) {
+                            $s->where('name', 'like', "%$q%");
+                        });
+                });
+            })
             ->latest()
             ->paginate(10);
 
@@ -137,12 +152,12 @@ class EntryStockController extends Controller
                         'id' => $item->id,
                         'quantity' => $item->quantity,
                         'name' => $item->product->name ?? null,
+                        'unit' => $item->product->unit->abreviation ?? null,
                     ];
                 }),
             ];
         });
 
-        // 🔁 Remplacer la collection paginée
         $entries->setCollection($data);
 
         return response()->json([
@@ -151,4 +166,50 @@ class EntryStockController extends Controller
             'data' => $entries
         ]);
     }
+    // public function index()
+    // {
+    //     $entries = StockEntry::with([
+    //         'supplier:id,name',
+    //         'user:id,name',
+    //         'items.product:id,name,unit_id',
+    //         'items.product.unit:id,abreviation'
+    //     ])->where('status', '!=', 'deleted')
+    //         ->latest()
+    //         ->paginate(10);
+
+    //     $data = $entries->getCollection()->map(function ($entry) {
+    //         return [
+    //             'id' => $entry->id,
+    //             'reference' => $entry->reference,
+    //             'transaction_date' => $entry->transaction_date,
+
+    //             'supplier' => $entry->supplier ? [
+    //                 'id' => $entry->supplier->id,
+    //                 'name' => $entry->supplier->name,
+    //             ] : null,
+
+    //             'user' => $entry->user ? [
+    //                 'id' => $entry->user->id,
+    //                 'name' => $entry->user->name,
+    //             ] : null,
+
+    //             'items' => $entry->items->map(function ($item) {
+    //                 return [
+    //                     'id' => $item->id,
+    //                     'quantity' => $item->quantity,
+    //                     'name' => $item->product->name ?? null,
+    //                     'unit' => $item->product->unit->abreviation ?? null,
+    //                 ];
+    //             }),
+    //         ];
+    //     });
+
+    //     $entries->setCollection($data);
+
+    //     return response()->json([
+    //         'message' => 'succes',
+    //         'status' => 200,
+    //         'data' => $entries
+    //     ]);
+    // }
 }

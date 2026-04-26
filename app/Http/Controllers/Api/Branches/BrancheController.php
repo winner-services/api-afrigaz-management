@@ -88,7 +88,6 @@ class BrancheController extends Controller
         }
 
         $exists = Branche::where('name', $request->name)
-            ->orWhere('phone', $request->phone)
             ->first();
 
         if ($exists) {

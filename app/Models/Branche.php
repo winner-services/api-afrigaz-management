@@ -76,7 +76,7 @@ class Branche extends Model
                 }
             }
             CashAccount::create([
-                'designation' => 'Caisse - ' . $branch->name,
+                'designation' => 'Cash - ' . $branch->name,
                 'nature' => 'Caisse',
                 'reference' => 'CA-' . strtoupper(uniqid()),
                 'branche_id' => $branch->id,
