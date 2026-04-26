@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Product;
+use App\Models\ProductLedger;
 use App\Models\StockByBranch;
 use App\Models\Tank;
 use App\Models\TankMovement;
@@ -38,7 +39,7 @@ class TankService
                 'operation_date' => $operation_date
             ]);
 
-            $gaz = Product::where('category_id', 1)->first();
+            $gaz = Product::where('category_id', 1)->firstOrFail();
 
             $stock = StockByBranch::firstOrCreate([
                 'branche_id' => 1,
@@ -47,8 +48,30 @@ class TankService
                 'stock_quantity' => 0,
                 'status' => 'created'
             ]);
+            $stockBefore = $stock->stock_quantity;
+            $stockAfter = $stockBefore + $qty;
 
             $stock->increment('stock_quantity', $qty);
+
+            ProductLedger::create([
+                'product_id' => $gaz->id,
+                'branch_id' => 1,
+                'operation_date' => $operation_date,
+                'type' => 'purchase',
+
+                'quantity' => $qty,
+
+                'stock_before' => $stockBefore,
+                'stock_after' => $stockAfter,
+
+                'reference_type' => 'tank',
+                'reference_id' => $tank->id,
+
+                'notes' => 'Entrée gaz via tank',
+
+                'addedBy' => Auth::id(),
+                'status' => 'posted',
+            ]);
 
             return $tank;
         });
@@ -64,6 +87,8 @@ class TankService
                 throw new \Exception("Gaz insuffisant");
             }
 
+            $operation_date = $operation_date ?? now();
+
             $tank->decrement('current_level', $qty);
 
             TankMovement::create([
@@ -76,8 +101,41 @@ class TankService
                 'note' => 'Remplissage des bouteilles',
                 'operation_date' => $operation_date
             ]);
-            $gaz = Product::where('category_id', 1)->first();
-            app(StockService::class)->decreaseStock(1, $gaz->id, $qty, null, null);
+
+            $gaz = Product::where('category_id', 1)->firstOrFail();
+
+            $stock = StockByBranch::firstOrCreate([
+                'branche_id' => $tank->branch_id ?? 1,
+                'product_id' => $gaz->id,
+            ], [
+                'stock_quantity' => 0,
+                'status' => 'created'
+            ]);
+
+            $stockBefore = $stock->stock_quantity;
+            $stockAfter = $stockBefore - $qty;
+
+            $stock->decrement('stock_quantity', $qty);
+
+            ProductLedger::create([
+                'product_id' => $gaz->id,
+                'branch_id' => $tank->branch_id ?? 1,
+                'operation_date' => $operation_date,
+                'type' => 'sale',
+
+                'quantity' => -$qty,
+
+                'stock_before' => $stockBefore,
+                'stock_after' => $stockAfter,
+
+                'reference_type' => $referenceType ?? 'tank_consumption',
+                'reference_id' => $referenceId ?? $tank->id,
+
+                'notes' => 'Consommation gaz (remplissage bouteilles)',
+
+                'addedBy' => Auth::id(),
+                'status' => 'posted',
+            ]);
 
             return $tank;
         });
@@ -85,33 +143,80 @@ class TankService
 
     public function adjust($tankId, $qty, $type, $operation_date = null)
     {
-        $tank = Tank::findOrFail($tankId);
+        return DB::transaction(function () use ($tankId, $qty, $type, $operation_date) {
 
-        if ($type === 'augmentation') {
+            $tank = Tank::findOrFail($tankId);
 
-            if (($tank->current_level + $qty) > $tank->capacity) {
-                throw new \Exception("Capacité dépassée");
+            $operation_date = $operation_date ?? now();
+
+            $gaz = Product::where('category_id', 1)->firstOrFail();
+
+            $stock = StockByBranch::firstOrCreate([
+                'branche_id' => $tank->branch_id ?? 1,
+                'product_id' => $gaz->id,
+            ], [
+                'stock_quantity' => 0,
+                'status' => 'created'
+            ]);
+
+            $stockBefore = $stock->stock_quantity;
+
+            if ($type === 'augmentation') {
+
+                if (($tank->current_level + $qty) > $tank->capacity) {
+                    throw new \Exception("Capacité dépassée");
+                }
+
+                $tank->increment('current_level', $qty);
+
+                $stockAfter = $stockBefore + $qty;
+                $stock->increment('stock_quantity', $qty);
+
+                $ledgerType = 'adjustment_in';
+            } else {
+
+                if ($tank->current_level < $qty) {
+                    throw new \Exception("Niveau insuffisant");
+                }
+
+                $tank->decrement('current_level', $qty);
+
+                $stockAfter = $stockBefore - $qty;
+                $stock->decrement('stock_quantity', $qty);
+
+                $ledgerType = 'adjustment_out';
             }
 
-            $tank->increment('current_level', $qty);
-        } else {
+            TankMovement::create([
+                'tank_id' => $tank->id,
+                'type' => 'adjustment',
+                'quantity' => $qty,
+                'addedBy' => Auth::id(),
+                'note' => 'Ajustement quantité',
+                'operation_date' => $operation_date
+            ]);
 
-            if ($tank->current_level < $qty) {
-                throw new \Exception("Niveau insuffisant");
-            }
+            ProductLedger::create([
+                'product_id' => $gaz->id,
+                'branch_id' => $tank->branch_id ?? 1,
+                'operation_date' => $operation_date,
+                'type' => $ledgerType,
 
-            $tank->decrement('current_level', $qty);
-        }
+                'quantity' => $type === 'augmentation' ? $qty : -$qty,
 
-        TankMovement::create([
-            'tank_id' => $tank->id,
-            'type' => 'adjustment',
-            'quantity' => $qty,
-            'addedBy' => Auth::id(),
-            'note' => 'Ajustement quantité manuel',
-            'operation_date' => $operation_date ?? now()
-        ]);
+                'stock_before' => $stockBefore,
+                'stock_after' => $stockAfter,
 
-        return $tank;
+                'reference_type' => 'tank_adjustment',
+                'reference_id' => $tank->id,
+
+                'notes' => 'Ajustement quantité du tank',
+
+                'addedBy' => Auth::id(),
+                'status' => 'posted',
+            ]);
+
+            return $tank;
+        });
     }
 }

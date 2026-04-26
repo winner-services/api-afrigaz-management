@@ -37,7 +37,6 @@ class Branche extends Model
     {
         static::created(function ($branch) {
 
-            // 🔹 1. Création stock
             $products = Product::pluck('id');
 
             if ($products->isNotEmpty()) {
@@ -53,11 +52,31 @@ class Branche extends Model
                 })->toArray();
 
                 StockByBranch::insertOrIgnore($data);
-            }
 
-            // 🔹 2. Création caisse
+                foreach ($products as $productId) {
+
+                    ProductLedger::create([
+                        'product_id' => $productId,
+                        'branch_id' => $branch->id,
+                        'operation_date' => now(),
+                        'type' => 'init',
+                        'quantity' => 0,
+
+                        'stock_before' => 0,
+                        'stock_after' => 0,
+
+                        'reference_type' => 'branch_init',
+                        'reference_id' => $branch->id,
+
+                        'notes' => 'Initialisation produit',
+
+                        'addedBy' => $branch->addedBy ?? 1,
+                        'status' => 'created',
+                    ]);
+                }
+            }
             CashAccount::create([
-                'designation' => 'Caisse principale - ' . $branch->name,
+                'designation' => 'Caisse - ' . $branch->name,
                 'nature' => 'Caisse',
                 'reference' => 'CA-' . strtoupper(uniqid()),
                 'branche_id' => $branch->id,
@@ -66,32 +85,4 @@ class Branche extends Model
             ]);
         });
     }
-
-    // protected static function booted()
-    // {
-    //     static::created(function ($branche) {
-
-    //         // Récupérer seulement les IDs (plus rapide)
-    //         $products = Product::pluck('id');
-
-    //         if ($products->isEmpty()) {
-    //             return; // rien à faire
-    //         }
-
-    //         $data = $products->map(function ($productId) use ($branche) {
-    //             return [
-    //                 'branche_id' => $branche->id,
-    //                 'product_id' => $productId,
-    //                 'stock_quantity' => 0,
-    //                 'status' => 'created',
-    //                 'created_at' => now(),
-    //                 'updated_at' => now(),
-    //             ];
-    //         })->toArray();
-
-    //         // Insert rapide + ignore doublons
-    //         StockByBranch::insertOrIgnore($data);
-    //     });
-    // }
-
 }

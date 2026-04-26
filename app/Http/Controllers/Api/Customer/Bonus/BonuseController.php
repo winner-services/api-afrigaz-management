@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Customer\Bonus;
 
 use App\Http\Controllers\Controller;
 use App\Models\Bonuse;
+use App\Services\ReferralService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -229,5 +230,50 @@ class BonuseController extends Controller
             'status' => 200,
             'data' => $data
         ], 201);
+    }
+
+    #[OA\Post(
+        path: "/api/v1/payCustomer",
+        summary: "Créer payement",
+        tags: ["Bonus"],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["customer_id", "account_id", "operation_date"],
+                properties: [
+                    new OA\Property(property: "customer_id", type: "integer", example: 1),
+                    new OA\Property(property: "account_id", type: "integer", example: 1),
+                    new OA\Property(property: "operation_date", type: "date", example: "2026-04-26")
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: "Règle créée avec succès",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "success", type: "boolean", example: true),
+                        new OA\Property(property: "message", type: "string", example: "créée avec succès"),
+                        new OA\Property(property: "data", type: "object")
+                    ]
+                )
+            ),
+            new OA\Response(response: 422, description: "Erreur de validation"),
+            new OA\Response(response: 500, description: "Erreur serveur")
+        ]
+    )]
+
+    public function payCustomer(Request $request, ReferralService $payoutService)
+    {
+        $data = $request->validate([
+            'customer_id' => 'required|exists:customers,id',
+            'account_id' => 'required|exists:cash_accounts,id',
+            'operation_date' => 'nullable|date',
+        ]);
+
+        $result = $payoutService->payCustomer($data);
+
+        return response()->json($result);
     }
 }

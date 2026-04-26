@@ -97,7 +97,6 @@ class FillingService
                     'good'
                 );
 
-
                 $this->stockService->increaseStock(
                     $branchId,
                     $productId,

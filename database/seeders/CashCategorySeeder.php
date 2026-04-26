@@ -19,6 +19,7 @@ class CashCategorySeeder extends Seeder
             'Achat des produits',
             'Paiement dettes client',
             'Paiement dettes Distributeur',
+            'Payement Bonus Client'
         ];
 
         $types = [
@@ -26,7 +27,8 @@ class CashCategorySeeder extends Seeder
             'Depense',
             'Depense',
             'Revenue',
-            'Revenue'
+            'Revenue',
+            'Depense'
         ];
 
         foreach ($categories as $index => $categorie) {

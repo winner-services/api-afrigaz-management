@@ -11,6 +11,7 @@ use App\Models\DebtDistributor;
 use App\Models\ItemSale;
 use App\Models\Product;
 use App\Models\Sale;
+use App\Services\ReferralService;
 use App\Services\SaleService;
 use App\Services\StockService;
 use App\Services\TankService;
@@ -508,7 +509,7 @@ class SaleController extends Controller
                 if ($customerId) {
                     CustomerDebt::create([
                         'customer_id' => $customerId,
-                        'amount' => $total_amount,
+                        // 'amount' => $total_amount,
                         'loan_amount' => $remaining_amount,
                         'paid_amount' => $paid_amount,
                         'sale_id' => $sale->id,
@@ -641,13 +642,12 @@ class SaleController extends Controller
                     );
                 }
 
-                // if ($type === 'kit') {
-                //     app(ReferralService::class)->handle($sale);
-                // }
+                if ($type === 'kit') {
+                    if ($customerId) {
+                        app(ReferralService::class)->handle($sale);
+                    }
+                }
 
-                // =========================
-                // 🔥 FINAL
-                // =========================
                 $sale->update([
                     'total_amount' => $total
                 ]);

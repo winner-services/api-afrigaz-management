@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 #[Fillable([
@@ -69,7 +70,7 @@ class Product extends Model
 
             $now = now();
 
-            $isBottle = $product->category_id === 1;
+            $isBottle = $product->category_id === 2;
 
             $data = $branches->map(fn($branche) => [
                 'branche_id' => $branche->id,
@@ -99,31 +100,47 @@ class Product extends Model
                     'updated_at'
                 ]
             );
+
+            // foreach ($branches as $branche) {
+
+            //     ProductLedger::create([
+            //         'product_id' => $product->id,
+            //         'branch_id' => $branche->id,
+            //         'operation_date' => $now,
+            //         'type' => 'init',
+            //         'quantity' => 0,
+
+            //         'stock_before' => 0,
+            //         'stock_after' => 0,
+
+            //         'reference_type' => 'product_init',
+            //         'reference_id' => $product->id,
+            //         'notes' => 'Initialisation produit',
+            //         'addedBy' => Auth::id(),
+            //         'status' => 'created',
+            //     ]);
+            // }
+
+            foreach ($branches as $branche) {
+
+            ProductLedger::create([
+                'product_id' => $product->id,
+                'branch_id' => $branche->id,
+                'operation_date' => $now,
+                'type' => 'init', 
+                'quantity' => 0,
+
+                'stock_before' => 0,
+                'stock_after' => 0,
+
+                'reference_type' => 'product_init',
+                'reference_id' => $product->id,
+
+                'notes' => 'Initialisation produit',
+                'addedBy' => Auth::id() ?? 1,
+                'status' => 'created',
+            ]);
+        }
         });
     }
-
-    // protected static function booted()
-    // {
-    //     static::created(function ($product) {
-
-    //         $branches = Branche::pluck('id');
-
-    //         if ($branches->isEmpty()) {
-    //             return;
-    //         }
-
-    //         $data = $branches->map(function ($brancheId) use ($product) {
-    //             return [
-    //                 'branche_id' => $brancheId,
-    //                 'product_id' => $product->id,
-    //                 'stock_quantity' => 0,
-    //                 'status' => 'created',
-    //                 'created_at' => now(),
-    //                 'updated_at' => now(),
-    //             ];
-    //         })->toArray();
-
-    //         StockByBranch::insertOrIgnore($data);
-    //     });
-    // }
 }

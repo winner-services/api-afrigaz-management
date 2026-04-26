@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\Distributor;
 use App\Models\Filling;
 use App\Models\Product;
+use App\Models\ProductLedger;
 use App\Models\Sale;
 use App\Models\Shipping;
 use App\Models\StockEntry;
@@ -388,7 +389,7 @@ class RepportController extends Controller
         ]);
     }
 
-    #[OA\Post( 
+    #[OA\Post(
         path: "/api/deliveriesReport",
         summary: "Rapport des livraisons (filtré par date, distributeur et branche)",
         tags: ["Rapports"],
@@ -611,6 +612,120 @@ class RepportController extends Controller
             'status' => 200,
             'data' => $data,
             'info_company' => $about
+        ]);
+    }
+
+
+    #[OA\Post(
+        path: "/api/productStockReport",
+        summary: "Lister",
+        tags: ["Rapports"],
+        requestBody: new OA\RequestBody(
+            required: false,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: "start_date", type: "string", format: "date", example: "2026-04-01"),
+                    new OA\Property(property: "end_date", type: "string", format: "date", example: "2026-04-25"),
+                    new OA\Property(property: "branch_id", type: "integer", example: 1),
+                    new OA\Property(property: "product_id", type: "integer", example: 1),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Succès",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "message", type: "string", example: "success"),
+                        new OA\Property(property: "status", type: "integer", example: 200),
+                        new OA\Property(
+                            property: "data",
+                            type: "array",
+                            items: new OA\Items(
+                                properties: [
+                                    new OA\Property(property: "id", type: "integer", example: 1),
+                                    new OA\Property(property: "operation_date", type: "string", example: "2026-04-20"),
+                                ]
+                            )
+                        )
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 422,
+                description: "Erreur de validation"
+            )
+        ]
+    )]
+    public function productStockCard(Request $request)
+    {
+        $about = About::query()->first();
+        $validated = validator($request->all(), [
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+            'branch_id' => ['nullable', 'exists:branches,id'],
+            'product_id' => 'nullable'
+        ])->validate();
+        $start = $validated['start_date'] ?? now()->startOfMonth();
+        $end = $validated['end_date'] ?? now();
+        $branchId = $validated['branch_id'] ?? 1;
+        $productId = $validated['product_id'];
+
+        $product = Product::findOrFail($productId);
+
+        $lines = ProductLedger::with('product:id,name')
+            ->where('product_id', $productId)
+            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($start, fn($q) => $q->whereDate('operation_date', '>=', $start))
+            ->when($end, fn($q) => $q->whereDate('operation_date', '<=', $end))
+            ->orderBy('operation_date')
+            ->orderBy('id')
+            ->get();
+
+        $balance = 0;
+
+        $data = $lines->map(function ($line) use (&$balance) {
+
+            $balance += $line->quantity;
+
+            return [
+                'date' => $line->operation_date,
+                'reference' => $line->reference_type,
+                'reference_id' => $line->reference_id,
+
+                'type' => $line->type,
+
+                'entry' => $line->quantity > 0 ? $line->quantity : 0,
+                'exit' => $line->quantity < 0 ? abs($line->quantity) : 0,
+
+                'stock_before' => $line->stock_before,
+                'stock_after' => $line->stock_after,
+
+                'running_balance' => $balance,
+
+                'notes' => $line->notes,
+            ];
+        });
+
+        return response()->json([
+            'message' => 'success',
+            'info_company' => $about,
+            'product' => [
+                'id' => $product->id,
+                'name' => $product->name,
+            ],
+            'branch_id' => $branchId,
+            'period' => [
+                'start' => $start,
+                'end' => $end,
+            ],
+            'data' => $data,
+            'summary' => [
+                'total_in' => $lines->where('quantity', '>', 0)->sum('quantity'),
+                'total_out' => abs($lines->where('quantity', '<', 0)->sum('quantity')),
+                'balance' => $lines->sum('quantity'),
+            ]
         ]);
     }
 }

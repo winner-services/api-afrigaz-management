@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreignId('sale_id')->nullable()->constrained('sales')->cascadeOnDelete();
             $table->date('transaction_date')->nullable();
             $table->decimal('amount', 10, 2);
-            $table->string('status')->nullable();
+            $table->enum('status', ['pending', 'paid', 'cancelled'])->default('pending');
             $table->foreignId('addedBy')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });

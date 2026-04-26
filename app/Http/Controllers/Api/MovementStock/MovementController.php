@@ -111,22 +111,18 @@ class MovementController extends Controller
         $query = StockMovement::with(['branch', 'product', 'user'])
             ->orderBy('created_at', 'desc');
 
-        // 🔍 Filtre par branche
         if ($request->filled('branch_id')) {
             $query->where('branche_id', $request->branch_id);
         }
 
-        // 🔍 Filtre par produit
         if ($request->filled('product_id')) {
             $query->where('product_id', $request->product_id);
         }
 
-        // 🔍 Filtre par type
         if ($request->filled('type')) {
             $query->where('type', $request->type);
         }
 
-        // 🔍 Filtre par date
         if ($request->filled('from_date')) {
             $query->whereDate('created_at', '>=', $request->from_date);
         }
