@@ -98,17 +98,27 @@ class CompanyController extends Controller
         try {
             $about = DB::transaction(function () use ($request, $validated) {
 
-                $about = About::query()->first();
+                $about = About::first();
 
                 if ($request->hasFile('logo')) {
 
-                    if ($about && $about->logo) {
+                    if ($about?->logo && Storage::disk('public')->exists($about->logo)) {
                         Storage::disk('public')->delete($about->logo);
                     }
 
                     $validated['logo'] = $request->file('logo')->store('about', 'public');
                 }
 
+                if ($request->hasFile('logo2')) {
+
+                    if ($about?->logo2 && Storage::disk('public')->exists($about->logo2)) {
+                        Storage::disk('public')->delete($about->logo2);
+                    }
+
+                    $validated['logo2'] = $request->file('logo2')->store('about', 'public');
+                }
+
+                // 🔄 CREATE ou UPDATE
                 if ($about) {
                     $about->update($validated);
                 } else {
