@@ -278,7 +278,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/programRacompanceStore', 'storeData');
             Route::put('/programRacompanceUpdate/{id}', 'updateData');
             Route::put('/programDisable/{id}', 'delete');
-            Route::post('/payCustomer','payCustomer');
+            Route::post('/payCustomer', 'payCustomer');
         });
 
         Route::controller(DashBoardController::class)->group(function () {
@@ -296,6 +296,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/transfersReport', 'transfersReport');
             Route::post('/deliveriesReport', 'deliveriesReport');
             Route::post('/salesReport', 'salesReport');
+            Route::post('/productStockReport', 'productStockCard');
         });
     });
 });
