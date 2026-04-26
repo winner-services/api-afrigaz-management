@@ -185,15 +185,13 @@ class StockController extends Controller
 
         $userBranch = Branche::where('user_id', $user->id)->first();
 
-        if (!$userBranch && !isset($validated['branche_id'])) {
-            return response()->json([
-                'message' => 'Branche non trouvée'
-            ], 404);
-        }
+        // if (!$userBranch && !isset($validated['branche_id'])) {
+        //     return response()->json([
+        //         'message' => 'Branche non trouvée'
+        //     ], 404);
+        // }
 
-        $brancheId = $validated['branche_id']
-            ?? $userBranch?->id
-            ?? 1;
+        $brancheId = $validated['branche_id'] ?? 1;
 
         $q = $validated['q'] ?? null;
         $perPage = $validated['per_page'] ?? 10;
