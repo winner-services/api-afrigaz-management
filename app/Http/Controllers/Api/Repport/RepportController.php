@@ -31,7 +31,19 @@ class RepportController extends Controller
 
     public function productsList()
     {
-        $about = About::query()->first();
+        $about = About::first();
+        if ($about && $about->logo) {
+            $path = storage_path('app/public/' . $about->logo);
+
+            if (file_exists($path)) {
+                $mime = mime_content_type($path);
+                $data = base64_encode(file_get_contents($path));
+                $about->logo = "data:$mime;base64,$data";
+            } else {
+                // Si fichier manquant, on peut utiliser une image par défaut
+                $about->logo = asset('images/default-logo.png');
+            }
+        }
         $data = Product::with([
             'category',
             'unit'
@@ -54,7 +66,18 @@ class RepportController extends Controller
     )]
     public function stockReport()
     {
-        $about = About::query()->first();
+        $about = About::first();
+        if ($about && $about->logo) {
+            $path = storage_path('app/public/' . $about->logo);
+
+            if (file_exists($path)) {
+                $mime = mime_content_type($path);
+                $data = base64_encode(file_get_contents($path));
+                $about->logo = "data:$mime;base64,$data";
+            } else {
+                $about->logo = asset('images/default-logo.png');
+            }
+        }
         $startDate = request('start_date', now()->startOfMonth());
         $endDate = request('end_date', now());
         $branche_id = request('branche_id', 1);
@@ -84,7 +107,18 @@ class RepportController extends Controller
     )]
     public function distributorsList()
     {
-        $about = About::query()->first();
+        $about = About::first();
+        if ($about && $about->logo) {
+            $path = storage_path('app/public/' . $about->logo);
+
+            if (file_exists($path)) {
+                $mime = mime_content_type($path);
+                $data = base64_encode(file_get_contents($path));
+                $about->logo = "data:$mime;base64,$data";
+            } else {
+                $about->logo = asset('images/default-logo.png');
+            }
+        }
         $data =  Distributor::with([
             'category'
         ])->latest()->get();
@@ -108,7 +142,18 @@ class RepportController extends Controller
 
     public function customersList()
     {
-        $about = About::query()->first();
+        $about = About::first();
+        if ($about && $about->logo) {
+            $path = storage_path('app/public/' . $about->logo);
+
+            if (file_exists($path)) {
+                $mime = mime_content_type($path);
+                $data = base64_encode(file_get_contents($path));
+                $about->logo = "data:$mime;base64,$data";
+            } else {
+                $about->logo = asset('images/default-logo.png');
+            }
+        }
         $data = Customer::with(['user'])->latest()->get();
         return response()->json([
             'message' => 'success',
@@ -163,7 +208,18 @@ class RepportController extends Controller
 
     public function tankMovements(Request $request)
     {
-        $about = About::query()->first();
+        $about = About::first();
+        if ($about && $about->logo) {
+            $path = storage_path('app/public/' . $about->logo);
+
+            if (file_exists($path)) {
+                $mime = mime_content_type($path);
+                $data = base64_encode(file_get_contents($path));
+                $about->logo = "data:$mime;base64,$data";
+            } else {
+                $about->logo = asset('images/default-logo.png');
+            }
+        }
         $validated = validator($request->all(), [
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
@@ -227,7 +283,18 @@ class RepportController extends Controller
     )]
     public function purchasesReport(Request $request)
     {
-        $about = About::query()->first();
+        $about = About::first();
+        if ($about && $about->logo) {
+            $path = storage_path('app/public/' . $about->logo);
+
+            if (file_exists($path)) {
+                $mime = mime_content_type($path);
+                $data = base64_encode(file_get_contents($path));
+                $about->logo = "data:$mime;base64,$data";
+            } else {
+                $about->logo = asset('images/default-logo.png');
+            }
+        }
         $validated = validator($request->all(), [
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
@@ -291,7 +358,18 @@ class RepportController extends Controller
     )]
     public function fillingsReport(Request $request)
     {
-        $about = About::query()->first();
+        $about = About::first();
+        if ($about && $about->logo) {
+            $path = storage_path('app/public/' . $about->logo);
+
+            if (file_exists($path)) {
+                $mime = mime_content_type($path);
+                $data = base64_encode(file_get_contents($path));
+                $about->logo = "data:$mime;base64,$data";
+            } else {
+                $about->logo = asset('images/default-logo.png');
+            }
+        }
         $validated = validator($request->all(), [
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
@@ -354,7 +432,18 @@ class RepportController extends Controller
     )]
     public function transfersReport(Request $request)
     {
-        $about = About::query()->first();
+        $about = About::first();
+        if ($about && $about->logo) {
+            $path = storage_path('app/public/' . $about->logo);
+
+            if (file_exists($path)) {
+                $mime = mime_content_type($path);
+                $data = base64_encode(file_get_contents($path));
+                $about->logo = "data:$mime;base64,$data";
+            } else {
+                $about->logo = asset('images/default-logo.png');
+            }
+        }
         $validated = validator($request->all(), [
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
@@ -504,7 +593,18 @@ class RepportController extends Controller
     )]
     public function deliveriesReport(Request $request)
     {
-        $about = About::query()->first();
+        $about = About::first();
+        if ($about && $about->logo) {
+            $path = storage_path('app/public/' . $about->logo);
+
+            if (file_exists($path)) {
+                $mime = mime_content_type($path);
+                $data = base64_encode(file_get_contents($path));
+                $about->logo = "data:$mime;base64,$data";
+            } else {
+                $about->logo = asset('images/default-logo.png');
+            }
+        }
         $validated = validator($request->all(), [
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
@@ -597,7 +697,18 @@ class RepportController extends Controller
     )]
     public function salesReport()
     {
-        $about = About::query()->first();
+        $about = About::first();
+        if ($about && $about->logo) {
+            $path = storage_path('app/public/' . $about->logo);
+
+            if (file_exists($path)) {
+                $mime = mime_content_type($path);
+                $data = base64_encode(file_get_contents($path));
+                $about->logo = "data:$mime;base64,$data";
+            } else {
+                $about->logo = asset('images/default-logo.png');
+            }
+        }
         $startDate = request('start_date', now()->startOfMonth());
         $endDate = request('end_date', now());
         $branche_id = request('branche_id', 1);
@@ -660,7 +771,18 @@ class RepportController extends Controller
     )]
     public function productStockCard(Request $request)
     {
-        $about = About::query()->first();
+        $about = About::first();
+        if ($about && $about->logo) {
+            $path = storage_path('app/public/' . $about->logo);
+
+            if (file_exists($path)) {
+                $mime = mime_content_type($path);
+                $data = base64_encode(file_get_contents($path));
+                $about->logo = "data:$mime;base64,$data";
+            } else {
+                $about->logo = asset('images/default-logo.png');
+            }
+        }
         $validated = validator($request->all(), [
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
