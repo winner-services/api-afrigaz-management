@@ -128,7 +128,7 @@ class ProductController extends Controller
             ->where('stock_by_branches.branche_id', 1)
             ->where('products.status', 'created')
             ->where('stock_by_branches.is_empty', false)
-            ->where('condition_state.condition_state', 'good')
+            ->where('stock_by_branches.condition_state', 'good')
             ->select(
                 'products.*',
                 'stock_by_branches.stock_quantity',
