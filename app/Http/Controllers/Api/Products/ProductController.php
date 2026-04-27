@@ -76,11 +76,13 @@ class ProductController extends Controller
     public function getEmptyProductOptions()
     {
         $data = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
+            ->join('units', 'products.unit_id', '=', 'units.id')
             ->where('stock_by_branches.branche_id', 1)
             ->where('products.status', 'created')
-            ->where('stock_by_branches.is_empty', true)
+            ->where('stock_by_branches.is_empty', 1)
             ->where('stock_by_branches.condition_state', 'good')
-            ->select('products.*', 'stock_by_branches.stock_quantity as empty_quantity')
+            ->where('stock_by_branches.categorie_id', 2)
+            ->select('products.*', 'stock_by_branches.stock_quantity as empty_quantity', 'units.abreviation as unit')
             ->get();
         return response()->json([
             'status' => true,
@@ -143,15 +145,6 @@ class ProductController extends Controller
             )
 
             ->get();
-
-        // $echange = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
-        //     ->where('stock_by_branches.branche_id', 1)
-        //     ->where('products.status', 'created')
-        //     ->where(function ($query) {
-        //         $query->where('stock_by_branches.is_empty', false);
-        //     })
-        //     ->select('products.*', 'stock_by_branches.stock_quantity as stock_quantity', 'stock_by_branches.is_empty')
-        //     ->get();
         $echange = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
             ->where('stock_by_branches.branche_id', 1)
             ->where('products.status', 'created')
@@ -204,16 +197,13 @@ class ProductController extends Controller
     public function getTransfertProductOptionsData()
     {
         $gasPrice = Product::where('category_id', 1)->value('wholesale_price');
-        $data = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
-            ->where('stock_by_branches.branche_id', 1)
+
+        $data = Product::join('units', 'products.unit_id', '=', 'units.id')
             ->where('products.status', 'created')
-            ->where(function ($query) {
-                $query->where('stock_by_branches.is_empty', false)
-                    ->orWhereNull('stock_by_branches.is_empty');
-            })
+            ->whereIn('category_id', [2, 3])
             ->select(
                 'products.*',
-                'stock_by_branches.stock_quantity as stock_quantity',
+                'units.abreviation',
                 DB::raw("
             CASE 
     WHEN products.category_id = 2 THEN $gasPrice
@@ -241,12 +231,13 @@ class ProductController extends Controller
         $branche = Branche::where('user_id', Auth::id())->first();
 
         if (!$branche) {
-            return response()->json([
-                'message' => 'Branche non trouvée'
-            ], 404);
+            $brancheId = 1;
+        } else {
+            $brancheId = $branche->id;
         }
+
         $data = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
-            ->where('stock_by_branches.branche_id', $branche->id)
+            ->where('stock_by_branches.branche_id', $brancheId)
             ->where('products.status', 'created')
             ->where(function ($query) {
                 $query->where('stock_by_branches.is_empty', false)
@@ -268,10 +259,13 @@ class ProductController extends Controller
             new OA\Response(response: 200, description: "Liste")
         ]
     )]
-
     public function getProductOptions()
     {
-        $data = Product::where('status', 'created')->latest()->get();
+        $data = Product::where('status', 'created')
+            ->whereIn('category_id', [2, 3])
+            ->latest()
+            ->get();
+
         return response()->json([
             'status' => true,
             'data' => $data
@@ -500,9 +494,9 @@ class ProductController extends Controller
         $branche = Branche::where('user_id', Auth::id())->first();
 
         if (!$branche) {
-            return response()->json([
-                'message' => 'Branche non trouvée'
-            ], 404);
+            $brancheId = 1;
+        } else {
+            $brancheId = $branche->id;
         }
 
         $brancheId = request('branche_id', $branche->id);

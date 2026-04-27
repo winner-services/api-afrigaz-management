@@ -47,12 +47,6 @@ class DashBoardController extends Controller
             $startDate = $validated['start_date'] ?? now()->startOfMonth();
             $endDate = $validated['end_date'] ?? now();
 
-            // $branchId = request('branche_id', 1);
-
-            // $startDate = request('start_date', now()->startOfMonth());
-            // $endDate = request('end_date', now());
-
-
             $totalSales = Sale::where('branch_id', $branchId)
                 ->whereBetween('transaction_date', [$startDate, $endDate])
                 ->count();
@@ -138,29 +132,36 @@ class DashBoardController extends Controller
                 ->groupBy('date')
                 ->orderBy('date')
                 ->get();
-
             $data = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
+                ->join('units', 'products.unit_id', '=', 'units.id')
                 ->where('stock_by_branches.branche_id', $branchId)
+                ->whereColumn('stock_by_branches.stock_quantity', '<=', 'products.minimum_quantity')
                 ->select(
-                    'products.id',
+                    'products.id as product_id',
                     'products.name',
+                    'products.category_id',
+                    'products.wholesale_price',
+                    'products.retail_price',
                     'products.minimum_quantity',
+                    'units.abreviation',
                     'stock_by_branches.is_empty',
                     'stock_by_branches.condition_state',
-
-                    'stock_by_branches.stock_quantity',
-
-                    DB::raw("
-                CASE 
-                    WHEN stock_by_branches.stock_quantity <= products.minimum_quantity
-                    THEN 'LOW'
-                    ELSE 'OK'
-                END as alert
-            ")
+                    'stock_by_branches.stock_quantity'
                 )
-                ->having('alert', 'LOW')
-                ->get();
+                ->get()
+                ->map(function ($item) {
 
+                    $item->alert = 'LOW';
+
+                    if ((int) $item->category_id === 2) {
+                        $etat = ((bool) $item->is_empty) ? 'vide' : 'pleine';
+                        $item->display_name = $item->name . ' - ' . $etat . ' - ' . $item->condition_state;
+                    } else {
+                        $item->display_name = $item->name;
+                    }
+
+                    return $item;
+                });
             return response()->json([
                 'kpis' => [
                     'totalSales' => $totalSales,

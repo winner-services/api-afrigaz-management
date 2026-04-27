@@ -112,6 +112,82 @@ class StockService
         });
     }
 
+    public static function addMultipleStock($branchId, array $items, $description = null, $reference = null)
+    {
+        return DB::transaction(function () use ($branchId, $items, $description, $reference) {
+
+            $productIds = collect($items)->pluck('product_id')->unique();
+            $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+
+            foreach ($items as $item) {
+
+                $product = $products[$item['product_id']] ?? null;
+                if (!$product) continue;
+
+                $quantity = (int) $item['quantity'];
+                if ($quantity <= 0) continue;
+
+                if ((int) $product->category_id === 2) {
+                    $isEmpty = 1;
+                    $condition = 'good';
+                } elseif ((int) $product->category_id === 3) {
+                    $isEmpty = 0;
+                    $condition = 'good';
+                } else {
+                    $isEmpty = 0;
+                    $condition = 'good';
+                }
+
+                $stock = StockByBranch::firstOrCreate([
+                    'branche_id' => $branchId,
+                    'product_id' => $product->id,
+                    'is_empty' => $isEmpty,
+                    'condition_state' => $condition
+                ], [
+                    'stock_quantity' => 0,
+                    'status' => 'created'
+                ]);
+
+                $before = (int) $stock->stock_quantity;
+                $after = $before + $quantity;
+
+                $stock->update([
+                    'stock_quantity' => $after
+                ]);
+
+                StockMovement::create([
+                    'branche_id' => $branchId,
+                    'product_id' => $product->id,
+                    'type' => 'in',
+                    'quantity' => $quantity,
+                    'stock_before' => $before,
+                    'stock_after' => $after,
+                    'description' => $description,
+                    'reference_id' => $reference['id'] ?? null,
+                    'reference' => $reference['type'] ?? null,
+                    'addedBy' => Auth::id(),
+                ]);
+
+                ProductLedger::create([
+                    'product_id' => $product->id,
+                    'branch_id' => $branchId,
+                    'operation_date' => now(),
+                    'type' => 'purchase',
+                    'quantity' => $quantity,
+                    'stock_before' => $before,
+                    'stock_after' => $after,
+                    'reference_type' => $reference['type'] ?? 'stock_in',
+                    'reference_id' => $reference['id'] ?? null,
+                    'notes' => $description ?? 'Entrée stock multiple',
+                    'addedBy' => Auth::id() ?? 1,
+                    'status' => 'posted',
+                ]);
+            }
+
+            return true;
+        });
+    }
+
     /**
      * Retirer du stock (sortie)
      */

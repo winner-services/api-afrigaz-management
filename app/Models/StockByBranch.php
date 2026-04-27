@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['branche_id', 'product_id', 'stock_quantity', 'status', 'is_empty', 'condition_state'])]
+#[Fillable(['branche_id', 'product_id', 'stock_quantity', 'status', 'is_empty', 'condition_state', 'categorie_id'])]
 class StockByBranch extends Model
 {
     public function branch()
@@ -17,4 +17,7 @@ class StockByBranch extends Model
     {
         return $this->belongsTo(Product::class);
     }
+    protected $casts = [
+        'is_empty' => 'boolean',
+    ];
 }

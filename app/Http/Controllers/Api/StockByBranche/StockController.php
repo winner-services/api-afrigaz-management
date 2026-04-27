@@ -7,7 +7,6 @@ use App\Models\Branche;
 use App\Models\Currency;
 use App\Models\StockByBranch;
 use Illuminate\Http\Request;
-use App\Services\StockService;
 use Illuminate\Support\Facades\Auth;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -168,8 +167,6 @@ class StockController extends Controller
 
     public function getStockByBranche(Request $request): JsonResponse
     {
-        $user = Auth::user();
-
         $devise = Currency::where('status', 'created')
             ->orderByRaw("currency_type = 'devise_principale' DESC")
             ->latest()
@@ -183,23 +180,11 @@ class StockController extends Controller
             'per_page' => ['nullable', 'integer', 'min:1'],
         ]);
 
-        $userBranch = Branche::where('user_id', $user->id)->first();
-
-        // if (!$userBranch && !isset($validated['branche_id'])) {
-        //     return response()->json([
-        //         'message' => 'Branche non trouvée'
-        //     ], 404);
-        // }
-
         $brancheId = $validated['branche_id'] ?? 1;
-
         $q = $validated['q'] ?? null;
         $perPage = $validated['per_page'] ?? 10;
 
-        $stocks = StockByBranch::with([
-            'product.category',
-            'product.unit'
-        ])
+        $stocks = StockByBranch::with(['product.category', 'product.unit'])
             ->where('branche_id', $brancheId)
 
             ->when($q, function ($query) use ($q) {
@@ -215,6 +200,26 @@ class StockController extends Controller
 
             ->orderByDesc('id')
             ->paginate($perPage);
+
+        $stocks->getCollection()->transform(function ($stock) {
+
+            $product = $stock->product;
+
+            if (!$product) return $stock;
+
+            if ((int) $stock->categorie_id === 2) {
+
+                $etat = ((bool) $stock->is_empty) ? 'vide' : 'pleine';
+
+                $stock->product_name =
+                    $product->name . ' - ' . $etat . ' - ' . $stock->condition_state;
+            } else {
+
+                $stock->product_name = $product->name;
+            }
+
+            return $stock;
+        });
 
         return response()->json([
             'devise' => $devise,

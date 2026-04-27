@@ -37,50 +37,87 @@ class Branche extends Model
     {
         static::created(function ($branch) {
 
-            $products = Product::pluck('id');
+            $products = Product::select('id', 'category_id')->get();
 
-            if ($products->isNotEmpty()) {
-                $data = $products->map(function ($productId) use ($branch) {
-                    return [
-                        'branche_id' => $branch->id,
-                        'product_id' => $productId,
-                        'stock_quantity' => 0,
-                        'status' => 'created',
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ];
-                })->toArray();
+            if ($products->isEmpty()) {
+                return;
+            }
 
-                StockByBranch::insertOrIgnore($data);
+            $now = now();
 
-                foreach ($products as $productId) {
+            $stockData = [];
+            $ledgerData = [];
 
-                    ProductLedger::create([
-                        'product_id' => $productId,
-                        'branch_id' => $branch->id,
-                        'operation_date' => now(),
+            foreach ($products as $product) {
+
+                foreach (Branche::pluck('id') as $branchId) {
+
+                    if ($product->category_id == 2) {
+
+                        $states = [
+                            ['is_empty' => true,  'condition_state' => 'good'],
+                            ['is_empty' => false, 'condition_state' => 'good'],
+                            // ['is_empty' => true,  'condition_state' => 'damaged'],
+                            // ['is_empty' => true,  'condition_state' => 'repair'],
+                        ];
+
+                        foreach ($states as $state) {
+                            $stockData[] = [
+                                'branche_id' => $branchId,
+                                'product_id' => $product->id,
+                                'categorie_id' => $product->category_id,
+                                'stock_quantity' => 0,
+                                'is_empty' => $state['is_empty'],
+                                'condition_state' => $state['condition_state'],
+                                'status' => 'created',
+                                'created_at' => $now,
+                                'updated_at' => $now,
+                            ];
+                        }
+                    } else {
+
+                        $stockData[] = [
+                            'branche_id' => $branchId,
+                            'product_id' => $product->id,
+                            'categorie_id' => $product->category_id,
+                            'stock_quantity' => 0,
+                            'is_empty' => false,
+                            'condition_state' => 'good',
+                            'status' => 'created',
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ];
+                    }
+
+                    $ledgerData[] = [
+                        'product_id' => $product->id,
+                        'branch_id' => $branchId,
+                        'operation_date' => $now,
                         'type' => 'init',
                         'quantity' => 0,
-
                         'stock_before' => 0,
                         'stock_after' => 0,
-
                         'reference_type' => 'branch_init',
-                        'reference_id' => $branch->id,
-
+                        'reference_id' => $product->id,
                         'notes' => 'Initialisation produit',
-
-                        'addedBy' => $branch->addedBy ?? 1,
+                        'addedBy' => request()->user()->id ?? 1,
                         'status' => 'created',
-                    ]);
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
                 }
             }
+
+            StockByBranch::insertOrIgnore($stockData);
+
+            ProductLedger::insert($ledgerData);
+
             CashAccount::create([
                 'designation' => 'Cash - ' . $branch->name,
                 'nature' => 'Caisse',
                 'reference' => 'CA-' . strtoupper(uniqid()),
                 'branche_id' => $branch->id,
-                'addedBy' => $branch->addedBy ?? Auth::id(),
+                'addedBy' => request()->user()->id ?? 1,
                 'status' => 'created',
             ]);
         });

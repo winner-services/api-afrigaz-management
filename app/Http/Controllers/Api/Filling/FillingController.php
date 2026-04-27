@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class FillingController extends Controller
 {
     public function __construct(
-        protected FillingService $service
+        protected FillingService $fillingService
     ) {}
 
     #[OA\Post(
@@ -91,46 +91,39 @@ class FillingController extends Controller
             )
         ]
     )]
-    public function store(Request $request): JsonResponse
+    public function store(Request $request)
     {
+        $request->validate([
+            'tank_id' => 'required|exists:tanks,id',
+            'operation_date' => 'nullable|date',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.Number_of_bottles' => 'required|integer|min:1',
+        ]);
+
         try {
 
-            $data = $request->validate([
-                'tank_id' => 'required|exists:tanks,id',
-                'operation_date' => 'required|date',
-                'items' => 'required|array|min:1',
-                'items.*.product_id' => 'required|exists:products,id',
-                'items.*.Number_of_bottles' => 'required|integer|min:1',
-            ]);
-            
-            $filling = $this->service->processFilling($data);
+            $data = [
+                'tank_id' => $request->tank_id,
+                'operation_date' => $request->operation_date,
+                'items' => $request->items,
+            ];
+
+            $filling = $this->fillingService->processFilling($data);
 
             return response()->json([
+                'status' => 200,
+                'success' => true,
                 'message' => 'Remplissage effectué avec succès',
-                'status' => 201,
                 'data' => $filling
             ], 201);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-
-            return response()->json([
-                'message' => 'Erreur de validation',
-                'errors' => $e->errors(),
-                'status' => 422
-            ], 422);
         } catch (\Throwable $e) {
 
-            Log::error('Filling store error', [
-                'message' => $e->getMessage(),
-                'payload' => $request->all()
-            ]);
-
-            $decoded = json_decode($e->getMessage(), true);
-
             return response()->json([
-                'message' => 'Impossible de faire le remplissage',
-                'errors' => is_array($decoded) ? $decoded : [$e->getMessage()],
-                'status' => 422
-            ], 422);
+                'status' => false,
+                'message' => 'Erreur lors du remplissage',
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
         }
     }
 
@@ -145,7 +138,8 @@ class FillingController extends Controller
                 'tank:id,name',
                 'branch:id,name',
                 'addedBy:id,name',
-                'items.product:id,name'
+                'items.product:id,name,unit_id',
+                'items.product.unit:id,abreviation'
             ])
 
             ->when(

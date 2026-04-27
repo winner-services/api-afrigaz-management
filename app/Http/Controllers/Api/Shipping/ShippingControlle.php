@@ -612,9 +612,14 @@ class ShippingControlle extends Controller
     {
         $branches = Branche::latest()->get();
         $user = Auth::user();
-        $branch = Branche::where('user_id', $user->id)->first();
+        $branche = Branche::where('user_id', Auth::id())->first();
 
-        $brancheId = request('branche_id', $branch->id);
+        if (!$branche) {
+            $brancheId = 1;
+        } else {
+            $brancheId = $branche->id;
+        }
+
         $perPage = $request->query('per_page', 20);
         $search = request('q', '');
 
@@ -626,7 +631,6 @@ class ShippingControlle extends Controller
                     $q->whereHas('distributor', function ($q2) use ($search) {
                         $q2->where('name', 'like', "%{$search}%");
                     })
-                        // Recherche sur utilisateur (vendeur)
                         ->orWhereHas('user', function ($q2) use ($search) {
                             $q2->where('name', 'like', "%{$search}%");
                         })

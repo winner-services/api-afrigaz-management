@@ -62,7 +62,7 @@ class Product extends Model
     {
         static::created(function ($product) {
 
-            $branches = Branche::query()->select('id')->get();
+            $branches = Branche::pluck('id');
 
             if ($branches->isEmpty()) {
                 return;
@@ -70,27 +70,55 @@ class Product extends Model
 
             $now = now();
 
-            $isBottle = $product->category_id === 2;
+            $isBottle = (int) $product->category_id === 2;
 
-            $data = $branches->map(fn($branche) => [
-                'branche_id' => $branche->id,
-                'product_id' => $product->id,
+            $data = [];
 
-                'stock_quantity' => 0,
+            foreach ($branches as $branchId) {
 
-                'is_empty' => $isBottle ? 1 : null,
-                'condition_state' => $isBottle ? 'good' : null,
+                if ($isBottle) {
 
-                'status' => 'created',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ])->toArray();
+                    $states = [
+                        ['is_empty' => true,  'condition_state' => 'good'],
+                        ['is_empty' => false, 'condition_state' => 'good'],
+                        // ['is_empty' => true,  'condition_state' => 'damaged'],
+                        // ['is_empty' => true,  'condition_state' => 'repair'],
+                    ];
+
+                    foreach ($states as $state) {
+                        $data[] = [
+                            'branche_id' => $branchId,
+                            'product_id' => $product->id,
+                            'categorie_id' => $product->category_id,
+                            'stock_quantity' => 0,
+                            'is_empty' => $state['is_empty'],
+                            'condition_state' => $state['condition_state'],
+                            'status' => 'created',
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ];
+                    }
+                } else {
+                    $data[] = [
+                        'branche_id' => $branchId,
+                        'product_id' => $product->id,
+                        'categorie_id' => $product->category_id,
+                        'stock_quantity' => 0,
+                        'is_empty' => false,
+                        'condition_state' => 'good',
+                        'status' => 'created',
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                }
+            }
 
             DB::table('stock_by_branches')->upsert(
                 $data,
                 [
                     'branche_id',
                     'product_id',
+                    'categorie_id',
                     'is_empty',
                     'condition_state'
                 ],
@@ -100,47 +128,26 @@ class Product extends Model
                     'updated_at'
                 ]
             );
-
-            // foreach ($branches as $branche) {
-
-            //     ProductLedger::create([
-            //         'product_id' => $product->id,
-            //         'branch_id' => $branche->id,
-            //         'operation_date' => $now,
-            //         'type' => 'init',
-            //         'quantity' => 0,
-
-            //         'stock_before' => 0,
-            //         'stock_after' => 0,
-
-            //         'reference_type' => 'product_init',
-            //         'reference_id' => $product->id,
-            //         'notes' => 'Initialisation produit',
-            //         'addedBy' => Auth::id(),
-            //         'status' => 'created',
-            //     ]);
-            // }
-
-            foreach ($branches as $branche) {
-
-            ProductLedger::create([
-                'product_id' => $product->id,
-                'branch_id' => $branche->id,
-                'operation_date' => $now,
-                'type' => 'init', 
-                'quantity' => 0,
-
-                'stock_before' => 0,
-                'stock_after' => 0,
-
-                'reference_type' => 'product_init',
-                'reference_id' => $product->id,
-
-                'notes' => 'Initialisation produit',
-                'addedBy' => Auth::id() ?? 1,
-                'status' => 'created',
-            ]);
-        }
+            $ledgerData = [];
+            foreach ($branches as $branchId) {
+                $ledgerData[] = [
+                    'product_id' => $product->id,
+                    'branch_id' => $branchId,
+                    'operation_date' => $now,
+                    'type' => 'init',
+                    'quantity' => 0,
+                    'stock_before' => 0,
+                    'stock_after' => 0,
+                    'reference_type' => 'product_init',
+                    'reference_id' => $product->id,
+                    'notes' => 'Initialisation produit',
+                    'addedBy' => request()->user()->id ?? 1,
+                    'status' => 'created',
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+            ProductLedger::insert($ledgerData);
         });
     }
 }

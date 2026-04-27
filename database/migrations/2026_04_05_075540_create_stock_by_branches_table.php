@@ -17,19 +17,21 @@ return new class extends Migration
                 ->nullable()
                 ->constrained('branches')
                 ->nullOnDelete();
-
             $table->foreignId('product_id')
                 ->nullable()
                 ->constrained('products')
                 ->nullOnDelete();
             $table->integer('stock_quantity')->default(0);
-            $table->boolean('is_empty')->nullable();
+            $table->boolean('is_empty')->default(false);
             $table->enum('condition_state', [
                 'good',
                 'damaged',
                 'repair'
-            ])->nullable();
-
+            ])->default('good');
+            $table->foreignId('categorie_id')
+                ->nullable()
+                ->constrained('product_categories')
+                ->nullOnDelete();
             $table->string('status')->default('created');
             $table->timestamps();
             $table->unique([

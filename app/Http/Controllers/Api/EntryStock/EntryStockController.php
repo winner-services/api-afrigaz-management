@@ -55,6 +55,7 @@ class EntryStockController extends Controller
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
         ]);
+
         try {
             return DB::transaction(function () use ($request) {
 
@@ -65,24 +66,26 @@ class EntryStockController extends Controller
                     'addedBy' => Auth::id(),
                     'status' => 'created',
                 ]);
+
                 foreach ($request->items as $item) {
+
                     ItemsStockEntries::create([
                         'stock_entries_id' => $entry->id,
                         'product_id' => $item['product_id'],
                         'quantity' => $item['quantity'],
                     ]);
-
-                    StockService::addStock(
-                        1,
-                        $item['product_id'],
-                        $item['quantity'],
-                        "Entrée de stock REF: {$entry->reference}",
-                        [
-                            'id' => $entry->id,
-                            'type' => "stock_entry : {$entry->reference}"
-                        ]
-                    );
                 }
+
+                StockService::addMultipleStock(
+                    1,
+                    $request->items,
+                    "Entrée en stock REF: {$entry->reference}",
+                    [
+                        'id' => $entry->id,
+                        'type' => "stock_entry : {$entry->reference}"
+                    ]
+                );
+
                 return response()->json([
                     'status' => true,
                     'message' => 'Entrée de stock enregistrée avec succès',

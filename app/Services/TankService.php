@@ -105,7 +105,7 @@ class TankService
             $gaz = Product::where('category_id', 1)->firstOrFail();
 
             $stock = StockByBranch::firstOrCreate([
-                'branche_id' => $tank->branch_id ?? 1,
+                'branche_id' => 1,
                 'product_id' => $gaz->id,
             ], [
                 'stock_quantity' => 0,
