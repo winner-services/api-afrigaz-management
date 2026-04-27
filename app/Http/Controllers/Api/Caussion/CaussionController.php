@@ -120,7 +120,7 @@ class CaussionController extends Controller
                     'caussion_id' => $caussion->id,
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
-                    'unit_price' => $products->get($item['product_id'])->wholesale_price ?? null,
+                    'unit_price' => $item['unit_price']
                 ]);
             }
 
@@ -223,7 +223,7 @@ class CaussionController extends Controller
                     'caussion_id' => $caussion->id,
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
-                    'unit_price' => $products->get($item['product_id'])->wholesale_price ?? null,
+                    'unit_price' => $item['unit_price']
                 ]);
             }
 

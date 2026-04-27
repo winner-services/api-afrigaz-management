@@ -104,7 +104,9 @@ class ProductController extends Controller
             ->orderByRaw("currency_type = 'devise_principale' DESC")
             ->latest()
             ->get();
+
         $gasPrice = Product::where('category_id', 1)->value('wholesale_price');
+
         $recharge = Product::where('status', 'created')
             ->where('category_id', 2)
             ->select(
@@ -125,12 +127,8 @@ class ProductController extends Controller
         $kit = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
             ->where('stock_by_branches.branche_id', 1)
             ->where('products.status', 'created')
-
-            ->where(function ($query) {
-                $query->where('stock_by_branches.is_empty', false)
-                    ->orWhereNull('stock_by_branches.is_empty');
-            })
-
+            ->where('stock_by_branches.is_empty', false)
+            ->where('condition_state.is_empty', 'good')
             ->select(
                 'products.*',
                 'stock_by_branches.stock_quantity',
@@ -149,7 +147,6 @@ class ProductController extends Controller
             ->where('stock_by_branches.branche_id', 1)
             ->where('products.status', 'created')
 
-            // 🔥 bouteilles pleines uniquement
             ->where('stock_by_branches.is_empty', false)
 
             ->select(
