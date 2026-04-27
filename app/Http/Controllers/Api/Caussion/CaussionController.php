@@ -208,7 +208,6 @@ class CaussionController extends Controller
                 'category_distributor_id' => $request->category_distributor_id,
             ]);
 
-            // 🔥 delete old items
             CaussionItem::where('caussion_id', $id)->delete();
 
             $productIds = collect($request->items)->pluck('product_id');
@@ -217,7 +216,6 @@ class CaussionController extends Controller
                 ->get()
                 ->keyBy('id');
 
-            // 🔥 insert new items
             foreach ($request->items as $item) {
                 CaussionItem::create([
                     'caussion_id' => $caussion->id,
