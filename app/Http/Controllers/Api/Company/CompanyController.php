@@ -118,7 +118,6 @@ class CompanyController extends Controller
                     $validated['logo2'] = $request->file('logo2')->store('about', 'public');
                 }
 
-                // 🔄 CREATE ou UPDATE
                 if ($about) {
                     $about->update($validated);
                 } else {
