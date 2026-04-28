@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Transaction;
 
 use App\Http\Controllers\Controller;
+use App\Models\About;
 use App\Models\Branche;
 use App\Models\CashTransaction;
 use App\Models\Currency;
@@ -56,6 +57,22 @@ class TransactionController extends Controller
     )]
     public function store(Request $request)
     {
+        $about = About::first();
+        if ($about && $about->logo) {
+            $path = storage_path('app/public/' . $about->logo);
+
+            if (file_exists($path)) {
+                $mime = mime_content_type($path);
+                $data = base64_encode(file_get_contents($path));
+                $about->logo = "data:$mime;base64,$data";
+            } else {
+                $about->logo = asset('images/default-logo.png');
+            }
+        }
+        $devise = Currency::where('status', 'created')
+            ->orderByRaw("currency_type = 'devise_principale' DESC")
+            ->latest()
+            ->get();
         $rules = [
             'reason' => ['nullable', 'string'],
             'type' => ['required', 'in:Revenue,Depense'],
@@ -117,7 +134,10 @@ class TransactionController extends Controller
             return response()->json([
                 'message' => "Transaction ajoutée avec succès",
                 'success' => true,
-                'data' => $transaction
+                'status' => 201,
+                'data' => $transaction,
+                'info_company' => $about,
+                'devise' => $devise
             ], 201);
         } catch (\Exception $e) {
 
