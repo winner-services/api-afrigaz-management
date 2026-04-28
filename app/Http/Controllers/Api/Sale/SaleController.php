@@ -25,6 +25,12 @@ use OpenApi\Attributes as OA;
 
 class SaleController extends Controller
 {
+    protected $imageService;
+
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
     public function store(Request $request): JsonResponse
     {
         try {
@@ -425,23 +431,18 @@ class SaleController extends Controller
         ]
     )]
 
-    public function processSale(Request $request, ImageService $imageService)
+    public function processSale(Request $request)
     {
         try {
             $about = About::first();
+            if ($about) {
+                $this->imageService->transform($about, ['logo', 'logo2']);
+            }
 
             $devise = Currency::where('status', 'created')
                 ->orderByRaw("currency_type = 'devise_principale' DESC")
                 ->latest()
                 ->get();
-
-            if ($request->hasFile('logo')) {
-                $about->logo = $request->file('logo')->store('logos', 'public');
-            }
-
-            if ($request->hasFile('logo2')) {
-                $about->logo2 = $request->file('logo2')->store('logos', 'public');
-            }
 
             $data = $request->validate([
                 'montant_total' => 'nullable|numeric|min:0',

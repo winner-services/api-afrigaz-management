@@ -8,6 +8,7 @@ use App\Models\Branche;
 use App\Models\CashTransaction;
 use App\Models\Currency;
 use App\Models\TransactionHistory;
+use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +17,13 @@ use OpenApi\Attributes as OA;
 
 class TransactionController extends Controller
 {
+    protected $imageService;
+
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
+
     #[OA\Post(
         path: '/api/v1/transactionStoreData',
         summary: 'Créer une transaction de caisse',
@@ -58,16 +66,8 @@ class TransactionController extends Controller
     public function store(Request $request)
     {
         $about = About::first();
-        if ($about && $about->logo) {
-            $path = storage_path('app/public/' . $about->logo);
-
-            if (file_exists($path)) {
-                $mime = mime_content_type($path);
-                $data = base64_encode(file_get_contents($path));
-                $about->logo = "data:$mime;base64,$data";
-            } else {
-                $about->logo = asset('images/default-logo.png');
-            }
+        if ($about) {
+            $this->imageService->transform($about, ['logo', 'logo2']);
         }
         $devise = Currency::where('status', 'created')
             ->orderByRaw("currency_type = 'devise_principale' DESC")
@@ -380,6 +380,15 @@ class TransactionController extends Controller
             'description'     => ['nullable', 'string']
         ];
 
+        $about = About::first();
+        if ($about) {
+            $this->imageService->transform($about, ['logo', 'logo2']);
+        }
+        $devise = Currency::where('status', 'created')
+            ->orderByRaw("currency_type = 'devise_principale' DESC")
+            ->latest()
+            ->get();
+
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
@@ -419,7 +428,6 @@ class TransactionController extends Controller
             $date = $request->transaction_date ?? now();
             $reference = 'TRANS-' . strtoupper(uniqid());
 
-            // 🔥 Historique global
             TransactionHistory::create([
                 'from_account_id' => $request->from_account_id,
                 'to_account_id'   => $request->to_account_id,
@@ -441,7 +449,6 @@ class TransactionController extends Controller
                 'addedBy' => $user->id
             ]);
 
-            // 🔺 Revenu
             CashTransaction::create([
                 'reason' => 'Réception depuis compte #' . $request->from_account_id,
                 'type' => 'Revenue',
@@ -458,7 +465,9 @@ class TransactionController extends Controller
             return response()->json([
                 'message' => 'Transfert effectué avec succès.',
                 'success' => true,
-                'reference' => $reference
+                'reference' => $reference,
+                'devise' => $devise,
+                'info_company' => $about
             ], 201);
         } catch (\Exception $e) {
 
