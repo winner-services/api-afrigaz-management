@@ -398,7 +398,13 @@ class TransefrController extends Controller
         $page = request("paginate", 10);
         $q = request("q", "");
 
-        $branche = Branche::where('user_id', $user->id)->first();
+        $branche = Branche::where('user_id', Auth::id())->first();
+
+        if (!$branche) {
+            $brancheId = 1;
+        } else {
+            $brancheId = $branche->id;
+        }
 
         $data = Transfer::join('items_transfers', 'transfers.id', '=', 'items_transfers.transfer_id')
             ->join('branches as from_branch', 'transfers.from_branch_id', '=', 'from_branch.id')
@@ -413,11 +419,10 @@ class TransefrController extends Controller
                 'items_transfers.received_quantity as received_quantity',
                 'items_transfers.status'
             )
-            ->where(function ($query) use ($branche) {
-                $query->where('items_transfers.to_branch_id', $branche->id)
+            ->where(function ($query) use ($brancheId) {
+                $query->where('items_transfers.to_branch_id', $brancheId)
                     ->orWhere('transfers.from_branch_id', 1);
             })
-
             ->whereBetween('transfers.transfer_date', [$start, $end])
             ->where(function ($query) use ($q) {
                 $query->where('transfers.reference', 'like', "%$q%")
@@ -529,7 +534,6 @@ class TransefrController extends Controller
         } catch (\Throwable $e) {
 
             Log::error('Reception error', [
-                'item_id' => $itemId,
                 'error' => $e->getMessage()
             ]);
 

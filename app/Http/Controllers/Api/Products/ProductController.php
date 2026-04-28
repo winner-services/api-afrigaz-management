@@ -127,7 +127,8 @@ class ProductController extends Controller
         $kit = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
             ->where('stock_by_branches.branche_id', 1)
             ->where('products.status', 'created')
-            ->where('stock_by_branches.is_empty', false)
+            ->whereIn('products.category_id', [2, 3])
+            ->where('stock_by_branches.is_empty', 0)
             ->where('stock_by_branches.condition_state', 'good')
             ->select(
                 'products.*',
@@ -141,13 +142,13 @@ class ProductController extends Controller
     END AS gas_price
 ")
             )
-
             ->get();
         $echange = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
             ->where('stock_by_branches.branche_id', 1)
             ->where('products.status', 'created')
-
-            ->where('stock_by_branches.is_empty', false)
+            ->where('products.category_id', 2)
+            ->where('stock_by_branches.is_empty', 0)
+            ->where('stock_by_branches.condition_state', 'good')
 
             ->select(
                 'products.*',
@@ -236,10 +237,9 @@ class ProductController extends Controller
         $data = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
             ->where('stock_by_branches.branche_id', $brancheId)
             ->where('products.status', 'created')
-            ->where(function ($query) {
-                $query->where('stock_by_branches.is_empty', false)
-                    ->orWhereNull('stock_by_branches.is_empty');
-            })
+            ->whereIn('products.category_id', [2, 3])
+            ->where('stock_by_branches.is_empty', 0)
+            ->where('stock_by_branches.condition_state', 'good')
             ->select('products.*', 'stock_by_branches.stock_quantity as stock_quantity')
             ->get();
         return response()->json([
@@ -526,7 +526,7 @@ class ProductController extends Controller
             ->paginate($perPage);
 
         return response()->json([
-            'status' => true,
+            'success' => true,
             'status' => 200,
             'data' => $products
         ]);
