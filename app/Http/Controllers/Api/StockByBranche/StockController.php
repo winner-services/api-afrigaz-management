@@ -7,7 +7,6 @@ use App\Models\Branche;
 use App\Models\Currency;
 use App\Models\StockByBranch;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
@@ -85,12 +84,10 @@ class StockController extends Controller
         $query = StockByBranch::with(['branch', 'product'])
             ->orderBy('stock_quantity', 'desc');
 
-        // 🔍 Filtre par branche
         if ($request->filled('branch_id')) {
             $query->where('branche_id', $request->branch_id);
         }
 
-        // 🔍 Filtre par produit
         if ($request->filled('product_id')) {
             $query->where('product_id', $request->product_id);
         }
@@ -232,54 +229,4 @@ class StockController extends Controller
             'data' => $stocks
         ]);
     }
-    // public function getStockByBranche(): JsonResponse
-    // {
-    //     $user = Auth::user();
-    //     $devise = Currency::where('status', 'created')
-    //             ->orderByRaw("currency_type = 'devise_principale' DESC")
-    //             ->latest()
-    //             ->get();
-    //     $branches = Branche::latest()->get();
-
-    //     $page = request("paginate", 10);
-    //     $q = request("q", "");
-
-    //     $branche = Branche::where('user_id', $user->id)->first();
-
-    //     if (!$branche) {
-    //         return response()->json([
-    //             'message' => 'Branche non trouvée'
-    //         ], 404);
-    //     }
-
-    //     $brancheId = request('branche_id', $branche->id);
-
-    //     $stocks = StockByBranch::with([
-    //         'product.category',
-    //         'product.unit'
-    //     ])
-    //         ->where('branche_id', $brancheId)
-
-    //         ->when($q, function ($query) use ($q) {
-    //             $query->where(function ($q2) use ($q) {
-    //                 $q2->whereHas('product', function ($q3) use ($q) {
-    //                     $q3->where('name', 'like', "%$q%");
-    //                 })
-    //                     ->orWhereHas('product.category', function ($q3) use ($q) {
-    //                         $q3->where('designation', 'like', "%$q%");
-    //                     });
-    //             });
-    //         })
-
-    //         ->orderBy('id', 'desc')
-    //         ->paginate($page);
-
-    //     return response()->json(
-    //         [
-    //             'devise' => $devise,
-    //             'branches' => $branches,
-    //             'data' => $stocks
-    //         ]
-    //     );
-    // }
 }

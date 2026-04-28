@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api\Payment;
 
 use App\Http\Controllers\Controller;
+use App\Models\About;
 use App\Models\CashTransaction;
+use App\Models\Currency;
 use App\Models\CustomerDebt;
 use App\Models\CustomerDebtPayment;
 use App\Models\DebtDistributor;
@@ -22,7 +24,7 @@ class PayementController extends Controller
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['customer_id','distributor_id', 'paid_amount', 'account_id', 'transaction_date','due_anount'],
+                required: ['customer_id', 'distributor_id', 'paid_amount', 'account_id', 'transaction_date', 'due_anount'],
                 properties: [
                     new OA\Property(property: "customer_id", type: "integer", example: 1),
                     new OA\Property(property: "distributor_id", type: "integer", example: 1),
@@ -50,6 +52,22 @@ class PayementController extends Controller
     )]
     public function paymentDebt(Request $request)
     {
+        $about = About::first();
+        if ($about && $about->logo) {
+            $path = storage_path('app/public/' . $about->logo);
+
+            if (file_exists($path)) {
+                $mime = mime_content_type($path);
+                $data = base64_encode(file_get_contents($path));
+                $about->logo = "data:$mime;base64,$data";
+            } else {
+                $about->logo = asset('images/default-logo.png');
+            }
+        }
+        $devise = Currency::where('status', 'created')
+            ->orderByRaw("currency_type = 'devise_principale' DESC")
+            ->latest()
+            ->get();
         $request->validate([
             'distributor_id' => 'nullable|exists:distributors,id',
             'customer_id' => 'nullable|exists:customers,id',
@@ -173,6 +191,8 @@ class PayementController extends Controller
                 'success' => true,
                 'status' => 200,
                 'message' => 'Paiement effectué.',
+                'info_company' => $about,
+                'devise' => $devise,
                 'total_paid' => $totalPaid,
                 'remaining_unallocated' => $remainingAmount,
                 'new_balance' => $currentSolde

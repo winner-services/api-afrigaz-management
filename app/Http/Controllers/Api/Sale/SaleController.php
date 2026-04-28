@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Sale;
 
 use App\Http\Controllers\Controller;
+use App\Models\About;
 use App\Models\Branche;
 use App\Models\CashTransaction;
 use App\Models\Currency;
@@ -305,10 +306,16 @@ class SaleController extends Controller
     {
         $devise = Currency::where('status', 'created')->latest()->get();
         $branches = Branche::latest()->get();
-        $user = Auth::user();
-        $branch = Branche::where('user_id', $user->id)->first();
 
-        $brancheId = request('branche_id', $branch->id);
+        $branche = Branche::where('user_id', Auth::id())->first();
+
+        if (!$branche) {
+            $brancheId = 1;
+        } else {
+            $brancheId = $branche->id;
+        }
+
+        $brancheId = request('branche_id', $brancheId);
         $perPage = $request->query('per_page', 20);
         $search = request('q', '');
 
@@ -320,15 +327,12 @@ class SaleController extends Controller
                     $q->whereHas('customer', function ($q2) use ($search) {
                         $q2->where('name', 'like', "%{$search}%");
                     })
-                        // Recherche sur utilisateur (vendeur)
                         ->orWhereHas('user', function ($q2) use ($search) {
                             $q2->where('name', 'like', "%{$search}%");
                         })
-                        // Recherche sur produits
                         ->orWhereHas('saleItems.product', function ($q2) use ($search) {
                             $q2->where('designation', 'like', "%{$search}%");
                         })
-                        // Optionnel : recherche directe sur la vente (ex: référence)
                         ->orWhere('reference', 'like', "%{$search}%");
                 });
             })
@@ -419,22 +423,35 @@ class SaleController extends Controller
             )
         ]
     )]
+
     public function processSale(Request $request)
     {
         try {
 
+            $about = About::first();
+            if ($about && $about->logo) {
+                $path = storage_path('app/public/' . $about->logo);
+
+                if (file_exists($path)) {
+                    $mime = mime_content_type($path);
+                    $data = base64_encode(file_get_contents($path));
+                    $about->logo = "data:$mime;base64,$data";
+                } else {
+                    // Si fichier manquant, on peut utiliser une image par défaut
+                    $about->logo = asset('images/default-logo.png');
+                }
+            }
+            $devise = Currency::where('status', 'created')
+                ->orderByRaw("currency_type = 'devise_principale' DESC")
+                ->latest()
+                ->get();
+
             $data = $request->validate([
-                'montant_total' => 'nullable',
-                'paid_amount' => 'nullable',
-                'account_id' => 'nullable',
-                'customer_id' => [
-                    'nullable',
-                    'exists:customers,id',
-                ],
-                'distributor_id' => [
-                    'nullable',
-                    'exists:distributors,id',
-                ],
+                'montant_total' => 'nullable|numeric|min:0',
+                'paid_amount' => 'nullable|numeric|min:0',
+                'account_id' => 'nullable|exists:cash_accounts,id',
+                'customer_id' => 'nullable|exists:customers,id',
+                'distributor_id' => 'nullable|exists:distributors,id',
                 'date_vente' => 'required|date',
                 'branch_id' => 'nullable|exists:branches,id',
                 'type' => 'required|in:exchange,kit,refill,accessory',
@@ -451,104 +468,100 @@ class SaleController extends Controller
                 $branchId = $data['branch_id'] ?? 1;
                 $type = $data['type'];
                 $items = $data['items'];
-                $tankId = $data['tank_id'] ?? 1;
-                $total_amount = $data['montant_total'];
-                $paid_amount = $data['paid_amount'];
-                $account_id = $data['account_id'];
+                $tankId = $data['tank_id'] ?? null;
+
+                $totalAmount = (float) $data['montant_total'];
+                $paidAmount = (float) $data['paid_amount'];
 
                 $total = 0;
                 $totalGas = 0;
 
-                // 🔥 produit gaz (ID = 1)
                 $gasProduct = Product::where('category_id', 1)->first();
 
-                if ($type === 'Recharge' && !$gasProduct) {
+                if (in_array($type, ['refill', 'exchange']) && !$gasProduct) {
                     throw new \Exception("Produit gaz introuvable");
                 }
-                // $paid_amount = 0;
 
-                // 🔥 création vente
                 $sale = Sale::create([
                     'reference' => fake()->unique()->numerify('VENTE-#####'),
                     'customer_id' => $customerId,
                     'distributor_id' => $distributorId,
                     'branch_id' => $branchId,
                     'type' => $type,
-                    'total_amount' => $total_amount,
-                    'paid_amount' => 0,
+                    'total_amount' => $totalAmount,
+                    'paid_amount' => $paidAmount,
                     'addedBy' => Auth::id(),
                     'transaction_date' => $data['date_vente'],
-                    'sale_type' => $data['type']
+                    'status' => 'pending',
                 ]);
-                $remaining_amount = $total_amount - $paid_amount;
 
-                $status = match (true) {
-                    $paid_amount == 0 => 'pending',
-                    $paid_amount < $total_amount => 'partial',
+                $remaining = $totalAmount - $paidAmount;
+
+                $sale->status = match (true) {
+                    $paidAmount == 0 => 'pending',
+                    $paidAmount < $totalAmount => 'partial',
                     default => 'completed',
                 };
-                $sale->status = $status;
+
                 $sale->save();
-                if ($status === 'completed') {
-                    return;
+
+                if ($remaining > 0) {
+
+                    if ($distributorId) {
+                        DebtDistributor::updateOrCreate(
+                            [
+                                'sale_id' => $sale->id,
+                            ],
+                            [
+                                'distributor_id' => $distributorId,
+                                'loan_amount' => $remaining,
+                                'motif' => 'Dette Vente #' . $sale->id,
+                                'paid_amount' => $paidAmount,
+                                'transaction_date' => now(),
+                                'status' => $sale->status,
+                                'user_id' => Auth::id(),
+                            ]
+                        );
+                    }
+
+                    if ($customerId) {
+                        CustomerDebt::updateOrCreate(
+                            [
+                                'sale_id' => $sale->id,
+                            ],
+                            [
+                                'customer_id' => $customerId,
+                                'loan_amount' => $remaining,
+                                'paid_amount' => $paidAmount,
+                                'transaction_date' => now(),
+                                'motif' => 'Dette Vente #' . $sale->id,
+                                'status' => $sale->status,
+                                'user_id' => Auth::id(),
+                            ]
+                        );
+                    }
                 }
 
-                if ($distributorId) {
-                    DebtDistributor::create([
-                        'distributor_id' => $distributorId,
-                        'loan_amount' => $remaining_amount,
-                        'paid_amount' => $paid_amount,
-                        'transaction_date' => now(),
-                        'motif' => 'Dette de la Vente' . $sale->id,
-                        $sale->id,
-                        'status' => $status,
-                        'user_id' => Auth::id(),
-                    ]);
-                }
+                if ($paidAmount > 0) {
 
-                if ($customerId) {
-                    CustomerDebt::create([
-                        'customer_id' => $customerId,
-                        // 'amount' => $total_amount,
-                        'loan_amount' => $remaining_amount,
-                        'paid_amount' => $paid_amount,
-                        'sale_id' => $sale->id,
-                        'transaction_date' => now(),
-                        'motif' => 'Dette de la Vente' . $sale->id,
-                        'status' => $status,
-                        'user_id' => Auth::id(),
-                    ]);
-                }
-
-                if ($paid_amount > 0) {
-
-                    $payAmount = $paid_amount;
-
-                    $lastTransaction = CashTransaction::where('cash_account_id', $account_id)
+                    $last = CashTransaction::where('cash_account_id', $data['account_id'])
                         ->latest('id')
                         ->first();
 
-                    $previousSolde = $lastTransaction ? $lastTransaction->solde : 0;
+                    $solde = ($last->solde ?? 0) + $paidAmount;
 
-                    $currentSolde = $previousSolde + $payAmount;
-
-                    CashTransaction::updateOrCreate(
-                        [
-                            'reference' => 'SALE-' . $sale->reference,
-                            'cash_account_id' => $account_id,
-                        ],
-                        [
-                            'reason' => 'Paiement vente #' . $sale->id,
-                            'type' => 'Revenue',
-                            'reference_id' => $sale->id,
-                            'amount' => $payAmount,
-                            'transaction_date' => now(),
-                            'solde' => $currentSolde,
-                            'cash_categorie_id' => 4,
-                            'addedBy' => Auth::id()
-                        ]
-
-                    );
+                    CashTransaction::create([
+                        'reason' => 'Paiement vente #' . $sale->id,
+                        'type' => 'Revenue',
+                        'amount' => $paidAmount,
+                        'transaction_date' => now(),
+                        'solde' => $solde,
+                        'reference' => 'SALE-' . $sale->reference,
+                        'reference_id' => $sale->id,
+                        'cash_account_id' => $data['account_id'],
+                        'cash_categorie_id' => 4,
+                        'addedBy' => Auth::id()
+                    ]);
                 }
 
                 foreach ($items as $item) {
@@ -556,43 +569,19 @@ class SaleController extends Controller
                     $product = Product::findOrFail($item['product_id']);
                     $qty = (int) $item['quantity'];
 
-                    if ($type === 'refill') {
+                    $unitPrice = 0;
+                    $lineTotal = 0;
 
-                        if (!$tankId) {
-                            throw new \Exception("Tank requis pour refill");
-                        }
-
-                        if (!$product->weight_kg) {
-                            throw new \Exception("Poids non défini pour {$product->name}");
-                        }
-
-                        $pricePerKg = $gasProduct->wholesale_price;
-
-                        if ($pricePerKg <= 0) {
-                            throw new \Exception("Prix gaz invalide");
-                        }
-
-                        $gasQty = $product->weight_kg * $qty;
-
-                        $unitPrice = $pricePerKg;
-                        $lineTotal = $pricePerKg * $gasQty;
-
-                        $totalGas += $gasQty;
-                    } elseif ($type === 'exchange') {
+                    if ($type === 'refill' || $type === 'exchange') {
 
                         if (!$product->weight_kg) {
                             throw new \Exception("Poids non défini pour {$product->name}");
                         }
-                        $pricePerKg = $gasProduct->wholesale_price;
 
-                        if ($pricePerKg <= 0) {
-                            throw new \Exception("Prix gaz invalide");
-                        }
                         $gasQty = $product->weight_kg * $qty;
-
-                        $unitPrice = $pricePerKg;
-                        $lineTotal = $pricePerKg * $gasQty;
-
+                        $price = $gasProduct->wholesale_price;
+                        $lineTotal = $price * $gasQty;
+                        $unitPrice = $price * $product->weight_kg;
                         $totalGas += $gasQty;
                     } else {
 
@@ -608,20 +597,45 @@ class SaleController extends Controller
                     $total += $lineTotal;
 
                     if ($type === 'exchange') {
+                        app(StockService::class)->decreaseExchangeStock(
+                            $branchId,
+                            $product->id,
+                            $qty,
+                            'exchange',
+                            $sale->id ?? null,
+                            $data['date_vente']
+                        );
 
-                        // pleine ↓
-                        app(StockService::class)->decreaseStock($branchId, $product->id, $qty, false, null);
-
-                        // vide ↑
-                        app(StockService::class)->increaseStock($branchId, $product->id, $qty, true, 'good');
+                        app(StockService::class)->increaseStockExchange(
+                            $branchId,
+                            $product->id,
+                            $qty,
+                            'exchange',
+                            $sale->id ?? null,
+                            $data['date_vente']
+                        );
                     } elseif ($type === 'kit') {
 
-                        app(StockService::class)->decreaseKitStock($branchId, $product->id, $qty, false, null);
+                        app(StockService::class)->decreaseKitStock(
+                            $branchId,
+                            $product->id,
+                            $qty,
+                            'kit',
+                            $sale->id,
+                            $data['date_vente']
+                        );
                     } elseif ($type === 'accessory') {
 
-                        app(StockService::class)->decreaseKitStock($branchId, $product->id, $qty, false, null);
+                        app(StockService::class)->decreaseKitStock(
+                            $branchId,
+                            $product->id,
+                            $qty,
+                            'kit',
+                            $sale->id,
+                            $data['date_vente']
+                        );
                     }
-
+                    // dd($lineTotal);
                     ItemSale::create([
                         'sale_id' => $sale->id,
                         'product_id' => $product->id,
@@ -631,7 +645,7 @@ class SaleController extends Controller
                     ]);
                 }
 
-                if ($type === 'refill') {
+                if ($type === 'refill' && $tankId) {
 
                     app(TankService::class)->consumeGas(
                         $tankId,
@@ -642,10 +656,8 @@ class SaleController extends Controller
                     );
                 }
 
-                if ($type === 'kit') {
-                    if ($customerId) {
-                        app(ReferralService::class)->handle($sale);
-                    }
+                if ($type === 'kit' && $customerId) {
+                    app(ReferralService::class)->handle($sale);
                 }
 
                 $sale->update([
@@ -659,14 +671,16 @@ class SaleController extends Controller
                 'success' => true,
                 'status' => 201,
                 'message' => 'Vente enregistrée avec succès',
-                'data' => $sale
+                'data' => $sale,
+                'info_company' => $about,
+                'devise' => $devise
             ], 201);
         } catch (\Throwable $e) {
-            DB::rollBack();
+
             return response()->json([
-                'status'  => false,
-                'message' => 'Une erreur est survenue lors de la création',
-                'error'   => config('app.debug') ? $e->getMessage() : null
+                'success' => false,
+                'message' => 'Une erreur est survenue',
+                'error' => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }
     }

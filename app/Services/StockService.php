@@ -507,6 +507,59 @@ class StockService
         });
     }
 
+    public function increaseStockExchange(
+        $branchId,
+        $productId,
+        $qty,
+        $referenceType = null,
+        $referenceId = null,
+        $operation_date = null
+    ) {
+        return DB::transaction(function () use (
+            $branchId,
+            $productId,
+            $qty,
+            $referenceType,
+            $referenceId,
+            $operation_date
+        ) {
+
+            $stock = StockByBranch::firstOrCreate([
+                'branche_id' => $branchId,
+                'product_id' => $productId,
+                'is_empty' => 1,
+                'condition_state' => 'good'
+            ], [
+                'stock_quantity' => 0,
+                'status' => 'created'
+            ]);
+
+            $stockBefore = $stock->stock_quantity;
+            $stockAfter = $stockBefore + $qty;
+
+            $stock->update([
+                'stock_quantity' => $stockAfter
+            ]);
+
+            ProductLedger::create([
+                'product_id' => $productId,
+                'branch_id' => $branchId,
+                'operation_date' => $operation_date ?? now(),
+                'type' => 'exchange_in',
+                'quantity' => $qty,
+                'stock_before' => $stockBefore,
+                'stock_after' => $stockAfter,
+                'reference_type' => $referenceType ?? 'exchange',
+                'reference_id' => $referenceId,
+                'notes' => 'Retour bouteilles vides (échange)',
+                'addedBy' => Auth::id() ?? 1,
+                'status' => 'posted',
+            ]);
+
+            return $stock;
+        });
+    }
+
     public function increaseStock(
         $branchId,
         $productId,
@@ -566,27 +619,63 @@ class StockService
             return $stock;
         });
     }
-    // public function increaseStock(
-    //     $branchId,
-    //     $productId,
-    //     $qty,
-    //     $isEmpty = null,
-    //     $condition = null
-    // ) {
-    //     $stock = StockByBranch::firstOrCreate([
-    //         'branche_id' => $branchId,
-    //         'product_id' => $productId,
-    //         'is_empty' => $isEmpty,
-    //         'condition_state' => $condition
-    //     ], [
-    //         'stock_quantity' => 0,
-    //         'status' => 'created'
-    //     ]);
+    public function decreaseExchangeStock(
+        $branchId,
+        $productId,
+        $qty,
+        $referenceType = null,
+        $referenceId = null,
+        $operation_date = null
+    ) {
+        return DB::transaction(function () use (
+            $branchId,
+            $productId,
+            $qty,
+            $referenceType,
+            $referenceId,
+            $operation_date
+        ) {
 
-    //     $stock->increment('stock_quantity', $qty);
+            $stock = StockByBranch::where([
+                'branche_id' => $branchId,
+                'product_id' => $productId,
+                'is_empty' => 0,
+                'condition_state' => 'good'
+            ])->lockForUpdate()->first();
 
-    //     return $stock;
-    // }
+            if (!$stock) {
+                throw new \Exception("Stock bouteilles pleines introuvable pour produit ID: {$productId}");
+            }
+
+            if ($stock->stock_quantity < $qty) {
+                throw new \Exception("Stock insuffisant pour produit ID: {$productId}");
+            }
+
+            $stockBefore = $stock->stock_quantity;
+            $stockAfter = $stockBefore - $qty;
+
+            $stock->update([
+                'stock_quantity' => $stockAfter
+            ]);
+
+            ProductLedger::create([
+                'product_id' => $productId,
+                'branch_id' => $branchId,
+                'operation_date' => $operation_date ?? now(),
+                'type' => 'sale',
+                'quantity' => -$qty,
+                'stock_before' => $stockBefore,
+                'stock_after' => $stockAfter,
+                'reference_type' => $referenceType ?? 'sale',
+                'reference_id' => $referenceId,
+                'notes' => 'Sortie bouteilles pleines',
+                'addedBy' => Auth::id() ?? 1,
+                'status' => 'posted',
+            ]);
+
+            return $stock;
+        });
+    }
 
     public function decreaseStock(
         $branchId,
@@ -653,43 +742,10 @@ class StockService
         });
     }
 
-    // public function decreaseKitStock(
-    //     $branchId,
-    //     $productId,
-    //     $qty,
-    //     $isEmpty = null,
-    //     $condition = null
-    // ) {
-    //     $stock = StockByBranch::where(
-    //         'branche_id',
-    //         $branchId
-    //     )->where('product_id', $productId)
-    //         ->where(
-    //             fn($q) =>
-    //             $q->where('is_empty', false)
-    //                 ->orWhereNull('is_empty')
-    //         )
-    //         ->lockForUpdate()
-    //         ->first();
-
-    //     if (!$stock) {
-    //         throw new \Exception("Stock introuvable");
-    //     }
-
-    //     if ($stock->stock_quantity < $qty) {
-    //         throw new \Exception("Stock insuffisant");
-    //     }
-
-    //     $stock->decrement('stock_quantity', $qty);
-
-    //     return $stock;
-    // }
     public function decreaseKitStock(
         $branchId,
         $productId,
         $qty,
-        $isEmpty = null,
-        $condition = null,
         $referenceType = null,
         $referenceId = null,
         $operation_date = null
@@ -703,22 +759,29 @@ class StockService
             $operation_date
         ) {
 
-            $stock = StockByBranch::where('branche_id', $branchId)
-                ->where('product_id', $productId)
-                ->where(
-                    fn($q) =>
-                    $q->where('is_empty', false)
-                        ->orWhereNull('is_empty')
-                )
-                ->lockForUpdate()
-                ->first();
+            $product = Product::findOrFail($productId);
+
+            if ((int) $product->category_id === 2) {
+
+                $stock = StockByBranch::where([
+                    'branche_id' => $branchId,
+                    'product_id' => $productId,
+                    'is_empty' => 0,
+                    'condition_state' => 'good'
+                ])->lockForUpdate()->first();
+            } else {
+                $stock = StockByBranch::where([
+                    'branche_id' => $branchId,
+                    'product_id' => $productId
+                ])->lockForUpdate()->first();
+            }
 
             if (!$stock) {
-                throw new \Exception("Stock introuvable");
+                throw new \Exception("Stock introuvable pour produit ID: {$productId}");
             }
 
             if ($stock->stock_quantity < $qty) {
-                throw new \Exception("Stock insuffisant");
+                throw new \Exception("Stock insuffisant pour produit ID: {$productId}");
             }
 
             $operation_date = $operation_date ?? now();
@@ -726,28 +789,26 @@ class StockService
             $before = $stock->stock_quantity;
             $after = $before - $qty;
 
-            $stock->decrement('stock_quantity', $qty);
+            $stock->update([
+                'stock_quantity' => $after
+            ]);
 
             ProductLedger::create([
                 'product_id' => $productId,
                 'branch_id' => $branchId,
                 'operation_date' => $operation_date,
                 'type' => 'sale',
-
                 'quantity' => -$qty,
-
                 'stock_before' => $before,
                 'stock_after' => $after,
-
                 'reference_type' => $referenceType ?? 'kit_decrease',
                 'reference_id' => $referenceId,
-
-                'notes' => 'Sortie kit (vente)',
-
+                'notes' => (int) $product->category_id === 2
+                    ? 'Sortie kit (bouteilles pleines)'
+                    : 'Sortie kit (accessoires)',
                 'addedBy' => Auth::id() ?? 1,
                 'status' => 'posted',
             ]);
-
             return $stock;
         });
     }
@@ -1005,7 +1066,6 @@ class StockService
                         throw new \Exception("Quantité invalide");
                     }
 
-                    // 🔥 enregistrer détail
                     BottleReturnItem::create([
                         'bottle_return_id' => $return->id,
                         'product_id' => $productId,
@@ -1013,7 +1073,6 @@ class StockService
                         'quantity' => $qty,
                     ]);
 
-                    // mise à jour stock
                     $this->increaseStock(
                         1,
                         $productId,
