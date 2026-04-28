@@ -25,4 +25,8 @@ class Distributor extends Model
     {
         return $this->belongsTo(CategoryDistributor::class, 'category_distributor_id');
     }
+    public function shippings()
+    {
+        return $this->hasMany(Shipping::class, 'distributor_id');
+    }
 }

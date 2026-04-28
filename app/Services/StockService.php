@@ -14,6 +14,8 @@ use App\Models\Transfer;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
+use function Symfony\Component\Clock\now;
+
 class StockService
 {
     /**
@@ -228,28 +230,84 @@ class StockService
         });
     }
 
-    public static function removeStockShippinng($branchId, $productId, $quantity, $description = null, $reference = null)
-    {
+    // public static function removeStockShippinng($branchId, $productId, $quantity, $description = null, $reference = null)
+    // {
+    //     return DB::transaction(function () use ($branchId, $productId, $quantity, $description, $reference) {
+
+    //         $stock = StockByBranch::where(
+    //             'branche_id',
+    //             $branchId
+    //         )->where('product_id', $productId)
+    //             ->where(
+    //                 fn($q) =>
+    //                 $q->where('is_empty', false)
+    //                     ->orWhereNull('is_empty')
+    //             )
+    //             ->lockForUpdate()
+    //             ->first();
+
+    //         if ($stock->stock_quantity < $quantity) {
+    //             throw new \Exception("Stock insuffisant");
+    //         }
+
+    //         $before = $stock->stock_quantity;
+    //         $after = $before - $quantity;
+
+    //         $stock->update([
+    //             'stock_quantity' => $after
+    //         ]);
+
+    //         StockMovement::create([
+    //             'branche_id' => $branchId,
+    //             'product_id' => $productId,
+    //             'type' => 'out',
+    //             'quantity' => $quantity,
+    //             'stock_before' => $before,
+    //             'stock_after' => $after,
+    //             'description' => $description,
+    //             'reference_id' => $stock->id,
+    //             'reference' => $stock->reference ?? null,
+    //             'addedBy' => Auth::id(),
+    //         ]);
+
+    //         return $stock;
+    //     });
+    // }
+
+    public static function removeStockShippinng(
+        $branchId,
+        $productId,
+        $quantity,
+        $description = null,
+        $reference = []
+    ) {
         return DB::transaction(function () use ($branchId, $productId, $quantity, $description, $reference) {
 
-            $stock = StockByBranch::where(
-                'branche_id',
-                $branchId
-            )->where('product_id', $productId)
-                ->where(
-                    fn($q) =>
-                    $q->where('is_empty', false)
-                        ->orWhereNull('is_empty')
-                )
+            $product = Product::findOrFail($productId);
+
+            $stock = StockByBranch::where('branche_id', $branchId)
+                ->where('product_id', $productId)
+                ->where('is_empty', 0)
+                ->where('condition_state', 'good')
                 ->lockForUpdate()
                 ->first();
 
+            if (!$stock) {
+                throw new \Exception("Stock introuvable pour produit ID: {$productId}");
+            }
+
             if ($stock->stock_quantity < $quantity) {
-                throw new \Exception("Stock insuffisant");
+                throw new \Exception("Stock insuffisant pour produit ID: {$productId}");
             }
 
             $before = $stock->stock_quantity;
             $after = $before - $quantity;
+
+            if ($after < $product->minimum_quantity) {
+                throw new \Exception(
+                    "Stock critique atteint pour {$product->name}. Minimum: {$product->minimum_quantity}, Restant: {$after}"
+                );
+            }
 
             $stock->update([
                 'stock_quantity' => $after
@@ -263,9 +321,28 @@ class StockService
                 'stock_before' => $before,
                 'stock_after' => $after,
                 'description' => $description,
-                'reference_id' => $stock->id,
-                'reference' => $stock->reference ?? null,
+                'reference_id' => $reference['id'] ?? null,
+                'reference' => $reference['type'] ?? null,
                 'addedBy' => Auth::id(),
+            ]);
+
+            ProductLedger::create([
+                'product_id' => $productId,
+                'branch_id' => $branchId,
+                'operation_date' => $reference['operation_date'] ?? now(),
+                'type' => 'sale',
+
+                'quantity' => -$quantity,
+
+                'stock_before' => $before,
+                'stock_after' => $after,
+
+                'reference_type' => $reference['type'] ?? 'shipping',
+                'reference_id' => $reference['id'] ?? null,
+
+                'notes' => $description ?? 'Livraison des produits',
+                'addedBy' => Auth::id(),
+                'status' => 'posted',
             ]);
 
             return $stock;

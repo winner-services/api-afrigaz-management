@@ -131,8 +131,10 @@ class DistributorController extends Controller
 
             $data = Distributor::with([
                 'category:id,designation',
-                'category.caussions.items.product:id,name,category_id'
+                'category.caussions.items.product:id,name,category_id,unit_id',
+                'category.caussions.items.product.unit:id,abreviation'
             ])
+                ->whereDoesntHave('shippings')
                 ->when($search, function ($q) use ($search) {
                     $q->where('name', 'like', "%$search%")
                         ->orWhere('phone', 'like', "%$search%")
@@ -173,22 +175,6 @@ class DistributorController extends Controller
 
                     return $distributor;
                 });
-
-            // $data = Distributor::with([
-            //     'category:id,designation',
-            //     'category.caussions.items.product:id,name'
-            // ])
-
-            //     ->when($search, function ($q) use ($search) {
-            //         $q->where('name', 'like', "%$search%")
-            //             ->orWhere('phone', 'like', "%$search%")
-            //             ->orWhereHas('category', function ($q2) use ($search) {
-            //                 $q2->where('designation', 'like', "%$search%");
-            //             });
-            //     })
-
-            //     ->orderBy('id', 'desc')
-            //     ->get();
 
             return response()->json([
                 'success' => true,

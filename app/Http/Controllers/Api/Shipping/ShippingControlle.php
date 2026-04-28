@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\Shipping;
 use App\Http\Controllers\Controller;
 use App\Models\Branche;
 use App\Models\Caussion;
-use App\Models\Product;
 use App\Models\Shipping;
 use App\Models\ShippingItem;
 use App\Services\SaleService;
@@ -13,7 +12,6 @@ use App\Services\StockException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use OpenApi\Attributes as OA;
 
 class ShippingControlle extends Controller
@@ -396,10 +394,23 @@ class ShippingControlle extends Controller
             'planned_date' => 'nullable|date',
             'items' => 'required|array|min:1',
             'items.*.id' => 'required|exists:shipping_items,id',
-            'items.*.delivered_quantity' => 'required|integer|min:0',
+            'items.*.delivered_quantity' => 'required|integer|min:1',
         ]);
 
         try {
+
+            $validItemIds = ShippingItem::where('shipping_id', $id)
+                ->pluck('id')
+                ->toArray();
+
+            foreach ($request->items as $item) {
+                if (!in_array($item['id'], $validItemIds)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Item ID {$item['id']} n'appartient pas à ce shipping"
+                    ], 422);
+                }
+            }
 
             $result = SaleService::deliverShipping(
                 $id,
@@ -418,14 +429,16 @@ class ShippingControlle extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur de stock',
-                'errors' => $e->getMessage()
+                'errors' => method_exists($e, 'getErrors')
+                    ? $e->getErrors()
+                    : $e->getMessage()
             ], 422);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
 
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur serveur',
-                'error' => $e->getMessage()
+                'error' => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }
     }
