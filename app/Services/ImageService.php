@@ -4,29 +4,26 @@ namespace App\Services;
 
 class ImageService
 {
-    public function getBase64(?string $filePath): string
+    public function toBase64OrDefault($file, $default = 'images/default-logo.png')
     {
-        if (!$filePath) {
-            return asset('images/default-logo.png');
+        if (!empty($file)) {
+            $path = storage_path('app/public/' . $file);
+
+            if (file_exists($path)) {
+                return "data:" . mime_content_type($path) . ";base64,"
+                    . base64_encode(file_get_contents($path));
+            }
         }
 
-        $path = storage_path('app/public/' . $filePath);
-
-        if (file_exists($path)) {
-            $mime = mime_content_type($path);
-            $data = base64_encode(file_get_contents($path));
-            return "data:$mime;base64,$data";
-        }
-
-        return asset('images/default-logo.png');
+        return asset($default);
     }
 
-    public function getUrl(?string $filePath): string
+    public function transform($model, array $fields)
     {
-        if (!$filePath) {
-            return asset('images/default-logo.png');
+        foreach ($fields as $field) {
+            $model->$field = $this->toBase64OrDefault($model->$field);
         }
 
-        return asset('storage/' . $filePath);
+        return $model;
     }
 }

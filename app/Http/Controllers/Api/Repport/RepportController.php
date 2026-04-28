@@ -15,11 +15,19 @@ use App\Models\StockEntry;
 use App\Models\StockMovement;
 use App\Models\TankMovement;
 use App\Models\Transfer;
+use App\Services\ImageService;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
 class RepportController extends Controller
 {
+    protected $imageService;
+
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
+
     #[OA\Get(
         path: "/api/v1/productsList",
         summary: "Lister",
@@ -33,15 +41,18 @@ class RepportController extends Controller
     {
         $about = About::first();
         if ($about) {
-            foreach (['logo', 'logo2'] as $field) {
-                $file = $about->$field;
-                $path = storage_path('app/public/' . $file);
-
-                $about->$field = (!empty($file) && file_exists($path))
-                    ? "data:" . mime_content_type($path) . ";base64," . base64_encode(file_get_contents($path))
-                    : asset('images/default-logo.png');
-            }
+            $this->imageService->transform($about, ['logo', 'logo2']);
         }
+        // if ($about) {
+        //     foreach (['logo', 'logo2'] as $field) {
+        //         $file = $about->$field;
+        //         $path = storage_path('app/public/' . $file);
+
+        //         $about->$field = (!empty($file) && file_exists($path))
+        //             ? "data:" . mime_content_type($path) . ";base64," . base64_encode(file_get_contents($path))
+        //             : asset('images/default-logo.png');
+        //     }
+        // }
         $data = Product::with([
             'category',
             'unit'
