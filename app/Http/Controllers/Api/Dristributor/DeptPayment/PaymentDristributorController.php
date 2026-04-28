@@ -48,10 +48,12 @@ class PaymentDristributorController extends Controller
     public function payDebt(Request $request)
     {
         $request->validate([
-            'distributor_id' => 'required|exists:distributors,id',
-            'paid_amount' => 'required|numeric|min:0.01',
-            'account_id' => 'required|exists:cash_accounts,id',
-            'operation_date' => 'nullable|date',
+            'distributor_id' => 'nullable|exists:distributors,id',
+            'customer_id' => 'nullable|exists:customers,id',
+            'paid_amount' => 'nullable|numeric|min:0.01',
+            'account_id' => 'nullable|exists:cash_accounts,id',
+            'transaction_date' => 'nullable|date',
+            'due_anount' => 'nullable|numeric|min:0.01',
         ]);
 
         try {

@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\Dristributor\DistributorController;
 use App\Http\Controllers\Api\EntryStock\EntryStockController;
 use App\Http\Controllers\Api\Filling\FillingController;
 use App\Http\Controllers\Api\MovementStock\MovementController;
+use App\Http\Controllers\Api\Payment\PayementController;
 use App\Http\Controllers\Api\Permission\PermissionController;
 use App\Http\Controllers\Api\Products\CategoryController;
 use App\Http\Controllers\Api\Products\ProductController;
@@ -283,6 +284,10 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
         Route::controller(DashBoardController::class)->group(function () {
             Route::get('/dashBoardGetData', 'getDashboardData');
+        });
+
+        Route::controller(PayementController::class)->group(function () {
+            Route::post('/debtPaymentStore', 'paymentDebt');
         });
 
         Route::controller(RepportController::class)->group(function () {

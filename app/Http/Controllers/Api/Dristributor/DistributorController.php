@@ -7,6 +7,7 @@ use App\Models\Caussion;
 use App\Models\Currency;
 use App\Models\DebtDistributor;
 use App\Models\Distributor;
+use App\Models\StockByBranch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -130,9 +131,8 @@ class DistributorController extends Controller
 
             $data = Distributor::with([
                 'category:id,designation',
-                'category.caussions.items.product:id,name'
+                'category.caussions.items.product:id,name,category_id'
             ])
-
                 ->when($search, function ($q) use ($search) {
                     $q->where('name', 'like', "%$search%")
                         ->orWhere('phone', 'like', "%$search%")
@@ -140,9 +140,55 @@ class DistributorController extends Controller
                             $q2->where('designation', 'like', "%$search%");
                         });
                 })
-
                 ->orderBy('id', 'desc')
-                ->get();
+                ->get()
+                ->map(function ($distributor) {
+
+                    foreach ($distributor->category->caussions as $caussion) {
+                        foreach ($caussion->items as $item) {
+
+                            $product = $item->product;
+
+                            if (!$product) continue;
+
+                            if ((int) $product->category_id === 2) {
+
+                                $stock = StockByBranch::where('product_id', $product->id)
+                                    ->where('branche_id', 1)
+                                    ->where('is_empty', 0)
+                                    ->where('condition_state', 'good')
+                                    ->value('stock_quantity');
+
+                                $product->stock_quantity = $stock ?? 0;
+                            } else {
+
+                                $stock = StockByBranch::where('product_id', $product->id)
+                                    ->where('branche_id', 1)
+                                    ->value('stock_quantity');
+
+                                $product->stock_quantity = $stock ?? 0;
+                            }
+                        }
+                    }
+
+                    return $distributor;
+                });
+
+            // $data = Distributor::with([
+            //     'category:id,designation',
+            //     'category.caussions.items.product:id,name'
+            // ])
+
+            //     ->when($search, function ($q) use ($search) {
+            //         $q->where('name', 'like', "%$search%")
+            //             ->orWhere('phone', 'like', "%$search%")
+            //             ->orWhereHas('category', function ($q2) use ($search) {
+            //                 $q2->where('designation', 'like', "%$search%");
+            //             });
+            //     })
+
+            //     ->orderBy('id', 'desc')
+            //     ->get();
 
             return response()->json([
                 'success' => true,
