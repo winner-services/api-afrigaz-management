@@ -12,6 +12,7 @@ use App\Models\DebtDistributor;
 use App\Models\ItemSale;
 use App\Models\Product;
 use App\Models\Sale;
+use App\Services\ImageService;
 use App\Services\ReferralService;
 use App\Services\SaleService;
 use App\Services\StockService;
@@ -424,27 +425,23 @@ class SaleController extends Controller
         ]
     )]
 
-    public function processSale(Request $request)
+    public function processSale(Request $request, ImageService $imageService)
     {
         try {
-
             $about = About::first();
-            if ($about && $about->logo) {
-                $path = storage_path('app/public/' . $about->logo);
 
-                if (file_exists($path)) {
-                    $mime = mime_content_type($path);
-                    $data = base64_encode(file_get_contents($path));
-                    $about->logo = "data:$mime;base64,$data";
-                } else {
-                    // Si fichier manquant, on peut utiliser une image par défaut
-                    $about->logo = asset('images/default-logo.png');
-                }
-            }
             $devise = Currency::where('status', 'created')
                 ->orderByRaw("currency_type = 'devise_principale' DESC")
                 ->latest()
                 ->get();
+
+            if ($request->hasFile('logo')) {
+                $about->logo = $request->file('logo')->store('logos', 'public');
+            }
+
+            if ($request->hasFile('logo2')) {
+                $about->logo2 = $request->file('logo2')->store('logos', 'public');
+            }
 
             $data = $request->validate([
                 'montant_total' => 'nullable|numeric|min:0',
