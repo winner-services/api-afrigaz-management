@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('reference')->nullable();
             $table->string('reference_id')->nullable();
             $table->string('status')->default('created');
-            $table->foreignId('cash_account_id')->nullable()->constrained('cash_accounts')->nullOnDelete();
+            $table->foreignId('cash_account_id')->constrained('cash_accounts');
             $table->foreignId('cash_categorie_id')->nullable()->constrained('cash_categories')->nullOnDelete();
             $table->foreignId('addedBy')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();

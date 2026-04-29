@@ -178,6 +178,7 @@ class DistributorController extends Controller
 
             return response()->json([
                 'success' => true,
+                'status' => 200,
                 'message' => 'Liste des distributeurs avec caution',
                 'data' => $data
             ]);

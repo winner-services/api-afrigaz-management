@@ -92,7 +92,6 @@ class ShippingControlle extends Controller
             $reference = 'SHIP-' . strtoupper(uniqid());
             $branch_id = $request->branch_id ?? 1;
 
-            // 📦 créer shipping
             $shipping = Shipping::create([
                 'reference' => $reference,
                 'caussion_id' => $caussion->id,

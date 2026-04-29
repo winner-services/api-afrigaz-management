@@ -33,6 +33,7 @@ class RoleSeeder extends Seeder
                 'livraison-distributeur',
                 'vente',
                 'finance',
+                'payement-dette',
                 'transaction',
                 'dette-distributeur',
                 'comptes',

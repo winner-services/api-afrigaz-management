@@ -560,15 +560,12 @@ class RepportController extends Controller
             ->where('branch_id', $branchId)
             ->whereBetween('transaction_date', [$startDate, $endDate]);
 
-        // ✅ Filtre distributeur
         if (!empty($validated['distributor_id'])) {
             $query->where('distributor_id', $validated['distributor_id']);
         }
 
-        // ✅ Résultat
         $data = $query->latest()->get();
 
-        // ✅ Stats
         $stats = [
             'total_deliveries' => $data->count(),
             'total_quantity' => $data->sum('total_quantity'),
@@ -652,7 +649,6 @@ class RepportController extends Controller
             'info_company' => $about
         ]);
     }
-
 
     #[OA\Post(
         path: "/api/productStockReport",

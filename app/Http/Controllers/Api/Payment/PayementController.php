@@ -10,6 +10,8 @@ use App\Models\CustomerDebt;
 use App\Models\CustomerDebtPayment;
 use App\Models\DebtDistributor;
 use App\Models\PaymentDistributor;
+use App\Models\Sale;
+use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +19,12 @@ use OpenApi\Attributes as OA;
 
 class PayementController extends Controller
 {
+    protected $imageService;
+
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
     #[OA\Post(
         path: '/api/v1/debtPaymentStore',
         summary: 'Créer',
@@ -53,16 +61,9 @@ class PayementController extends Controller
     public function paymentDebt(Request $request)
     {
         $about = About::first();
-        if ($about && $about->logo) {
-            $path = storage_path('app/public/' . $about->logo);
-
-            if (file_exists($path)) {
-                $mime = mime_content_type($path);
-                $data = base64_encode(file_get_contents($path));
-                $about->logo = "data:$mime;base64,$data";
-            } else {
-                $about->logo = asset('images/default-logo.png');
-            }
+        $about = About::first();
+        if ($about) {
+            $this->imageService->transform($about, ['logo', 'logo2']);
         }
         $devise = Currency::where('status', 'created')
             ->orderByRaw("currency_type = 'devise_principale' DESC")
@@ -165,6 +166,22 @@ class PayementController extends Controller
                 }
 
                 $debt->save();
+                if (!empty($debt->sale_id)) {
+
+                    $sale = Sale::lockForUpdate()->find($debt->sale_id);
+
+                    if ($sale) {
+                        $sale->paid_amount += $payAmount;
+
+                        if ($sale->paid_amount >= $sale->total_amount) {
+                            $sale->status = 'paid';
+                        } else {
+                            $sale->status = 'partial';
+                        }
+
+                        $sale->save();
+                    }
+                }
 
                 $currentSolde += $payAmount;
 

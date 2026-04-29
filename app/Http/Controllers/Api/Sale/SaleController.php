@@ -208,16 +208,44 @@ class SaleController extends Controller
     )]
     public function index(Request $request)
     {
-        $perPage = $request->query('per_page', 20);
-        // $devise = Currency::where('status', 'created')->latest()->get();
         $devise = Currency::where('status', 'created')
             ->orderByRaw("currency_type = 'devise_principale' DESC")
             ->latest()
             ->get();
         $branches = Branche::latest()->get();
 
-        $sales = Sale::with(['branch', 'customer', 'distributor', 'user', 'saleItems.product'])
-            ->orderBy('sales.transaction_date', 'desc')
+        $perPage = $request->query('per_page', 10);
+        $search = $request->query('q', '');
+
+        $sales = Sale::with([
+            'branch',
+            'customer',
+            'distributor',
+            'user',
+            'saleItems.product'
+        ])
+            ->when($search, function ($query) use ($search) {
+
+                $query->where(function ($q) use ($search) {
+
+                    $q->where('reference', 'like', "%$search%");
+
+                    $q->orWhereHas('customer', function ($q2) use ($search) {
+                        $q2->where('name', 'like', "%$search%");
+                    });
+
+                    $q->orWhereHas('distributor', function ($q3) use ($search) {
+                        $q3->where('name', 'like', "%$search%");
+                    });
+
+                    $q->orWhereHas('saleItems.product', function ($q4) use ($search) {
+                        $q4->where('name', 'like', "%$search%");
+                    });
+
+                    $q->orWhereDate('transaction_date', $search);
+                });
+            })
+            ->orderBy('sales.id', 'desc')
             ->paginate($perPage);
 
         return response()->json([
@@ -330,7 +358,6 @@ class SaleController extends Controller
             ->where('branch_id', $brancheId)
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
-                    // Recherche sur client
                     $q->whereHas('customer', function ($q2) use ($search) {
                         $q2->where('name', 'like', "%{$search}%");
                     })
@@ -448,8 +475,8 @@ class SaleController extends Controller
                 'montant_total' => 'nullable|numeric|min:0',
                 'paid_amount' => 'nullable|numeric|min:0',
                 'account_id' => 'nullable|exists:cash_accounts,id',
-                'customer_id' => 'nullable|exists:customers,id',
-                'distributor_id' => 'nullable|exists:distributors,id',
+                'customer_id' => 'nullable|exists:customers,id|required_without:distributor_id|prohibits:distributor_id',
+                'distributor_id' => 'nullable|exists:distributors,id|required_without:customer_id|prohibits:customer_id',
                 'date_vente' => 'required|date',
                 'branch_id' => 'nullable|exists:branches,id',
                 'type' => 'required|in:exchange,kit,refill,accessory',
@@ -457,6 +484,7 @@ class SaleController extends Controller
                 'items' => 'required|array|min:1',
                 'items.*.product_id' => 'required|exists:products,id',
                 'items.*.quantity' => 'required|integer|min:1',
+                'items.*.unit_price' => 'required|numeric|min:0'
             ]);
 
             $sale = DB::transaction(function () use ($data) {
@@ -485,8 +513,8 @@ class SaleController extends Controller
                     'customer_id' => $customerId,
                     'distributor_id' => $distributorId,
                     'branch_id' => $branchId,
-                    'type' => $type,
-                    'total_amount' => $totalAmount,
+                    'sale_type' => $type,
+                    'total_amount' => 0,
                     'paid_amount' => $paidAmount,
                     'addedBy' => Auth::id(),
                     'transaction_date' => $data['date_vente'],
@@ -566,6 +594,7 @@ class SaleController extends Controller
 
                     $product = Product::findOrFail($item['product_id']);
                     $qty = (int) $item['quantity'];
+                    $untPrc = (float) $item['unit_price'];
 
                     $unitPrice = 0;
                     $lineTotal = 0;
@@ -583,8 +612,7 @@ class SaleController extends Controller
                         $totalGas += $gasQty;
                     } else {
 
-                        $unitPrice = $product->wholesale_price;
-
+                        $unitPrice += $untPrc;
                         if ($unitPrice <= 0) {
                             throw new \Exception("Prix non défini pour {$product->name}");
                         }
@@ -662,17 +690,34 @@ class SaleController extends Controller
                     'total_amount' => $total
                 ]);
 
-                return $sale->load('items.product');
+                // return $sale->load('items.product');
+                return $sale->load([
+                    'items.product',
+                    'customer:id,name',
+                    'distributor:id,name'
+                ]);
             });
-
+            $buyerName = $sale->customer->name ?? $sale->distributor->name ?? null;
             return response()->json([
                 'success' => true,
                 'status' => 201,
                 'message' => 'Vente enregistrée avec succès',
-                'data' => $sale,
+                'data' => [
+                    ...$sale->toArray(),
+                    'buyer_name' => $buyerName
+                ],
                 'info_company' => $about,
                 'devise' => $devise
             ], 201);
+
+            // return response()->json([
+            //     'success' => true,
+            //     'status' => 201,
+            //     'message' => 'Vente enregistrée avec succès',
+            //     'data' => $sale,
+            //     'info_company' => $about,
+            //     'devise' => $devise
+            // ], 201);
         } catch (\Throwable $e) {
 
             return response()->json([
