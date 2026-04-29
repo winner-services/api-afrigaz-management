@@ -459,8 +459,8 @@ class TransactionController extends Controller
                 'cash_account_id' => $request->to_account_id,
                 'addedBy' => $user->id
             ]);
-            $fromTransaction->load('cashAccount');
-            $toTransaction->load('cashAccount');
+            $fromTransaction->load('account');
+            $toTransaction->load('account');
 
             DB::commit();
 
