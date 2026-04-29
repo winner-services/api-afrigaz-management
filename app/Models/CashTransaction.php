@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class CashTransaction extends Model
 {
     public function account()
-{
-    return $this->belongsTo(CashAccount::class, 'cash_account_id');
-}
+    {
+        return $this->belongsTo(CashAccount::class, 'cash_account_id');
+    }
 }

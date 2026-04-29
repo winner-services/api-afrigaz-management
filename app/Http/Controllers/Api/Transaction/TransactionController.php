@@ -428,7 +428,7 @@ class TransactionController extends Controller
             $date = $request->transaction_date ?? now();
             $reference = 'TRANS-' . strtoupper(uniqid());
 
-            TransactionHistory::create([
+            $history = TransactionHistory::create([
                 'from_account_id' => $request->from_account_id,
                 'to_account_id'   => $request->to_account_id,
                 'amount'          => $request->amount,
@@ -438,7 +438,7 @@ class TransactionController extends Controller
                 'transaction_date' => $date
             ]);
 
-            CashTransaction::create([
+            $fromTransaction = CashTransaction::create([
                 'reason' => 'Transfert vers compte #' . $request->to_account_id,
                 'type' => 'Depense',
                 'amount' => $request->amount,
@@ -449,7 +449,7 @@ class TransactionController extends Controller
                 'addedBy' => $user->id
             ]);
 
-            CashTransaction::create([
+            $toTransaction = CashTransaction::create([
                 'reason' => 'Réception depuis compte #' . $request->from_account_id,
                 'type' => 'Revenue',
                 'amount' => $request->amount,
@@ -459,16 +459,52 @@ class TransactionController extends Controller
                 'cash_account_id' => $request->to_account_id,
                 'addedBy' => $user->id
             ]);
+            $fromTransaction->load('cashAccount');
+            $toTransaction->load('cashAccount');
 
             DB::commit();
 
             return response()->json([
-                'message' => 'Transfert effectué avec succès.',
                 'success' => true,
+                'type' => 'success',
+                'message' => 'Transfert effectué avec succès',
                 'reference' => $reference,
-                'devise' => $devise,
-                'info_company' => $about
+
+                'data' => [
+                    'transfer' => [
+                        'amount' => $request->amount,
+                        'date' => $date,
+                        'description' => $request->description
+                    ],
+
+                    'entries' => [
+                        'debit' => [
+                            'account_id' => $fromTransaction->cash_account_id,
+                            'account_name' => $fromTransaction->cashAccount->designation ?? null,
+                            'amount' => $fromTransaction->amount,
+                            'solde_before' => $solde_from,
+                            'solde_after' => $fromTransaction->solde
+                        ],
+                        'credit' => [
+                            'account_id' => $toTransaction->cash_account_id,
+                            'account_name' => $toTransaction->cashAccount->designation ?? null,
+                            'amount' => $toTransaction->amount,
+                            'solde_before' => $solde_to,
+                            'solde_after' => $toTransaction->solde
+                        ]
+                    ],
+
+                    'history' => $history
+                ]
             ], 201);
+
+            // return response()->json([
+            //     'message' => 'Transfert effectué avec succès.',
+            //     'success' => true,
+            //     'reference' => $reference,
+            //     'devise' => $devise,
+            //     'info_company' => $about
+            // ], 201);
         } catch (\Exception $e) {
 
             DB::rollBack();
