@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\EntryStock;
 
 use App\Http\Controllers\Controller;
 use App\Models\About;
+use App\Models\Currency;
 use App\Models\ItemsStockEntries;
 use App\Models\StockEntry;
 use App\Services\ImageService;
@@ -136,6 +137,10 @@ class EntryStockController extends Controller
 
     public function index()
     {
+        $devise = Currency::where('status', 'created')
+            ->orderByRaw("currency_type = 'devise_principale' DESC")
+            ->latest()
+            ->get();
         $q = request('q');
 
         $entries = StockEntry::with([
@@ -191,6 +196,7 @@ class EntryStockController extends Controller
         return response()->json([
             'message' => 'succes',
             'status' => 200,
+            'devide' => $devise,
             'data' => $entries
         ]);
     }
