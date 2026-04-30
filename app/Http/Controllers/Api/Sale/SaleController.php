@@ -629,7 +629,7 @@ class SaleController extends Controller
                             $qty,
                             'exchange',
                             $sale->id ?? null,
-                            $data['date_vente']
+                            $data['date_vente'],
                         );
 
                         app(StockService::class)->increaseStockExchange(
@@ -709,15 +709,6 @@ class SaleController extends Controller
                 'info_company' => $about,
                 'devise' => $devise
             ], 201);
-
-            // return response()->json([
-            //     'success' => true,
-            //     'status' => 201,
-            //     'message' => 'Vente enregistrée avec succès',
-            //     'data' => $sale,
-            //     'info_company' => $about,
-            //     'devise' => $devise
-            // ], 201);
         } catch (\Throwable $e) {
 
             return response()->json([

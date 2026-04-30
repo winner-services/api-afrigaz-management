@@ -93,6 +93,7 @@ class Branche extends Model
                     'quantity' => 0,
                     'stock_before' => 0,
                     'stock_after' => 0,
+                    'movement' => 'in',
                     'reference_type' => 'branch_init',
                     'reference_id' => $branchId,
                     'notes' => 'Initialisation produit',
@@ -116,92 +117,4 @@ class Branche extends Model
             ]);
         });
     }
-
-    // protected static function booted()
-    // {
-    //     static::created(function ($branch) {
-
-    //         CashAccount::create([
-    //             'designation' => 'Cash - ' . $branch->name,
-    //             'nature' => 'Caisse',
-    //             'reference' => 'CA-' . strtoupper(uniqid()),
-    //             'branche_id' => $branch->id,
-    //             'addedBy' => request()->user()->id ?? 1,
-    //             'status' => 'created',
-    //         ]);
-
-    //         $products = Product::select('id', 'category_id')->get();
-
-    //         if ($products->isEmpty()) {
-    //             return;
-    //         }
-
-    //         $now = now();
-
-    //         $stockData = [];
-    //         $ledgerData = [];
-
-    //         foreach ($products as $product) {
-
-    //             foreach (Branche::pluck('id') as $branchId) {
-
-    //                 if ($product->category_id == 2) {
-
-    //                     $states = [
-    //                         ['is_empty' => true,  'condition_state' => 'good'],
-    //                         ['is_empty' => false, 'condition_state' => 'good']
-    //                     ];
-
-    //                     foreach ($states as $state) {
-    //                         $stockData[] = [
-    //                             'branche_id' => $branchId,
-    //                             'product_id' => $product->id,
-    //                             'categorie_id' => $product->category_id,
-    //                             'stock_quantity' => 0,
-    //                             'is_empty' => $state['is_empty'],
-    //                             'condition_state' => $state['condition_state'],
-    //                             'status' => 'created',
-    //                             'created_at' => $now,
-    //                             'updated_at' => $now,
-    //                         ];
-    //                     }
-    //                 } else {
-
-    //                     $stockData[] = [
-    //                         'branche_id' => $branchId,
-    //                         'product_id' => $product->id,
-    //                         'categorie_id' => $product->category_id,
-    //                         'stock_quantity' => 0,
-    //                         'is_empty' => false,
-    //                         'condition_state' => 'good',
-    //                         'status' => 'created',
-    //                         'created_at' => $now,
-    //                         'updated_at' => $now,
-    //                     ];
-    //                 }
-
-    //                 $ledgerData[] = [
-    //                     'product_id' => $product->id,
-    //                     'branch_id' => $branchId,
-    //                     'operation_date' => $now,
-    //                     'type' => 'init',
-    //                     'quantity' => 0,
-    //                     'stock_before' => 0,
-    //                     'stock_after' => 0,
-    //                     'reference_type' => 'branch_init',
-    //                     'reference_id' => $product->id,
-    //                     'notes' => 'Initialisation produit',
-    //                     'addedBy' => request()->user()->id ?? 1,
-    //                     'status' => 'created',
-    //                     'created_at' => $now,
-    //                     'updated_at' => $now,
-    //                 ];
-    //             }
-    //         }
-
-    //         StockByBranch::insertOrIgnore($stockData);
-
-    //         ProductLedger::insert($ledgerData);
-    //     });
-    // }
 }

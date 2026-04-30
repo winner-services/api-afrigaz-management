@@ -82,7 +82,7 @@ class EntryStockController extends Controller
                     'reference' => fake()->unique()->numerify('ENT-#####'),
                     'supplier_id' => $request->supplier_id,
                     'addedBy' => Auth::id(),
-                    // 'total_amount' => $request->total_amount,
+                    'total_amount' => $request->total_amount,
                     'status' => 'created',
                 ]);
 
@@ -92,7 +92,7 @@ class EntryStockController extends Controller
                         'stock_entries_id' => $entry->id,
                         'product_id' => $item['product_id'],
                         'quantity' => $item['quantity'],
-                        // 'unit_price' => $item['unit_price']
+                        'unit_price' => $item['unit_price']
                     ]);
                 }
 

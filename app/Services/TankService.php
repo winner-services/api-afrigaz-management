@@ -36,7 +36,8 @@ class TankService
                 'quantity' => $qty,
                 'addedBy' => Auth::id(),
                 'note' => 'Approvisionnement du gaz',
-                'operation_date' => $operation_date
+                'operation_date' => $operation_date,
+                'unit_price' => $unit_price
             ]);
 
             $gaz = Product::where('category_id', 1)->firstOrFail();
@@ -60,9 +61,7 @@ class TankService
                 'type' => 'purchase',
 
                 'quantity' => $qty,
-                'unit_price' => $unit_price,
-                'condition_state' => 'good',
-                'is_empty' => 0,
+
                 'movement' => 'in',
 
                 'stock_before' => $stockBefore,
@@ -93,19 +92,20 @@ class TankService
             $operation_date = $operation_date ?? now();
 
             $tank->decrement('current_level', $qty);
-
+            $gaz = Product::where('category_id', 1)->firstOrFail();
             TankMovement::create([
                 'tank_id' => $tank->id,
                 'type' => 'exit',
                 'quantity' => $qty,
                 'reference_type' => $referenceType,
                 'reference_id' => $referenceId,
+                'unit_price' => $gaz->wholesale_price,
                 'addedBy' => Auth::id(),
                 'note' => 'Remplissage des bouteilles',
                 'operation_date' => $operation_date
             ]);
 
-            $gaz = Product::where('category_id', 1)->firstOrFail();
+
 
             $stock = StockByBranch::firstOrCreate([
                 'branche_id' => 1,
@@ -126,9 +126,6 @@ class TankService
                 'operation_date' => $operation_date,
                 'type' => 'sale',
                 'movement' => 'out',
-                'is_empty' => 0,
-                'condition_state' => 'good',
-                'unit_price' => $gaz->wholesale_price,
                 'quantity' => -$qty,
                 'stock_before' => $stockBefore,
                 'stock_after' => $stockAfter,
@@ -175,6 +172,8 @@ class TankService
                 $stock->increment('stock_quantity', $qty);
 
                 $ledgerType = 'adjustment_in';
+
+                $event = 'in';
             } else {
 
                 if ($tank->current_level < $qty) {
@@ -187,6 +186,7 @@ class TankService
                 $stock->decrement('stock_quantity', $qty);
 
                 $ledgerType = 'adjustment_out';
+                $event = 'out';
             }
 
             TankMovement::create([
@@ -203,6 +203,7 @@ class TankService
                 'branch_id' => $tank->branch_id ?? 1,
                 'operation_date' => $operation_date,
                 'type' => $ledgerType,
+                'movement' => $event,
 
                 'quantity' => $type === 'augmentation' ? $qty : -$qty,
 

@@ -138,6 +138,7 @@ class Product extends Model
                     'quantity' => 0,
                     'stock_before' => 0,
                     'stock_after' => 0,
+                    'movement' => 1,
                     'reference_type' => 'product_init',
                     'reference_id' => $product->id,
                     'notes' => 'Initialisation produit',

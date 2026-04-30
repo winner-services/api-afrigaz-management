@@ -97,6 +97,7 @@ class StockService
                 'type' => 'purchase',
 
                 'quantity' => $quantity,
+                'movement' => 'in',
 
                 'stock_before' => $before,
                 'stock_after' => $after,
@@ -127,7 +128,7 @@ class StockService
                 if (!$product) continue;
 
                 $quantity = (int) $item['quantity'];
-                // $unit_price = (float)$item['unit_price'];
+                $unit_price = (float)$item['unit_price'];
                 if ($quantity <= 0) continue;
 
                 if ((int) $product->category_id === 2) {
@@ -179,10 +180,7 @@ class StockService
                     'quantity' => $quantity,
                     'stock_before' => $before,
                     'stock_after' => $after,
-                    // 'movement' => 'in',
-                    // 'is_empty' => $isEmpty,
-                    // 'condition_state' => $condition,
-                    // 'unit_price' => $unit_price,
+                    'movement' => 'in',
                     'reference_type' => $reference['type'] ?? 'stock_in',
                     'reference_id' => $reference['id'] ?? null,
                     'notes' => $description ?? 'Entrée stock multiple',
@@ -341,6 +339,7 @@ class StockService
 
                 'stock_before' => $before,
                 'stock_after' => $after,
+                'movement' => 'out',
 
                 'reference_type' => $reference['type'] ?? 'shipping',
                 'reference_id' => $reference['id'] ?? null,
@@ -552,6 +551,7 @@ class StockService
                 'operation_date' => $operation_date ?? now(),
                 'type' => 'exchange_in',
                 'quantity' => $qty,
+                'movement' => 'in',
                 'stock_before' => $stockBefore,
                 'stock_after' => $stockAfter,
                 'reference_type' => $referenceType ?? 'exchange',
@@ -611,6 +611,7 @@ class StockService
 
                 'stock_before' => $stockBefore,
                 'stock_after' => $stockAfter,
+                'movement' => 'in',
 
                 'reference_type' => $referenceType ?? 'stock_in',
                 'reference_id' => $referenceId,
@@ -638,7 +639,7 @@ class StockService
             $qty,
             $referenceType,
             $referenceId,
-            $operation_date
+            $operation_date,
         ) {
 
             $stock = StockByBranch::where([
@@ -671,6 +672,7 @@ class StockService
                 'quantity' => -$qty,
                 'stock_before' => $stockBefore,
                 'stock_after' => $stockAfter,
+                'movement' => 'out',
                 'reference_type' => $referenceType ?? 'sale',
                 'reference_id' => $referenceId,
                 'notes' => 'Sortie bouteilles pleines',
@@ -728,6 +730,7 @@ class StockService
                 'branch_id' => $branchId,
                 'operation_date' => $operation_date ?? now(),
                 'type' => 'sale',
+                'movement' => 'out',
 
                 'quantity' => -$qty,
 
@@ -805,6 +808,7 @@ class StockService
                 'type' => 'sale',
                 'quantity' => -$qty,
                 'stock_before' => $before,
+                'movement' => 'out',
                 'stock_after' => $after,
                 'reference_type' => $referenceType ?? 'kit_decrease',
                 'reference_id' => $referenceId,
@@ -929,6 +933,7 @@ class StockService
                     'type' => 'return',
 
                     'quantity' => -$item['quantity'],
+                    'movement' => 'out',
 
                     'stock_before' => $before,
                     'stock_after' => $after,

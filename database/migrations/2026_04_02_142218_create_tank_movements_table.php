@@ -27,6 +27,7 @@ return new class extends Migration
             $table->string('reference_type')->nullable();
             $table->unsignedBigInteger('reference_id')->nullable();
             $table->date('operation_date')->default(now());
+            $table->decimal('unit_price');
             $table->timestamps();
         });
     }
