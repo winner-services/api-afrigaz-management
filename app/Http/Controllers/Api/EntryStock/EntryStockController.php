@@ -34,6 +34,7 @@ class EntryStockController extends Controller
                     new OA\Property(property: "transaction_date", type: "string", example: "2026-04-05"),
                     new OA\Property(property: "supplier_id", type: "integer", example: 1),
                     new OA\Property(property: "branche_id", type: "integer", example: 1),
+                    new OA\Property(property: "total_amount", type: "integer", example: 10),
 
                     new OA\Property(
                         property: "items",
@@ -43,6 +44,7 @@ class EntryStockController extends Controller
                             properties: [
                                 new OA\Property(property: "product_id", type: "integer", example: 1),
                                 new OA\Property(property: "quantity", type: "integer", example: 50),
+                                new OA\Property(property: "unit_price", type: "integer", example: 50),
                             ]
                         )
                     ),
@@ -103,8 +105,10 @@ class EntryStockController extends Controller
                         'type' => "stock_entry : {$entry->reference}"
                     ]
                 );
-                $entry->load('items.product');
-
+                $entry->load([
+                    'items.product',
+                    'supplier'
+                ]);
                 return response()->json([
                     'status' => true,
                     'message' => 'Entrée de stock enregistrée avec succès',

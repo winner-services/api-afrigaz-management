@@ -1349,6 +1349,10 @@
                                         "type": "string",
                                         "example": "TAX123456"
                                     },
+                                    "import_export": {
+                                        "type": "string",
+                                        "example": "TAX123456"
+                                    },
                                     "phone": {
                                         "type": "string",
                                         "example": "+243990000000"
@@ -1362,6 +1366,11 @@
                                         "example": "contact@afrigaz.com"
                                     },
                                     "logo": {
+                                        "description": "Fichier image",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "logo2": {
                                         "description": "Fichier image",
                                         "type": "string",
                                         "format": "binary"
@@ -1996,7 +2005,7 @@
                     "customers Debts"
                 ],
                 "summary": "Créer",
-                "operationId": "4ae5b6974023980d9de9ff4c313d30be",
+                "operationId": "f215b8edb03c69d3b23cdf24cf7183c7",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -2528,6 +2537,10 @@
                                         "type": "integer",
                                         "example": 1
                                     },
+                                    "total_amount": {
+                                        "type": "integer",
+                                        "example": 10
+                                    },
                                     "items": {
                                         "type": "array",
                                         "items": {
@@ -2537,6 +2550,10 @@
                                                     "example": 1
                                                 },
                                                 "quantity": {
+                                                    "type": "integer",
+                                                    "example": 50
+                                                },
+                                                "unit_price": {
                                                     "type": "integer",
                                                     "example": 50
                                                 }
@@ -2823,6 +2840,73 @@
                                 }
                             }
                         }
+                    }
+                }
+            }
+        },
+        "/api/v1/debtPaymentStore": {
+            "post": {
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Créer",
+                "operationId": "16b663786a7ce3db0a50a2849c272530",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "customer_id",
+                                    "distributor_id",
+                                    "paid_amount",
+                                    "account_id",
+                                    "transaction_date",
+                                    "due_anount"
+                                ],
+                                "properties": {
+                                    "customer_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "distributor_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "paid_amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 100
+                                    },
+                                    "due_anount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 100
+                                    },
+                                    "account_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "transaction_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2023-01-01"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Données créées avec succès"
+                    },
+                    "422": {
+                        "description": "Validation des données échouée"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
                     }
                 }
             }
@@ -5915,6 +5999,11 @@
                                         "type": "string",
                                         "format": "date",
                                         "example": "2023-10-10"
+                                    },
+                                    "unit_price": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 10
                                     }
                                 },
                                 "type": "object"
@@ -7360,6 +7449,10 @@
         {
             "name": "Stock Movements",
             "description": "Stock Movements"
+        },
+        {
+            "name": "Payment",
+            "description": "Payment"
         },
         {
             "name": "Permissions",
