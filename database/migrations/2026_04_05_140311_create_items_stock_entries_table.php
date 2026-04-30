@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('stock_entries_id')->nullable()->constrained('stock_entries')->nullOnDelete();
             $table->foreignId('product_id')->nullable()->constrained('products')->nullOnDelete();
             $table->integer('quantity')->default(0);
+            $table->decimal('unit_price', 10, 2)->default(0);
             $table->timestamps();
         });
     }

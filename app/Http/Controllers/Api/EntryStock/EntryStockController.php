@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api\EntryStock;
 
 use App\Http\Controllers\Controller;
+use App\Models\About;
 use App\Models\ItemsStockEntries;
 use App\Models\StockEntry;
+use App\Services\ImageService;
 use App\Services\StockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,6 +15,12 @@ use OpenApi\Attributes as OA;
 
 class EntryStockController extends Controller
 {
+     protected $imageService;
+
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
 
     #[OA\Post(
         path: "/api/v1/stockEntriesStore",
@@ -48,9 +56,15 @@ class EntryStockController extends Controller
     )]
     public function store(Request $request)
     {
+        $about = About::first();
+
+        if ($about) {
+            $this->imageService->transform($about, ['logo', 'logo2']);
+        }
         $request->validate([
             'transaction_date' => 'required|date',
             'supplier_id' => 'nullable|exists:suppliers,id',
+            'total_amount' => 'nullable',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
@@ -64,6 +78,7 @@ class EntryStockController extends Controller
                     'reference' => fake()->unique()->numerify('ENT-#####'),
                     'supplier_id' => $request->supplier_id,
                     'addedBy' => Auth::id(),
+                    'total_amount' => $request->total_amount,
                     'status' => 'created',
                 ]);
 

@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['transaction_date', 'reference', 'supplier_id', 'addedBy', 'status'])]
+#[Fillable(['transaction_date', 'reference', 'supplier_id', 'addedBy', 'status', 'total_amount'])]
 class StockEntry extends Model
 {
 

@@ -18,9 +18,9 @@ class TankService
         return Tank::create($data);
     }
 
-    public function addGas($tankId, $qty, $operation_date)
+    public function addGas($tankId, $qty, $operation_date, $unit_price)
     {
-        return DB::transaction(function () use ($tankId, $qty, $operation_date) {
+        return DB::transaction(function () use ($tankId, $qty, $operation_date, $unit_price) {
 
             $tank = Tank::findOrFail($tankId);
 
@@ -60,6 +60,10 @@ class TankService
                 'type' => 'purchase',
 
                 'quantity' => $qty,
+                'unit_price' => $unit_price,
+                'condition_state' => 'good',
+                'is_empty' => 0,
+                'movement' => 'in',
 
                 'stock_before' => $stockBefore,
                 'stock_after' => $stockAfter,
@@ -72,7 +76,6 @@ class TankService
                 'addedBy' => Auth::id(),
                 'status' => 'posted',
             ]);
-
             return $tank;
         });
     }
@@ -122,17 +125,16 @@ class TankService
                 'branch_id' => $tank->branch_id ?? 1,
                 'operation_date' => $operation_date,
                 'type' => 'sale',
-
+                'movement' => 'out',
+                'is_empty' => 0,
+                'condition_state' => 'good',
+                'unit_price' => $gaz->wholesale_price,
                 'quantity' => -$qty,
-
                 'stock_before' => $stockBefore,
                 'stock_after' => $stockAfter,
-
                 'reference_type' => $referenceType ?? 'tank_consumption',
                 'reference_id' => $referenceId ?? $tank->id,
-
                 'notes' => 'Consommation gaz (remplissage bouteilles)',
-
                 'addedBy' => Auth::id(),
                 'status' => 'posted',
             ]);

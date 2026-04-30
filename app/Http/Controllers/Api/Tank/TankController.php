@@ -213,6 +213,12 @@ class TankController extends Controller
                         example: "2023-10-10",
                         description: "Date de l'opération"
 
+                    ),
+                    new OA\Property(
+                        property: "unit_price",
+                        type: "number",
+                        format: "float",
+                        example: 10
                     )
                 ]
             )
@@ -253,12 +259,14 @@ class TankController extends Controller
                 'tank_id' => 'required|exists:tanks,id',
                 'quantity' => 'required|numeric|min:1',
                 'operation_date' => 'required|date',
+                'unit_price' => 'nullable'
             ]);
 
             $tank = $this->service->addGas(
                 $data['tank_id'],
                 $data['quantity'],
-                $data['operation_date']
+                $data['operation_date'],
+                $data['unit_price']
             );
 
             return response()->json([

@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Filling;
 use App\Services\FillingService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
@@ -156,12 +155,11 @@ class FillingController extends Controller
                         });
                 });
             })
-
             ->orderByDesc('id')
             ->paginate($perPage);
 
         return response()->json([
-            'status' => true,
+            'success' => true,
             'status' => 200,
             'data' => $fillings
         ]);

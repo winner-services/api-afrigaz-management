@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('reference')->nullable();
             $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->nullOnDelete();
             $table->foreignId('addedBy')->nullable()->constrained('users')->nullOnDelete();
+            $table->decimal('total_amount', 10, 2)->default(0);
             $table->string('status')->default('created');
             $table->timestamps();
         });
