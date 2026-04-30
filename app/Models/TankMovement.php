@@ -13,7 +13,8 @@ use Illuminate\Database\Eloquent\Model;
     'note',
     'reference_type',
     'reference_id',
-    'operation_date'
+    'operation_date',
+    'unit_price'
 ])]
 class TankMovement extends Model
 {
