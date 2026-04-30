@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api\Shipping;
 
 use App\Http\Controllers\Controller;
+use App\Models\About;
 use App\Models\Branche;
 use App\Models\Caussion;
 use App\Models\Shipping;
 use App\Models\ShippingItem;
+use App\Services\ImageService;
 use App\Services\SaleService;
 use App\Services\StockException;
 use Illuminate\Http\Request;
@@ -16,6 +18,12 @@ use OpenApi\Attributes as OA;
 
 class ShippingControlle extends Controller
 {
+    protected $imageService;
+
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
 
     #[OA\Post(
         path: '/api/v1/shippingStoreData',
@@ -397,6 +405,10 @@ class ShippingControlle extends Controller
         ]);
 
         try {
+            $about = About::first();
+            if ($about) {
+                $this->imageService->transform($about, ['logo', 'logo2']);
+            }
 
             $validItemIds = ShippingItem::where('shipping_id', $id)
                 ->pluck('id')
@@ -420,6 +432,7 @@ class ShippingControlle extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Livraison exécutée avec succès',
+                'info_company' => $about,
                 'status' => $result['status'],
                 'data' => $result['shipping']->load('items.product')
             ]);

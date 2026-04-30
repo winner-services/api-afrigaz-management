@@ -61,7 +61,6 @@ class PayementController extends Controller
     public function paymentDebt(Request $request)
     {
         $about = About::first();
-        $about = About::first();
         if ($about) {
             $this->imageService->transform($about, ['logo', 'logo2']);
         }
