@@ -127,7 +127,7 @@ class StockService
                 if (!$product) continue;
 
                 $quantity = (int) $item['quantity'];
-                $unit_price = (float)$item['unit_price'];
+                // $unit_price = (float)$item['unit_price'];
                 if ($quantity <= 0) continue;
 
                 if ((int) $product->category_id === 2) {
