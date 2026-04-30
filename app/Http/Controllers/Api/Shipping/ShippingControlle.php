@@ -428,13 +428,29 @@ class ShippingControlle extends Controller
                 $request->items,
                 $request->planned_date
             );
+            $shipping = $result['shipping']->load([
+                'items.product',
+                'distributor'
+            ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Livraison exécutée avec succès',
-                'info_company' => $about,
+
                 'status' => $result['status'],
-                'data' => $result['shipping']->load('items.product')
+
+                'info_company' => $about,
+
+                'data' => [
+                    'shipping' => $shipping,
+                    'distributor' => [
+                        'id' => $shipping->distributor->id ?? null,
+                        'name' => $shipping->distributor->name ?? null,
+                        'phone' => $shipping->distributor->phone ?? null,
+                        'address' => $shipping->distributor->address ?? null,
+                    ]
+                ]
+
             ]);
         } catch (StockException $e) {
 
