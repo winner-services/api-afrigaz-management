@@ -178,6 +178,7 @@ class EntryStockController extends Controller
                     return [
                         'id' => $item->id,
                         'quantity' => $item->quantity,
+                        'unit_price' => $item->unit_price,
                         'name' => $item->product->name ?? null,
                         'unit' => $item->product->unit->abreviation ?? null,
                     ];
