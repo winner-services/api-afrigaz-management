@@ -15,7 +15,7 @@ use OpenApi\Attributes as OA;
 
 class EntryStockController extends Controller
 {
-     protected $imageService;
+    protected $imageService;
 
     public function __construct(ImageService $imageService)
     {
@@ -56,11 +56,7 @@ class EntryStockController extends Controller
     )]
     public function store(Request $request)
     {
-        $about = About::first();
 
-        if ($about) {
-            $this->imageService->transform($about, ['logo', 'logo2']);
-        }
         $request->validate([
             'transaction_date' => 'required|date',
             'supplier_id' => 'nullable|exists:suppliers,id',
@@ -72,6 +68,11 @@ class EntryStockController extends Controller
 
         try {
             return DB::transaction(function () use ($request) {
+                $about = About::first();
+
+                if ($about) {
+                    $this->imageService->transform($about, ['logo', 'logo2']);
+                }
 
                 $entry = StockEntry::create([
                     'transaction_date' => $request->transaction_date,
@@ -104,6 +105,7 @@ class EntryStockController extends Controller
                 return response()->json([
                     'status' => true,
                     'message' => 'Entrée de stock enregistrée avec succès',
+                    'info_company' => $about,
                     'data' => $entry
                 ], 201);
             });
