@@ -168,6 +168,7 @@ class EntryStockController extends Controller
                 'id' => $entry->id,
                 'reference' => $entry->reference,
                 'transaction_date' => $entry->transaction_date,
+                'total_amount' => $entry->total_amount,
 
                 'supplier' => $entry->supplier ? [
                     'id' => $entry->supplier->id,
@@ -196,7 +197,7 @@ class EntryStockController extends Controller
         return response()->json([
             'message' => 'succes',
             'status' => 200,
-            'devide' => $devise,
+            'devise' => $devise,
             'data' => $entries
         ]);
     }
