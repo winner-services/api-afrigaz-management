@@ -33,6 +33,15 @@ return new class extends Migration
             $table->foreignId('addedBy')
                 ->constrained('users')
                 ->cascadeOnDelete();
+            $table->enum('movement', ['in', 'out']);
+            $table->boolean('is_empty')->nullable();
+
+            $table->enum('condition_state', [
+                'good',
+                'damaged',
+                'repair'
+            ])->nullable();
+            $table->decimal('unit_price', 10, 2)->default(0);
             $table->enum('status', ['created', 'posted', 'cancelled'])->default('created');
             $table->timestamps();
             $table->index(['product_id', 'branch_id', 'operation_date']);
