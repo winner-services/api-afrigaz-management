@@ -303,11 +303,11 @@ class StockService
             $before = $stock->stock_quantity;
             $after = $before - $quantity;
 
-            if ($after < $product->minimum_quantity) {
-                throw new \Exception(
-                    "Stock critique atteint pour {$product->name}. Minimum: {$product->minimum_quantity}, Restant: {$after}"
-                );
-            }
+            // if ($after < $product->minimum_quantity) {
+            //     throw new \Exception(
+            //         "Stock critique atteint pour {$product->name}. Minimum: {$product->minimum_quantity}, Restant: {$after}"
+            //     );
+            // }
 
             $stock->update([
                 'stock_quantity' => $after

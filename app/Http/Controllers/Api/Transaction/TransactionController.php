@@ -469,7 +469,7 @@ class TransactionController extends Controller
                 'type' => 'success',
                 'message' => 'Transfert effectué avec succès',
                 'reference' => $reference,
-
+                'devise' => $devise,
                 'data' => [
                     'transfer' => [
                         'amount' => $request->amount,
@@ -550,7 +550,6 @@ class TransactionController extends Controller
                 'user:id,name'
             ]);
 
-            // 🔍 Recherche
             if (!empty($search)) {
                 $query->where(function ($q) use ($search) {
                     $q->where('type_transaction', 'LIKE', "%$search%")
@@ -558,7 +557,6 @@ class TransactionController extends Controller
                 });
             }
 
-            // 🎯 Filtre par compte
             if ($request->has('account_id')) {
                 $query->where(function ($q) use ($request) {
                     $q->where('from_account_id', $request->account_id)
@@ -566,7 +564,6 @@ class TransactionController extends Controller
                 });
             }
 
-            // 📅 Filtre date
             if ($request->has('date_from')) {
                 $query->whereDate('transaction_date', '>=', $request->date_from);
             }
