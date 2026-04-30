@@ -437,11 +437,8 @@ class ShippingControlle extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Livraison exécutée avec succès',
-
                 'status' => $result['status'],
-
                 'info_company' => $about,
-
                 'data' => [
                     'shipping' => $shipping,
                     'distributor' => [
