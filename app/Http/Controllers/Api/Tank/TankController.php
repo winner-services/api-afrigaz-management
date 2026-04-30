@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Tank;
 
 use App\Http\Controllers\Controller;
+use App\Models\Currency;
 use App\Models\Tank;
 use App\Models\TankMovement;
 use App\Services\TankService;
@@ -501,6 +502,11 @@ class TankController extends Controller
         $startDate = $request->query('start_date');
         $endDate = $request->query('end_date');
 
+        $devise = Currency::where('status', 'created')
+            ->orderByRaw("currency_type = 'devise_principale' DESC")
+            ->latest()
+            ->get();
+
         $movements = TankMovement::query()
             ->with([
                 'tank:id,name',
@@ -551,6 +557,7 @@ class TankController extends Controller
 
         return response()->json([
             'movements' => $movements,
+            'devise' => $devise,
             'message' => 'successfully',
             'status' => 200
         ]);
