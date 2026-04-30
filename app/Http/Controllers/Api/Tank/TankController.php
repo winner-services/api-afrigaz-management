@@ -556,8 +556,8 @@ class TankController extends Controller
             ->paginate($perPage);
 
         return response()->json([
-            'movements' => $movements,
             'devise' => $devise,
+            'movements' => $movements,
             'message' => 'successfully',
             'status' => 200
         ]);
