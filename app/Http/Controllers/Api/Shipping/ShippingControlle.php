@@ -430,7 +430,8 @@ class ShippingControlle extends Controller
             );
             $shipping = $result['shipping']->load([
                 'items.product',
-                'distributor'
+                'distributor.category',
+                'branch'
             ]);
 
             return response()->json([
