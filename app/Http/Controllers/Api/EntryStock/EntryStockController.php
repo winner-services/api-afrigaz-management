@@ -103,6 +103,7 @@ class EntryStockController extends Controller
                         'type' => "stock_entry : {$entry->reference}"
                     ]
                 );
+                $entry->load('items.product');
 
                 return response()->json([
                     'status' => true,
