@@ -49,7 +49,7 @@ class DashBoardController extends Controller
 
             $totalSales = Sale::where('branch_id', $branchId)
                 ->whereBetween('transaction_date', [$startDate, $endDate])
-                ->count();
+                ->sum('total_amount');
 
             $totalRevenue = Sale::where('branch_id', $branchId)
                 ->whereBetween('transaction_date', [$startDate, $endDate])
