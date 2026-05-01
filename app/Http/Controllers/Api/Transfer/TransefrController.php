@@ -137,7 +137,6 @@ class TransefrController extends Controller
             $query->where('from_branch_id', $request->from_branch_id);
         }
 
-        // 🔍 Filtre par date
         if ($request->filled('from_date')) {
             $query->whereDate('transfer_date', '>=', $request->from_date);
         }

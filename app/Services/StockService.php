@@ -196,6 +196,7 @@ class StockService
     /**
      * Retirer du stock (sortie)
      */
+
     public static function removeStock($branchId, $productId, $quantity, $description = null, $reference = null)
     {
         return DB::transaction(function () use ($branchId, $productId, $quantity, $description, $reference) {
@@ -233,50 +234,6 @@ class StockService
         });
     }
 
-    // public static function removeStockShippinng($branchId, $productId, $quantity, $description = null, $reference = null)
-    // {
-    //     return DB::transaction(function () use ($branchId, $productId, $quantity, $description, $reference) {
-
-    //         $stock = StockByBranch::where(
-    //             'branche_id',
-    //             $branchId
-    //         )->where('product_id', $productId)
-    //             ->where(
-    //                 fn($q) =>
-    //                 $q->where('is_empty', false)
-    //                     ->orWhereNull('is_empty')
-    //             )
-    //             ->lockForUpdate()
-    //             ->first();
-
-    //         if ($stock->stock_quantity < $quantity) {
-    //             throw new \Exception("Stock insuffisant");
-    //         }
-
-    //         $before = $stock->stock_quantity;
-    //         $after = $before - $quantity;
-
-    //         $stock->update([
-    //             'stock_quantity' => $after
-    //         ]);
-
-    //         StockMovement::create([
-    //             'branche_id' => $branchId,
-    //             'product_id' => $productId,
-    //             'type' => 'out',
-    //             'quantity' => $quantity,
-    //             'stock_before' => $before,
-    //             'stock_after' => $after,
-    //             'description' => $description,
-    //             'reference_id' => $stock->id,
-    //             'reference' => $stock->reference ?? null,
-    //             'addedBy' => Auth::id(),
-    //         ]);
-
-    //         return $stock;
-    //     });
-    // }
-
     public static function removeStockShippinng(
         $branchId,
         $productId,
@@ -305,12 +262,6 @@ class StockService
 
             $before = $stock->stock_quantity;
             $after = $before - $quantity;
-
-            // if ($after < $product->minimum_quantity) {
-            //     throw new \Exception(
-            //         "Stock critique atteint pour {$product->name}. Minimum: {$product->minimum_quantity}, Restant: {$after}"
-            //     );
-            // }
 
             $stock->update([
                 'stock_quantity' => $after
@@ -403,32 +354,163 @@ class StockService
         });
     }
 
-    public static function transferMultipleProductsWithRecord($fromBranch, $driver, $charoit, $productsQuantities, $transfer_date, $userId)
-    {
-        return DB::transaction(function () use ($fromBranch, $driver, $charoit, $productsQuantities, $transfer_date, $userId) {
+    // public static function transferMultipleProductsWithRecord($fromBranch, $driver, $charoit, $productsQuantities, $transfer_date, $userId)
+    // {
+    //     return DB::transaction(function () use ($fromBranch, $driver, $charoit, $productsQuantities, $transfer_date, $userId) {
 
-            $productsQuantities = $productsQuantities ?? [];
+    //         $productsQuantities = $productsQuantities ?? [];
 
-            if (!is_array($productsQuantities) || count($productsQuantities) === 0) {
-                throw new \Exception("Liste des produits invalide ou vide");
-            }
-            foreach ($productsQuantities as $item) {
+    //         if (!is_array($productsQuantities) || count($productsQuantities) === 0) {
+    //             throw new \Exception("Liste des produits invalide ou vide");
+    //         }
+    //         foreach ($productsQuantities as $item) {
+
+    //             $stock = StockByBranch::where([
+    //                 'branche_id' => $fromBranch,
+    //                 'product_id' => $item['product_id']
+    //             ])->first();
+
+    //             if (!$stock || $stock->stock_quantity < $item['quantity']) {
+    //                 $errors[] = "Produit ID {$item['product_id']} insuffisant";
+    //             }
+    //         }
+
+    //         if (!empty($errors)) {
+    //             throw new \Exception(json_encode($errors));
+    //         }
+
+    //         $reference = 'TRF-' . date('YmdHis');
+
+    //         $transfer = Transfer::create([
+    //             'from_branch_id' => $fromBranch,
+    //             'driver' => $driver,
+    //             'charoit' => $charoit,
+    //             'addedBy' => $userId,
+    //             'reference' => $reference,
+    //             'transfer_date' => $transfer_date,
+    //             'status' => 'created'
+    //         ]);
+
+    //         foreach ($productsQuantities as $item) {
+    //             if (!isset($item['product_id'], $item['quantity'])) {
+    //                 throw new \Exception("Format produit invalide");
+    //             }
+
+    //             $productId = $item['product_id'];
+    //             $quantity  = $item['quantity'];
+    //             $toBranch = $item['to_branch_id'] ?? null;
+
+    //             $transfer->items()->create([
+    //                 'product_id' => $productId,
+    //                 'to_branch_id' => $toBranch,
+    //                 'quantity' => $quantity,
+    //                 'transfer_id' => $transfer->id
+    //             ]);
+
+    //             self::removeStock($fromBranch, $productId, $quantity, "Transfert sortant vers la branche $toBranch", [
+    //                 'type' => 'transfer',
+    //                 'reference_id' => $transfer->id,
+    //                 'addedBy' => $userId
+    //             ]);
+    //         }
+
+    //         return $transfer;
+    //     });
+    // }
+
+    public static function removeStockTransfert(
+        int $branchId,
+        int $productId,
+        float $qty,
+        ?string $description = null,
+        array $options = []
+    ) {
+
+        return DB::transaction(function () use (
+            $branchId,
+            $productId,
+            $qty,
+            $description,
+            $options
+        ) {
+
+            $product = Product::findOrFail($productId);
+
+            $isFullBottle = ((int) $product->category_id === 2);
+
+            if ($isFullBottle) {
 
                 $stock = StockByBranch::where([
-                    'branche_id' => $fromBranch,
-                    'product_id' => $item['product_id']
-                ])->first();
-
-                if (!$stock || $stock->stock_quantity < $item['quantity']) {
-                    $errors[] = "Produit ID {$item['product_id']} insuffisant";
-                }
+                    'branche_id' => $branchId,
+                    'product_id' => $productId,
+                    'is_empty' => 0,
+                    'condition_state' => 'good'
+                ])->lockForUpdate()->first();
+            } else {
+                $stock = StockByBranch::where([
+                    'branche_id' => $branchId,
+                    'product_id' => $productId
+                ])->lockForUpdate()->first();
             }
 
-            if (!empty($errors)) {
-                throw new \Exception(json_encode($errors));
+            if (!$stock) {
+                throw new \Exception("Stock introuvable pour produit ID: {$productId}");
             }
 
-            $reference = 'TRF-' . date('YmdHis');
+            if ($stock->stock_quantity < $qty) {
+                throw new \Exception("Stock insuffisant pour produit ID: {$productId}");
+            }
+
+            $before = $stock->stock_quantity;
+            $after = $before - $qty;
+
+            $stock->update([
+                'stock_quantity' => $after
+            ]);
+
+            StockMovement::create([
+                'branche_id'   => $branchId,
+                'product_id'   => $productId,
+                'type'         => $options['type'] ?? 'out',
+                'quantity'     => $qty,
+                'stock_before' => $before,
+                'stock_after'  => $after,
+                'movement'     => 'out',
+                'description'  => $description,
+
+                'reference_id' => $options['reference_id'] ?? null,
+                'reference'    => $options['reference'] ?? null,
+
+                'addedBy' => $options['addedBy'] ?? Auth::id() ?? 1,
+
+            ]);
+
+            return $stock;
+        });
+    }
+    public static function transferMultipleProductsWithRecord(
+        int $fromBranch,
+        ?string $driver,
+        ?string $charoit,
+        array $productsQuantities,
+        ?string $transfer_date,
+        int $userId
+    ) {
+
+        return DB::transaction(function () use (
+            $fromBranch,
+            $driver,
+            $charoit,
+            $productsQuantities,
+            $transfer_date,
+            $userId
+        ) {
+
+            if (empty($productsQuantities)) {
+                throw new \Exception("Liste des produits invalide ou vide");
+            }
+
+            $reference = 'TRF-' . now()->format('YmdHis');
 
             $transfer = Transfer::create([
                 'from_branch_id' => $fromBranch,
@@ -436,42 +518,190 @@ class StockService
                 'charoit' => $charoit,
                 'addedBy' => $userId,
                 'reference' => $reference,
-                'transfer_date' => $transfer_date,
+                'transfer_date' => $transfer_date ?? now(),
                 'status' => 'created'
             ]);
 
             foreach ($productsQuantities as $item) {
-                if (!isset($item['product_id'], $item['quantity'])) {
+
+                if (
+                    !isset($item['product_id'], $item['quantity'], $item['to_branch_id'])
+                ) {
                     throw new \Exception("Format produit invalide");
                 }
 
-                $productId = $item['product_id'];
-                $quantity  = $item['quantity'];
-                $toBranch = $item['to_branch_id'] ?? null;
+                $productId = (int) $item['product_id'];
+                $quantity  = (int) $item['quantity'];
+                $toBranch  = (int) $item['to_branch_id'];
+
+                $product = Product::findOrFail($productId);
 
                 $transfer->items()->create([
-                    'product_id' => $productId,
+                    'product_id'   => $productId,
                     'to_branch_id' => $toBranch,
-                    'quantity' => $quantity,
-                    'transfer_id' => $transfer->id
+                    'quantity'     => $quantity,
+                    'transfer_id'  => $transfer->id
                 ]);
 
-                self::removeStock($fromBranch, $productId, $quantity, "Transfert sortant vers la branche $toBranch", [
-                    'type' => 'transfer',
-                    'reference_id' => $transfer->id,
-                    'addedBy' => $userId
-                ]);
-
-                // self::addStock($toBranch, $productId, $quantity, "Transfert entrant depuis la branche $fromBranch", [
-                //     'type' => 'transfer',
-                //     'reference_id' => $transfer->id,
-                //     'addedBy' => $userId
-                // ]);
+                self::removeStockTransfert(
+                    $fromBranch,
+                    $productId,
+                    $quantity,
+                    "Transfert vers branche {$toBranch}",
+                    [
+                        'type' => 'transfer',
+                        'reference_id' => $transfer->id,
+                        'addedBy' => $userId,
+                        'is_empty' => 0,
+                        'condition_state' => 'good',
+                        'category_id' => $product->category_id
+                    ]
+                );
             }
 
-            return $transfer;
+            return $transfer->load(['items.product']);
         });
     }
+
+    // public static function transferMultipleProductsWithRecord(
+    //     int $fromBranch,
+    //     ?string $driver,
+    //     ?string $charoit,
+    //     array $productsQuantities,
+    //     ?string $transfer_date,
+    //     int $userId
+    // ) {
+
+    //     return DB::transaction(function () use (
+    //         $fromBranch,
+    //         $driver,
+    //         $charoit,
+    //         $productsQuantities,
+    //         $transfer_date,
+    //         $userId
+    //     ) {
+
+    //         if (empty($productsQuantities)) {
+    //             throw new \Exception("Liste des produits invalide ou vide");
+    //         }
+
+    //         $errors = [];
+
+    //         foreach ($productsQuantities as $item) {
+
+    //             if (
+    //                 !isset(
+    //                     $item['product_id'],
+    //                     $item['quantity'],
+    //                     $item['to_branch_id']
+    //                 )
+    //             ) {
+    //                 throw new \Exception("Format produit invalide");
+    //             }
+
+    //             $productId = (int) $item['product_id'];
+
+    //             $quantity = (int) $item['quantity'];
+
+    //             $product = Product::find($productId);
+
+    //             if (!$product) {
+
+    //                 $errors[] = "Produit introuvable ID {$productId}";
+    //                 continue;
+    //             }
+
+    //             $query = StockByBranch::where([
+    //                 'branche_id' => $fromBranch,
+    //                 'product_id' => $productId,
+    //             ]);
+
+    //             if ((int) $product->category_id === 2) {
+
+    //                 $query->where([
+    //                     'is_empty' => 0,
+    //                     'condition_state' => 'good'
+    //                 ]);
+    //             }
+
+    //             $stock = $query->lockForUpdate()->first();
+
+    //             if (!$stock || $stock->stock_quantity < $quantity) {
+
+    //                 $errors[] = "Stock insuffisant pour {$product->name}";
+    //             }
+    //         }
+
+    //         if (!empty($errors)) {
+
+    //             throw new \Exception(json_encode($errors));
+    //         }
+
+    //         $reference = 'TRF-' . now()->format('YmdHis');
+
+    //         $transfer = Transfer::create([
+    //             'from_branch_id' => $fromBranch,
+    //             'driver' => $driver,
+    //             'charoit' => $charoit,
+    //             'addedBy' => $userId,
+    //             'reference' => $reference,
+    //             'transfer_date' => $transfer_date ?? now(),
+    //             'status' => 'created'
+    //         ]);
+
+    //         foreach ($productsQuantities as $item) {
+
+    //             $productId = (int) $item['product_id'];
+
+    //             $quantity = (int) $item['quantity'];
+
+    //             $toBranch = (int) $item['to_branch_id'];
+
+    //             $product = Product::findOrFail($productId);
+
+    //             $transfer->items()->create([
+    //                 'product_id' => $productId,
+    //                 'to_branch_id' => $toBranch,
+    //                 'quantity' => $quantity,
+    //                 'transfer_id' => $transfer->id
+    //             ]);
+
+
+    //             if ((int) $product->category_id === 2) {
+
+    //                 self::removeStock(
+    //                     $fromBranch,
+    //                     $productId,
+    //                     $quantity,
+    //                     "Transfert sortant vers branche {$toBranch}",
+    //                     [
+    //                         'type' => 'transfer',
+    //                         'reference_id' => $transfer->id,
+    //                         'addedBy' => $userId,
+    //                         'is_empty' => 0,
+    //                         'condition_state' => 'good'
+    //                     ]
+    //                 );
+    //             } else {
+
+    //                 self::removeStockTransfert(
+    //                     $fromBranch,
+    //                     $productId,
+    //                     $quantity,
+    //                     "Transfert sortant vers branche {$toBranch}",
+    //                     [
+    //                         'type' => 'transfer',
+    //                         'reference_id' => $transfer->id,
+    //                         'addedBy' => $userId
+    //                     ]
+    //                 );
+    //             }
+    //         }
+    //         return $transfer->load([
+    //             'items.product'
+    //         ]);
+    //     });
+    // }
 
     public static function returnStock(
         int $branchId,
