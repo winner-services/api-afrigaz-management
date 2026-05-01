@@ -504,8 +504,8 @@ class TransefrController extends Controller
                     $item->to_branch_id,
                     $item->product_id,
                     $data['received_quantity'],
-                    false,
-                    null
+                    0,
+                    'good'
                 );
                 $transfer = $item->transfer;
                 if (
