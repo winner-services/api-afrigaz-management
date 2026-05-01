@@ -681,7 +681,7 @@ class StockService
                 'branche_id' => $branchId,
                 'product_id' => $productId,
                 'is_empty' => $isEmpty,
-                'condition_state' => 'goo',
+                'condition_state' => 'good',
             ], [
                 'stock_quantity' => 0,
                 'status' => 'created'
