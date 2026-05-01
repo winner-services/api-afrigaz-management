@@ -27,4 +27,5 @@ class Referral extends Model
     {
         return $this->hasMany(ReferralReward::class);
     }
+    
 }

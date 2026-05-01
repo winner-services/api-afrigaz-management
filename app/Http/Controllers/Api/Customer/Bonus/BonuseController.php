@@ -333,10 +333,7 @@ class BonuseController extends Controller
                 'referralRewards' => function ($q) {
                     $q->where('status', 'pending')
                         ->with([
-                            'referral:id,referrer_id,referred_id',
-                            'referral.referrer:id,name',
-                            'referral.referred:id,name',
-                            'customer:id,name'
+                            'referral.referred:id,name'
                         ]);
                 }
             ])
@@ -347,7 +344,6 @@ class BonuseController extends Controller
 
         return response()->json([
             'success' => true,
-            'status' => 200,
             'data' => $customers
         ]);
     }
