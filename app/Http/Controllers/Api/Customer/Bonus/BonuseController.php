@@ -278,28 +278,48 @@ class BonuseController extends Controller
         return response()->json($result);
     }
 
-    public function referralDashboard()
+    // public function referralDashboard()
+    // {
+    //     $customers = Customer::with([
+    //         'referralRewards'
+    //     ])
+    //         ->withCount([
+    //             'referralRewards as total_rewards_count'
+    //         ])
+    //         ->withSum([
+    //             'referralRewards as total_rewards_amount' => function ($q) {
+    //                 $q->where('status', 'paid');
+    //             }
+    //         ], 'amount')
+    //         ->withSum([
+    //             'referralRewards as pending_rewards_amount' => function ($q) {
+    //                 $q->where('status', 'pending');
+    //             }
+    //         ], 'amount')
+    //         ->get();
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'status' => 200,
+    //         'data' => $customers
+    //     ]);
+    // }
+    public function customersWithPendingRewards()
     {
-        $customers = Customer::with([
-            'referralRewards'
-        ])
-            ->withCount([
-                'referralRewards as total_rewards_count'
-            ])
-            ->withSum([
-                'referralRewards as total_rewards_amount' => function ($q) {
-                    $q->where('status', 'paid');
-                }
-            ], 'amount')
-            ->withSum([
-                'referralRewards as pending_rewards_amount' => function ($q) {
-                    $q->where('status', 'pending');
-                }
-            ], 'amount')
+        $customers = Customer::whereHas('referralRewards', function ($q) {
+            $q->where('status', 'pending');
+        })
+            ->with(['referralRewards' => function ($q) {
+                $q->where('status', 'pending');
+            }])
+            ->withSum(['referralRewards as pending_rewards_amount' => function ($q) {
+                $q->where('status', 'pending');
+            }], 'amount')
             ->get();
 
         return response()->json([
             'success' => true,
+            'status' => 200,
             'data' => $customers
         ]);
     }
