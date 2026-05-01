@@ -280,7 +280,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::put('/programRacompanceUpdate/{id}', 'updateData');
             Route::put('/programDisable/{id}', 'delete');
             Route::post('/payCustomer', 'payCustomer');
-            Route::get('/getRewardCustomer', 'referralDashboard');
+            Route::get('/getRewardCustomer', 'customersWithPendingRewards');
         });
 
         Route::controller(DashBoardController::class)->group(function () {
