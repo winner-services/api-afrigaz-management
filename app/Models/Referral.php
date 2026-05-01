@@ -12,4 +12,19 @@ class Referral extends Model
     {
         return $this->hasMany(Referral::class, 'referrer_id');
     }
+
+    public function referrer()
+    {
+        return $this->belongsTo(Customer::class, 'referrer_id');
+    }
+
+    public function referred()
+    {
+        return $this->belongsTo(Customer::class, 'referred_id');
+    }
+
+    public function rewards()
+    {
+        return $this->hasMany(ReferralReward::class);
+    }
 }

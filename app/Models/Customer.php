@@ -21,4 +21,17 @@ class Customer extends Model
     {
         return $this->hasMany(Referral::class, 'referrer_id');
     }
+
+    public function referralsGiven()
+    {
+        return $this->hasMany(Referral::class, 'referrer_id');
+    }
+    public function referralsReceived()
+    {
+        return $this->hasOne(Referral::class, 'referred_id');
+    }
+    public function referralRewards()
+    {
+        return $this->hasMany(ReferralReward::class, 'customer_id');
+    }
 }

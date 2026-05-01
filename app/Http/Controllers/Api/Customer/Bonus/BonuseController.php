@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Customer\Bonus;
 
 use App\Http\Controllers\Controller;
 use App\Models\Bonuse;
+use App\Models\Customer;
 use App\Services\ReferralService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -275,5 +276,31 @@ class BonuseController extends Controller
         $result = $payoutService->payCustomer($data);
 
         return response()->json($result);
+    }
+
+    public function referralDashboard()
+    {
+        $customers = Customer::with([
+            'referralRewards'
+        ])
+            ->withCount([
+                'referralRewards as total_rewards_count'
+            ])
+            ->withSum([
+                'referralRewards as total_rewards_amount' => function ($q) {
+                    $q->where('status', 'paid');
+                }
+            ], 'amount')
+            ->withSum([
+                'referralRewards as pending_rewards_amount' => function ($q) {
+                    $q->where('status', 'pending');
+                }
+            ], 'amount')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $customers
+        ]);
     }
 }
