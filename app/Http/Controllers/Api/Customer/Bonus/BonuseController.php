@@ -332,15 +332,33 @@ class BonuseController extends Controller
             ->with([
                 'referralRewards' => function ($q) {
                     $q->where('status', 'pending')
-                        ->with([
-                            'referral.referred:id,name'
-                        ]);
+                        ->with(['referral.referred:id,name']);
                 }
             ])
             ->withSum(['referralRewards as pending_rewards_amount' => function ($q) {
                 $q->where('status', 'pending');
             }], 'amount')
             ->get();
+
+        // 🔥 FLATTEN referral -> referred
+        $customers->transform(function ($customer) {
+
+            $customer->referral_rewards->transform(function ($reward) {
+
+                $reward->referred = optional($reward->referral->referred)
+                    ? [
+                        'id' => $reward->referral->referred->id,
+                        'name' => $reward->referral->referred->name,
+                    ]
+                    : null;
+
+                unset($reward->referral); 
+
+                return $reward;
+            });
+
+            return $customer;
+        });
 
         return response()->json([
             'success' => true,
