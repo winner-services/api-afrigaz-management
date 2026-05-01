@@ -206,6 +206,8 @@ class ProductController extends Controller
             })
             ->where('products.status', 'created')
             ->whereIn('products.category_id', [2, 3])
+            ->where('stock_by_branches.is_empty', 0)
+            ->where('stock_by_branches.condition_state', 'good')
             ->select(
                 'products.*',
                 'units.abreviation',
