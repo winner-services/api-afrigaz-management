@@ -324,6 +324,30 @@ class BonuseController extends Controller
     //     ]);
     // }
 
+    // public function customersWithPendingRewards()
+    // {
+    //     $customers = Customer::whereHas('referralRewards', function ($q) {
+    //         $q->where('status', 'pending');
+    //     })
+    //         ->with([
+    //             'referralRewards' => function ($q) {
+    //                 $q->where('status', 'pending')
+    //                     ->with([
+    //                         'referral.referred:id,name'
+    //                     ]);
+    //             }
+    //         ])
+    //         ->withSum(['referralRewards as pending_rewards_amount' => function ($q) {
+    //             $q->where('status', 'pending');
+    //         }], 'amount')
+    //         ->get();
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'data' => $customers
+    //     ]);
+    // }
+
     public function customersWithPendingRewards()
     {
         $customers = Customer::whereHas('referralRewards', function ($q) {
@@ -333,7 +357,8 @@ class BonuseController extends Controller
                 'referralRewards' => function ($q) {
                     $q->where('status', 'pending')
                         ->with([
-                            'referral.referred:id,name'
+                            'referral.referred:id,name',
+                            'sale:id,reference'
                         ]);
                 }
             ])
@@ -344,6 +369,7 @@ class BonuseController extends Controller
 
         return response()->json([
             'success' => true,
+            'status' => 200,
             'data' => $customers
         ]);
     }
