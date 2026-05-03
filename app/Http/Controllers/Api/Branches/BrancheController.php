@@ -94,7 +94,7 @@ class BrancheController extends Controller
             return response()->json([
                 'status'  => false,
                 'message' => 'Un utilisateur avec ce nom, e-mail ou téléphone existe déjà.',
-            ], 409); // 409 = Conflict
+            ], 409); 
         }
         try {
             DB::beginTransaction();

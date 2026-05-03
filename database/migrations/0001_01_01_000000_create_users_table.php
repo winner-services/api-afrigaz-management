@@ -20,6 +20,10 @@ return new class extends Migration
             $table->string('password');
             $table->boolean('active')->default(true);
             $table->string('status')->default('created');
+            $table->boolean('is_admin')
+                ->default(false);
+            $table->dateTime('overtime_until')
+                ->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

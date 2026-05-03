@@ -20,7 +20,9 @@ use Laravel\Sanctum\HasApiTokens;
     'password',
     'phone',
     'active',
-    'status'
+    'status',
+    'is_admin',
+    'overtime_until'
 ])]
 #[Hidden(['password', 'remember_token'])]
 #[Appends([

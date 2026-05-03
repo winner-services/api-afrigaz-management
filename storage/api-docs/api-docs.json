@@ -337,6 +337,407 @@
                 ]
             }
         },
+        "/api/v1/overtimeRequest": {
+            "post": {
+                "tags": [
+                    "Overtime"
+                ],
+                "summary": "Demande d'heures supplémentaires",
+                "description": "Permet à un utilisateur de soumettre une demande d'heures supplémentaires",
+                "operationId": "ed2462751de1e36b86c0fcf09dca6d1a",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "minutes",
+                                    "reason"
+                                ],
+                                "properties": {
+                                    "minutes": {
+                                        "description": "Nombre de minutes demandées",
+                                        "type": "integer",
+                                        "example": 60,
+                                        "minimum": 1
+                                    },
+                                    "reason": {
+                                        "description": "Motif de la demande",
+                                        "type": "string",
+                                        "example": "Travail urgent sur production"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Demande créée avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 201
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Demande envoyée avec succès"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "user_id": {
+                                                    "type": "integer",
+                                                    "example": 5
+                                                },
+                                                "requested_minutes": {
+                                                    "type": "integer",
+                                                    "example": 60
+                                                },
+                                                "reason": {
+                                                    "type": "string",
+                                                    "example": "Travail urgent"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "pending"
+                                                },
+                                                "requested_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    },
+                    "500": {
+                        "description": "Erreur serveur",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Une erreur est survenue lors de la création"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/approveRequest/{id}": {
+            "patch": {
+                "tags": [
+                    "Overtime"
+                ],
+                "summary": "Approuver une demande d'heures supplémentaires",
+                "description": "Permet à un administrateur d'approuver une demande d'heures supplémentaires",
+                "operationId": "e3aa69398fb7eaa5fc478b08729e8087",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la demande d'heures supplémentaires",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Demande approuvée avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Heures supp approuvées"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Demande introuvable"
+                    },
+                    "500": {
+                        "description": "Erreur serveur",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Une erreur est survenue lors de la création"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/rejecteRequest/{id}": {
+            "patch": {
+                "tags": [
+                    "Overtime"
+                ],
+                "summary": "Rejeter une demande d'heures supplémentaires",
+                "description": "Permet à un administrateur de rejeter une demande d'heures supplémentaires",
+                "operationId": "8ac68951671b1994ec3a8293aebc5929",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la demande d'heures supplémentaires",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Demande rejetée avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Heures supp rejetées"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Demande introuvable"
+                    },
+                    "500": {
+                        "description": "Erreur serveur",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Une erreur est survenue lors de la création"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/overtimeGetData": {
+            "get": {
+                "tags": [
+                    "Overtime"
+                ],
+                "summary": "Lister les demandes d'heures supplémentaires",
+                "description": "Retourne la liste avec filtres + pagination",
+                "operationId": "fb299b4fc8092a6e3954e4bde819484a",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "pending"
+                        }
+                    },
+                    {
+                        "name": "user_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 5
+                        }
+                    },
+                    {
+                        "name": "date",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2026-05-03"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "john"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Liste des demandes",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "data": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "user_id": {
+                                                                "type": "integer",
+                                                                "example": 5
+                                                            },
+                                                            "requested_minutes": {
+                                                                "type": "integer",
+                                                                "example": 60
+                                                            },
+                                                            "reason": {
+                                                                "type": "string",
+                                                                "example": "Travail urgent"
+                                                            },
+                                                            "status": {
+                                                                "type": "string",
+                                                                "example": "pending"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "example": 100
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/brancheGetAllData": {
             "get": {
                 "tags": [
@@ -1356,6 +1757,18 @@
                                     "phone": {
                                         "type": "string",
                                         "example": "+243990000000"
+                                    },
+                                    "opening_time": {
+                                        "type": "time",
+                                        "example": "08:00"
+                                    },
+                                    "closing_time": {
+                                        "type": "time",
+                                        "example": "17:00"
+                                    },
+                                    "grace_minutes": {
+                                        "type": "string",
+                                        "example": "15"
                                     },
                                     "address": {
                                         "type": "string",
@@ -7377,6 +7790,10 @@
         {
             "name": "Authenticate",
             "description": "Authenticate"
+        },
+        {
+            "name": "Overtime",
+            "description": "Overtime"
         },
         {
             "name": "Branches",

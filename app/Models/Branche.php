@@ -107,14 +107,14 @@ class Branche extends Model
             StockByBranch::insertOrIgnore($stockData);
             ProductLedger::insert($ledgerData);
 
-            CashAccount::create([
-                'designation' => 'Cash - ' . $branch->name,
-                'nature' => 'Caisse',
-                'reference' => 'CA-' . strtoupper(uniqid()),
-                'branche_id' => $branchId,
-                'addedBy' => Auth::id(),
-                'status' => 'created',
-            ]);
+            // CashAccount::create([
+            //     'designation' => 'Cash - ' . $branch->name,
+            //     'nature' => 'Caisse',
+            //     'reference' => 'CA-' . strtoupper(uniqid()),
+            //     'branche_id' => $branchId,
+            //     'addedBy' => Auth::id(),
+            //     'status' => 'created',
+            // ]);
         });
     }
 }

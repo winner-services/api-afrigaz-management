@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use OpenApi\Attributes as OA;
+use Spatie\Permission\Models\Role;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 class UserController extends Controller
@@ -159,17 +160,21 @@ class UserController extends Controller
             return response()->json([
                 'status'  => false,
                 'message' => 'Un utilisateur avec ce nom, e-mail ou téléphone existe déjà.',
-            ], 409); // 409 = Conflict
+            ], 409);
         }
 
         try {
             DB::beginTransaction();
+
+            $role = Role::findOrFail($request->role_id);
+            $isAdmin = strtolower($role->name) === 'admin';
 
             $user = User::create([
                 'name'     => $request->input('name'),
                 'email'    => $request->input('email'),
                 'phone'    => $request->input('phone'),
                 'password' => bcrypt($request->input('password')),
+                'is_admin' => $isAdmin,
             ]);
 
             $user->assignRole($request->input('role_id'));
@@ -270,9 +275,13 @@ class UserController extends Controller
         try {
             DB::beginTransaction();
 
+            $role = Role::findOrFail($request->role_id);
+            $isAdmin = strtolower($role->name) === 'admin';
+
             $user->name  = $request->input('name');
             $user->email = $request->input('email');
             $user->phone = $request->input('phone');
+            $user->is_admin = $isAdmin;
 
             if ($request->filled('password')) {
                 $user->password = bcrypt($request->input('password'));
