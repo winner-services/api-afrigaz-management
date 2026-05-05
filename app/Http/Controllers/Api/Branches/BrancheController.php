@@ -51,7 +51,10 @@ class BrancheController extends Controller
                     new OA\Property(property: "name", type: "string", example: "Agence Gombe"),
                     new OA\Property(property: "phone", type: "string", example: "0999999999"),
                     new OA\Property(property: "city", type: "string", example: "Kinshasa"),
-                    new OA\Property(property: "address", type: "string", example: "Av. de la paix"),
+                    new OA\Property(property: "commune", type: "string", example: "de la paix"),
+                    new OA\Property(property: "quartier", type: "string", example: "de la paix"),
+                    new OA\Property(property: "avenue", type: "string", example: "Av. de la paix"),
+                    new OA\Property(property: "email", type: "string", example: "branche@afrigaz-express.com"),
                     new OA\Property(property: "user_id", type: "integer", example: 1)
                 ]
             )
@@ -67,7 +70,10 @@ class BrancheController extends Controller
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
             'city' => 'nullable|string|max:100',
-            'address' => 'nullable|string|max:255',
+            'quartier' => 'nullable|string|max:100',
+            'avenue' => 'nullable|string|max:100',
+            'email' => 'nullable|string|max:100',
+            'commune' => 'nullable|string|max:255',
             'user_id' => 'nullable|exists:users,id',
         ];
 
@@ -94,7 +100,7 @@ class BrancheController extends Controller
             return response()->json([
                 'status'  => false,
                 'message' => 'Un utilisateur avec ce nom, e-mail ou téléphone existe déjà.',
-            ], 409); 
+            ], 409);
         }
         try {
             DB::beginTransaction();
@@ -105,7 +111,10 @@ class BrancheController extends Controller
                 'name' => $request->name,
                 'phone' => $request->phone,
                 'city' => $request->city,
-                'address' => $request->address,
+                'commune' => $request->commune,
+                'quartier' => $request->quartier,
+                'avenue' => $request->avenue,
+                'email' => $request->email,
                 'user_id' => $request->user_id,
                 'addedBy' => $userId,
                 'reference' => fake()->unique()->numerify('BR-#####')
@@ -166,7 +175,10 @@ class BrancheController extends Controller
             'name'     => ['sometimes', 'string', 'max:255'],
             'phone'    => ['nullable', 'string', 'max:20', 'unique:branches,phone,' . $branch->id],
             'city'     => ['nullable', 'string', 'max:100'],
-            'address'  => ['nullable', 'string', 'max:255'],
+            'quartier' => 'nullable|string|max:100',
+            'avenue' => 'nullable|string|max:100',
+            'email' => 'nullable|string|max:100',
+            'commune' => 'nullable|string|max:255',
             'user_id'  => ['nullable', 'integer', 'exists:users,id'],
         ];
 
@@ -191,7 +203,10 @@ class BrancheController extends Controller
                 'name',
                 'phone',
                 'city',
-                'address',
+                'commune',
+                'quartier',
+                'avenue',
+                'email',
                 'user_id'
             ]));
             DB::commit();

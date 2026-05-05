@@ -780,9 +780,21 @@
                                         "type": "string",
                                         "example": "Kinshasa"
                                     },
-                                    "address": {
+                                    "commune": {
+                                        "type": "string",
+                                        "example": "de la paix"
+                                    },
+                                    "quartier": {
+                                        "type": "string",
+                                        "example": "de la paix"
+                                    },
+                                    "avenue": {
                                         "type": "string",
                                         "example": "Av. de la paix"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "branche@afrigaz-express.com"
                                     },
                                     "user_id": {
                                         "type": "integer",

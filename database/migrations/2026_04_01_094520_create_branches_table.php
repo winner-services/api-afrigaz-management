@@ -16,7 +16,10 @@ return new class extends Migration
             $table->string('name')->nullable();
             $table->string('phone')->nullable();
             $table->string('city')->nullable();
-            $table->string('address')->nullable();
+            $table->string('commune')->nullable();
+            $table->string('quartier')->nullable();
+            $table->string('avenue')->nullable();
+            $table->string('email')->nullable();
             $table->string('reference')->nullable();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('addedBy')->nullable()->constrained('users')->nullOnDelete();
