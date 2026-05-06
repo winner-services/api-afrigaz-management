@@ -94,32 +94,49 @@ class CompanyController extends Controller
         ]
     )]
 
+
     public function store(Request $request): JsonResponse
     {
-        $validated = $request->all();
+        $validated = $request->validate([
+            'denomination'   => ['nullable', 'string'],
+            'details'        => ['nullable', 'string'],
+            'register'       => ['nullable', 'string'],
+            'national_id'    => ['nullable', 'string'],
+            'import_export'  => ['nullable', 'string'],
+            'tax_number'     => ['nullable', 'string'],
+            'phone'          => ['nullable', 'string'],
+            'address'        => ['nullable', 'string'],
+            'email'          => ['nullable', 'email'],
+            'logo'           => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'logo2'          => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'opening_time'   => ['required', 'date_format:H:i'],
+            'closing_time'   => ['required', 'date_format:H:i'],
+            'grace_minutes'  => ['nullable', 'integer', 'min:0'],
+            'working_days'   => ['nullable', 'array'],
+            'working_days.*' => ['string'],
+        ]);
 
         try {
             $about = DB::transaction(function () use ($request, $validated) {
-
                 $about = About::first();
 
                 if ($request->hasFile('logo')) {
-
                     if ($about?->logo && Storage::disk('public')->exists($about->logo)) {
                         Storage::disk('public')->delete($about->logo);
                     }
 
-                    $validated['logo'] = $request->file('logo')->store('about', 'public');
+                    $validated['logo'] = $request->file('logo')->store('abouts', 'public');
                 }
 
                 if ($request->hasFile('logo2')) {
-
                     if ($about?->logo2 && Storage::disk('public')->exists($about->logo2)) {
                         Storage::disk('public')->delete($about->logo2);
                     }
 
-                    $validated['logo2'] = $request->file('logo2')->store('about', 'public');
+                    $validated['logo2'] = $request->file('logo2')->store('abouts', 'public');
                 }
+
+                $validated['grace_minutes'] = $validated['grace_minutes'] ?? 15;
 
                 if ($about) {
                     $about->update($validated);
@@ -127,22 +144,22 @@ class CompanyController extends Controller
                     $about = About::create($validated);
                 }
 
-                return $about;
+                return $about->fresh();
             });
 
             return response()->json([
-                'succees'  => true,
+                'success' => true,
+                'status'  => $about->wasRecentlyCreated ? 201 : 200,
                 'message' => $about->wasRecentlyCreated
-                    ? 'Données créées avec succès'
-                    : 'Données mises à jour avec succès',
+                    ? 'Informations créées avec succès.'
+                    : 'Informations mises à jour avec succès.',
                 'data'    => $about
             ], $about->wasRecentlyCreated ? 201 : 200);
         } catch (\Throwable $e) {
-
             return response()->json([
-                'status'  => false,
-                'message' => 'Erreur serveur',
-                'error'   => config('app.debug') ? $e->getMessage() : null
+                'success' => false,
+                'message' => 'Erreur serveur.',
+                'error'   => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }

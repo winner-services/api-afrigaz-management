@@ -17,7 +17,11 @@ class BrancheSeeder extends Seeder
         Branche::create([
             'name' => 'Entrepôt principal',
             'city' => 'Beni',
-            'address' => 'Comm. Beu',
+            'commune' => 'Comm. Beu',
+            'quartier' => 'Beu',
+            'avenue' => 'Boulevard Nyamwisi',
+            'email' => 'comtact@gmail.com',
+            'reference' => fake()->unique()->numerify('PT-AFGZ-#####'),
             'addedBy' => 1
         ]);
     }

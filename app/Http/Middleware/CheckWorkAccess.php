@@ -5,9 +5,11 @@ namespace App\Http\Middleware;
 use App\Models\About;
 use App\Services\WhatsappService;
 use Closure;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckWorkAccess
@@ -18,133 +20,53 @@ class CheckWorkAccess
      * @param  Closure(Request): (Response)  $next
      */
 
-    public function handle(Request $request, Closure $next)
-    {
-        $user = $request->user();
-
-        if ($user->is_admin) {
-            return $next($request);
-        }
-
-        $settings = About::first();
-
-        if (!$settings) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Configuration des horaires introuvable'
-            ], 500);
-        }
-
-        $now = now();
-
-        $today = strtolower($now->englishDayOfWeek);
-
-        $workingDays = $settings->working_days ?? [];
-
-        if (!in_array($today, $workingDays)) {
-
-            $this->forceLogout($user);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Aujourd’hui est un jour non ouvrable'
-            ], 403);
-        }
-
-        $opening = today()->setTimeFromTimeString($settings->opening_time);
-        $closing = today()->setTimeFromTimeString($settings->closing_time);
-
-        $realClosing = $closing->copy()
-            ->addMinutes($settings->grace_minutes);
-
-        if ($now->between($opening, $closing)) {
-            return $next($request);
-        }
-
-        if ($now->between($closing, $realClosing)) {
-
-            $allowedRoutes = [
-                'api.v1.overtime.request',
-                'api.v1.auth.logout'
-            ];
-
-            if (in_array($request->route()->getName(), $allowedRoutes)) {
-                return $next($request);
-            }
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Temps de travail terminé. Demandez des heures supplémentaires.'
-            ], 403);
-        }
-
-
-        if ($user->overtime_until && now()->lessThan($user->overtime_until)) {
-            return $next($request);
-        }
-
-
-        $cacheKey = 'after_hours_alert_' . $user->id;
-
-        if (!Cache::has($cacheKey)) {
-
-            WhatsappService::send(
-                "⛔ TENTATIVE ACCÈS HORS HORAIRE\n\n" .
-                    "👤 Utilisateur : {$user->name}\n" .
-                    "📅 Heure : {$now}\n" .
-                    "🌐 IP : {$request->ip()}"
-            );
-
-            Cache::put($cacheKey, true, now()->addMinutes(10));
-        }
-
-
-        $this->forceLogout($user);
-
-        return response()->json([
-            'success' => false,
-            'status' => 403,
-            'message' => 'Accès fermé'
-        ], 403);
-    }
-
-    private function forceLogout($user)
-    {
-        if ($user && $user->tokens()->exists()) {
-            $user->tokens()->delete();
-        }
-    }
-
     // public function handle(Request $request, Closure $next)
     // {
-    //     $user = Auth::user();
-
+    //     $user = $request->user();
     //     if ($user->is_admin) {
-
     //         return $next($request);
     //     }
 
     //     $settings = About::first();
 
-    //     $now = now();
-
-
-    //     $today = strtolower($now->englishDayOfWeek);
-
-    //     $workingDays = $settings->working_days ?? [];
-
-    //     if (!in_array($today, $workingDays)) {
+    //     if (!$settings) {
 
     //         return response()->json([
-
     //             'success' => false,
-
-    //             'message' => 'Aujourd’hui est un jour non ouvrable'
-
-    //         ], 403);
+    //             'message' => 'Configuration des horaires introuvable'
+    //         ], 500);
     //     }
 
+    //     $now = now();
 
+    //     $today = strtolower(
+    //         $now->englishDayOfWeek
+    //     );
+
+    //     $workingDaysRaw = $settings->working_days;
+
+    //     $workingDays = collect(
+
+    //         is_array($workingDaysRaw)
+
+    //             ? $workingDaysRaw
+
+    //             : json_decode($workingDaysRaw, true)
+
+    //     )
+    //         ->map(fn($day) => strtolower(trim($day)))
+    //         ->toArray();
+
+    //     if (!in_array($today, $workingDays, true)) {
+
+    //         $this->forceLogout($user);
+
+    //         return response()->json([
+    //             'success' => false,
+    //             'status' => 403,
+    //             'message' => 'Aujourd’hui est un jour non ouvrable'
+    //         ], 403);
+    //     }
     //     $opening = today()->setTimeFromTimeString(
     //         $settings->opening_time
     //     );
@@ -153,19 +75,16 @@ class CheckWorkAccess
     //         $settings->closing_time
     //     );
 
-
     //     $realClosing = $closing
     //         ->copy()
     //         ->addMinutes(
     //             $settings->grace_minutes
     //         );
 
-
     //     if ($now->between($opening, $closing)) {
 
     //         return $next($request);
     //     }
-
 
     //     if ($now->between($closing, $realClosing)) {
 
@@ -179,7 +98,8 @@ class CheckWorkAccess
     //         if (
     //             in_array(
     //                 $request->route()->getName(),
-    //                 $allowedRoutes
+    //                 $allowedRoutes,
+    //                 true
     //             )
     //         ) {
 
@@ -190,50 +110,144 @@ class CheckWorkAccess
 
     //             'success' => false,
 
+    //             'status' => 403,
+
     //             'message' =>
     //             'Temps de travail terminé. Demandez des heures supplémentaires.'
 
     //         ], 403);
     //     }
 
-
     //     if (
     //         $user->overtime_until &&
-    //         now()->lessThan(
-    //             $user->overtime_until
-    //         )
+    //         now()->lessThan($user->overtime_until)
     //     ) {
 
     //         return $next($request);
     //     }
 
 
-    //     $message =
-    //         "⛔ TENTATIVE ACCÈS HORS HORAIRE\n\n" .
+    //     $cacheKey = 'after_hours_alert_' . $user->id;
 
-    //         "👤 Utilisateur : " .
-    //         $user->name . "\n" .
-
-    //         "📅 Heure : " .
-    //         now() . "\n" .
-
-    //         "🌐 IP : " .
-    //         $request->ip();
-
-    //     WhatsappService::send($message);
-    //     if ($request->user()?->currentAccessToken()) {
-
-    //         $request->user()
-    //             ->currentAccessToken()
-    //             ->delete();
+    //     if (!Cache::has($cacheKey)) {
+    //         Cache::put(
+    //             $cacheKey,
+    //             true,
+    //             now()->addMinutes(10)
+    //         );
     //     }
+
+    //     $this->forceLogout($user);
 
     //     return response()->json([
 
     //         'success' => false,
+
     //         'status' => 403,
+
     //         'message' => 'Accès fermé'
 
     //     ], 403);
     // }
+
+    // private function forceLogout($user): void
+    // {
+    //     if (
+    //         $user &&
+    //         method_exists($user, 'tokens') &&
+    //         $user->tokens()->exists()
+    //     ) {
+
+    //         $user->tokens()->delete();
+    //     }
+    // }
+
+    public function handle(Request $request, Closure $next): Response
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return $this->deny($request, null, 'Unauthenticated user');
+        }
+
+        if ($user->is_admin) {
+            return $next($request);
+        }
+
+        $settings = About::first();
+
+        if (!$settings) {
+            return $this->deny($request, $user, 'Missing working configuration', 500);
+        }
+        $now = now()->addHour();
+
+        $today = strtolower($now->format('l'));
+
+        $workingDays = collect($settings->working_days ?? [])
+            ->map(fn($day) => strtolower(trim($day)))
+            ->toArray();
+
+        if (!in_array($today, $workingDays, true)) {
+            return $this->deny($request, $user, 'Non working day');
+        }
+        $opening = Carbon::parse($settings->opening_time);
+        $closing = Carbon::parse($settings->closing_time);
+
+        $graceClosing = $closing->copy()->addMinutes($settings->grace_minutes ?? 0);
+
+        if ($now->between($opening, $closing)) {
+            return $next($request);
+        }
+
+        if ($now->between($closing, $graceClosing)) {
+
+            $allowedRoutes = [
+                'api.v1.overtime.request'
+            ];
+
+            $routeName = optional($request->route())->getName();
+
+            if (in_array($routeName, $allowedRoutes, true)) {
+                return $next($request);
+            }
+
+            return $this->deny($request, $user, 'Work time ended (grace period)');
+        }
+
+        if ($user->overtime_until && now()->lessThan($user->overtime_until)) {
+            return $next($request);
+        }
+
+        return $this->deny($request, $user, 'Access closed');
+    }
+
+    /**
+     * Centralized deny response + logging
+     */
+    private function deny(Request $request, $user = null, string $reason = 'Blocked', int $status = 403): Response
+    {
+        Log::warning('ACCESS BLOCKED', [
+            'user_id'   => $user?->id,
+            'email'     => $user?->email,
+            'ip'        => $request->ip(),
+            'route'     => optional($request->route())->getName(),
+            'url'       => $request->fullUrl(),
+            'method'    => $request->method(),
+            'reason'    => $reason,
+            'time'      => now()->toDateTimeString(),
+        ]);
+
+        if ($user) {
+            $cacheKey = "access_blocked_{$user->id}";
+            if (!Cache::has($cacheKey)) {
+                Cache::put($cacheKey, true, now()->addMinutes(10));
+            }
+        }
+
+        return response()->json([
+            'success' => false,
+            'status'  => $status,
+            'message' => $reason,
+        ], $status);
+    }
 }

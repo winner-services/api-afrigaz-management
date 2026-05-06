@@ -31,6 +31,8 @@ return new class extends Migration
             $table->json('working_days')
                 ->nullable();
             $table->timestamps();
+            $table->time('opening_time')->nullable();
+            $table->time('closing_time')->nullable();
         });
     }
 

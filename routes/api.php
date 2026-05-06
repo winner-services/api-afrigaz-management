@@ -42,21 +42,19 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
 
-    /*
-    |--------------------------------------------------------------------------
-    | AUTH
-    |--------------------------------------------------------------------------
-    */
     Route::prefix('auth')->group(function () {
 
+        // Route::post('/login', [
+        //     AuthenticationController::class,
+        //     'login'
+        // ]);
         Route::post('/login', [
             AuthenticationController::class,
             'login'
-        ]);
+        ])->middleware('login.time');
 
         Route::middleware([
             'auth:sanctum',
-            'work.access'
         ])->group(function () {
 
             Route::post('/logout', [
