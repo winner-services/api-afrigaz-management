@@ -48,10 +48,13 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         //     AuthenticationController::class,
         //     'login'
         // ]);
+
         Route::post('/login', [
             AuthenticationController::class,
             'login'
-        ])->middleware('login.time');
+        ])
+            ->name('login')
+            ->middleware('login.time');
 
         Route::middleware([
             'auth:sanctum',

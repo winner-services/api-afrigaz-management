@@ -15,12 +15,13 @@ class LoginTimeMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
+        if (! $request->is('api/v1/auth/login')) {
+            return $next($request);
+        }
+
         $user = User::where('email', $request->email)
             ->orWhere('phone', $request->email)
             ->first();
-        if (! $request->routeIs('login')) {
-            return $next($request);
-        }
 
         $settings = About::first();
 
@@ -32,30 +33,35 @@ class LoginTimeMiddleware
         }
 
         $now = now()->addHour();
+
         $today = strtolower($now->format('l'));
+
         $workingDays = collect($settings->working_days ?? [])
             ->map(fn($day) => strtolower(trim($day)))
             ->toArray();
 
-        if (!in_array($today, $workingDays, true)) {
+        if (! in_array($today, $workingDays, true)) {
+
             return response()->json([
                 'success' => false,
-                'status' => 422,
-                'message' => 'Non working day'
-            ], 500);
+                'status' => 403,
+                'message' => 'Jour non ouvrable'
+            ], 403);
         }
 
         $opening = Carbon::parse($settings->opening_time);
         $closing = Carbon::parse($settings->closing_time);
 
-        $grace = $closing->copy()->addMinutes($settings->grace_minutes ?? 0);
-
+        $grace = $closing
+            ->copy()
+            ->addMinutes($settings->grace_minutes ?? 0);
 
         if ($user && $user->is_admin) {
             return $next($request);
         }
 
         if (! $now->between($opening, $grace)) {
+
             return response()->json([
                 'success' => false,
                 'status' => 403,
@@ -64,32 +70,5 @@ class LoginTimeMiddleware
         }
 
         return $next($request);
-    }
-
-    private function deny(Request $request, $user = null, string $reason = 'Blocked', int $status = 403): Response
-    {
-        Log::warning('ACCESS BLOCKED', [
-            'user_id'   => $user?->id,
-            'email'     => $user?->email,
-            'ip'        => $request->ip(),
-            'route'     => optional($request->route())->getName(),
-            'url'       => $request->fullUrl(),
-            'method'    => $request->method(),
-            'reason'    => $reason,
-            'time'      => now()->toDateTimeString(),
-        ]);
-
-        if ($user) {
-            $cacheKey = "access_blocked_{$user->id}";
-            if (!Cache::has($cacheKey)) {
-                Cache::put($cacheKey, true, now()->addMinutes(10));
-            }
-        }
-
-        return response()->json([
-            'success' => false,
-            'status'  => $status,
-            'message' => $reason,
-        ], $status);
     }
 }

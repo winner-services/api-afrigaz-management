@@ -98,6 +98,8 @@ class OvertimeController extends Controller
 
                 'operation_date' => now(),
 
+                'requested_at' => now(),
+
                 'requested_minutes' => $request->minutes,
 
                 'reason' => $request->reason,
@@ -105,24 +107,6 @@ class OvertimeController extends Controller
                 'status' => 'pending'
 
             ]);
-
-            WhatsappService::send(
-
-                "🕒 DEMANDE HEURES SUPP\n\n"
-
-                    . "👤 Utilisateur : "
-                    . Auth::user()->name
-
-                    . "\n⏱ Temps demandé : "
-                    . $request->minutes . " minutes"
-
-                    . "\n📝 Raison : "
-                    . $request->reason
-
-                    . "\n📅 Heure : "
-                    . now()
-
-            );
 
             return response()->json([
 
