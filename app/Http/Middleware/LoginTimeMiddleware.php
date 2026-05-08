@@ -7,8 +7,6 @@ use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class LoginTimeMiddleware
@@ -22,6 +20,9 @@ class LoginTimeMiddleware
         $user = User::where('email', $request->email)
             ->orWhere('phone', $request->email)
             ->first();
+        if ($user && $user->is_admin) {
+            return $next($request);
+        }
 
         $settings = About::first();
 
@@ -55,10 +56,6 @@ class LoginTimeMiddleware
         $grace = $closing
             ->copy()
             ->addMinutes($settings->grace_minutes ?? 0);
-
-        if ($user && $user->is_admin) {
-            return $next($request);
-        }
 
         if (! $now->between($opening, $grace)) {
 
