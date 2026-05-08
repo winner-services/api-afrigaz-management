@@ -840,16 +840,36 @@
                             "schema": {
                                 "properties": {
                                     "name": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "example": "Agence Gombe"
                                     },
                                     "phone": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "example": "0999999999"
                                     },
                                     "city": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "example": "Kinshasa"
                                     },
-                                    "address": {
-                                        "type": "string"
+                                    "commune": {
+                                        "type": "string",
+                                        "example": "de la paix"
+                                    },
+                                    "quartier": {
+                                        "type": "string",
+                                        "example": "de la paix"
+                                    },
+                                    "avenue": {
+                                        "type": "string",
+                                        "example": "Av. de la paix"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "branche@afrigaz-express.com"
+                                    },
+                                    "user_id": {
+                                        "type": "integer",
+                                        "example": 1
                                     }
                                 },
                                 "type": "object"
@@ -1746,7 +1766,7 @@
                                         "type": "string",
                                         "example": "Ma Société SARL"
                                     },
-                                    "details": {
+                                    "rccm": {
                                         "type": "string",
                                         "example": "Description de l'entreprise"
                                     },

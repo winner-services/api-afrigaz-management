@@ -45,7 +45,8 @@ class RoleSeeder extends Seeder
                 'role-utilisateur',
                 'profile-entreprise',
                 'point-de-vente',
-                'charroi-automobile'
+                'charroi-automobile',
+                'demande-heure-supplem'
             ]
         ];
 

@@ -42,7 +42,8 @@ class PermissionSeeder extends Seeder
             'role-utilisateur',
             'profile-entreprise',
             'point-de-vente',
-            'charroi-automobile'
+            'charroi-automobile',
+            'demande-heure-supplem'
         ];
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission]);

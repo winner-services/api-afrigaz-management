@@ -75,6 +75,7 @@ class BrancheController extends Controller
             'email' => 'nullable|string|max:100',
             'commune' => 'nullable|string|max:255',
             'user_id' => 'nullable|exists:users,id',
+            'plot_number' => 'nullable',
         ];
 
         $messages = [
@@ -99,7 +100,7 @@ class BrancheController extends Controller
         if ($exists) {
             return response()->json([
                 'status'  => false,
-                'message' => 'Un utilisateur avec ce nom, e-mail ou téléphone existe déjà.',
+                'message' => 'cette branche existe déjà.',
             ], 409);
         }
         try {
@@ -117,7 +118,8 @@ class BrancheController extends Controller
                 'email' => $request->email,
                 'user_id' => $request->user_id,
                 'addedBy' => $userId,
-                'reference' => fake()->unique()->numerify('BR-#####')
+                'reference' => fake()->unique()->numerify('BR-#####'),
+                'plot_number' => $request->plot_number
             ]);
 
             DB::commit();
@@ -147,10 +149,14 @@ class BrancheController extends Controller
             required: true,
             content: new OA\JsonContent(
                 properties: [
-                    new OA\Property(property: "name", type: "string"),
-                    new OA\Property(property: "phone", type: "string"),
-                    new OA\Property(property: "city", type: "string"),
-                    new OA\Property(property: "address", type: "string"),
+                    new OA\Property(property: "name", type: "string", example: "Agence Gombe"),
+                    new OA\Property(property: "phone", type: "string", example: "0999999999"),
+                    new OA\Property(property: "city", type: "string", example: "Kinshasa"),
+                    new OA\Property(property: "commune", type: "string", example: "de la paix"),
+                    new OA\Property(property: "quartier", type: "string", example: "de la paix"),
+                    new OA\Property(property: "avenue", type: "string", example: "Av. de la paix"),
+                    new OA\Property(property: "email", type: "string", example: "branche@afrigaz-express.com"),
+                    new OA\Property(property: "user_id", type: "integer", example: 1)
                 ]
             )
         ),
@@ -180,6 +186,7 @@ class BrancheController extends Controller
             'email' => 'nullable|string|max:100',
             'commune' => 'nullable|string|max:255',
             'user_id'  => ['nullable', 'integer', 'exists:users,id'],
+            'plot_number' => 'nullable'
         ];
 
         $messages = [
@@ -207,7 +214,8 @@ class BrancheController extends Controller
                 'quartier',
                 'avenue',
                 'email',
-                'user_id'
+                'user_id',
+                'plot_number'
             ]));
             DB::commit();
             return response()->json([

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('commune')->nullable();
             $table->string('quartier')->nullable();
             $table->string('avenue')->nullable();
+            $table->string('plot_number')->nullable();
             $table->string('email')->nullable();
             $table->string('reference')->nullable();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
