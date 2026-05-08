@@ -123,37 +123,7 @@ class OvertimeController extends Controller
             ], 500);
         }
     }
-    // public function request(Request $request)
-    // {
-    //     try {
-    //         $request->validate([
-    //             'minutes' => 'required|integer|min:1',
-    //             'reason' => 'required|string'
-    //         ]);
 
-    //         $overtime = OvertimeRequest::create([
-    //             'user_id' => Auth::id(),
-    //             'requested_at' => now(),
-    //             'requested_minutes' => $request->minutes,
-    //             'reason' => $request->reason,
-    //             'status' => 'pending'
-    //         ]);
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'status' => 201,
-    //             'message' => 'Demande envoyée',
-    //             'data' => $overtime
-    //         ]);
-    //     } catch (\Throwable $th) {
-    //         DB::rollBack();
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => 'Une erreur est survenue lors de la création',
-    //             'error'   => config('app.debug') ? $th->getMessage() : null
-    //         ], 500);
-    //     }
-    // }
     #[OA\Patch(
         path: "/api/v1/approveRequest/{id}",
         summary: "Approuver une demande d'heures supplémentaires",

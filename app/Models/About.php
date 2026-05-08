@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 #[Fillable([
     'denomination',
-    'details',
+    'rccm',
     'register',
     'national_id',
     'tax_number',

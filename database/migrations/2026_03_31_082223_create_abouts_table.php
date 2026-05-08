@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('abouts', function (Blueprint $table) {
             $table->id();
             $table->text('denomination')->nullable();
-            $table->text('details')->nullable();
+            $table->text('rccm')->nullable();
             $table->text('register')->nullable();
             $table->text('national_id')->nullable();
             $table->text('import_export')->nullable();
