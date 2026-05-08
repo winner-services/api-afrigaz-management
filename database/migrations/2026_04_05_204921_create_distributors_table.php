@@ -13,17 +13,36 @@ return new class extends Migration
     {
         Schema::create('distributors', function (Blueprint $table) {
             $table->id();
+            $table->enum('type', [
+                'physical',
+                'company'
+            ])->default('physical');
+            $table->string('reference')->unique();
             $table->string('name');
-            $table->string('address')->nullable();
-            $table->string('email')->unique();
+            $table->string('gender')->nullable();
+            $table->string('rccm')->nullable();
+            $table->string('idnat')->nullable();
+            $table->string('tax_number')->nullable();
+            $table->string('manager_name')->nullable();
+            // 🔹 Identité
+            $table->string('identity_type')->nullable();
+            $table->string('identity_number')->nullable();
+            $table->string('identity_document')->nullable();
+            // 🔹 Contacts
             $table->string('phone')->nullable();
-            $table->string('zone')->nullable();
+            $table->string('email')->nullable();
+            $table->string('password');
+            // 🔹 Adresse
+            $table->string('country')->default('RDC');
+            $table->string('city')->nullable();
+            $table->string('commune')->nullable();
+            $table->string('quartier')->nullable();
+            $table->string('avenue')->nullable();
+
             $table->string('status')->default('actif');
             $table->boolean('is_deleted')->default(false);
             $table->foreignId('category_distributor_id')->nullable()->constrained('category_distributors')->nullOnDelete();
             $table->foreignId('addedBy')->nullable()->constrained('users')->nullOnDelete();
-            $table->decimal('caution_amount', 10, 2)->default(0);
-            $table->date('operation_date')->default(now());
             $table->timestamps();
         });
     }

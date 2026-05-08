@@ -7,6 +7,7 @@ use App\Models\CashTransaction;
 use App\Models\DebtDistributor;
 use App\Models\Distributor;
 use App\Models\PaymentDistributor;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -95,10 +96,10 @@ class PaymentDristributorController extends Controller
                     'paid_amount' => $payAmount,
                     'cash_account_id' => $request->account_id,
                     'addedBy' => Auth::id(),
+                    'reference' => $debts->reference,
                     'operation_date' => $request->operation_date ?? now(),
                 ]);
 
-                // ✅ 2. Mise à jour dette
                 $debt->paid_amount += $payAmount;
 
                 if ($debt->paid_amount >= $debt->loan_amount) {
@@ -210,7 +211,6 @@ class PaymentDristributorController extends Controller
             ->latest()
             ->paginate(10);
 
-        // ✅ Format propre
         $data = $payments->getCollection()->map(function ($payment) {
             return [
                 'id' => $payment->id,
@@ -245,5 +245,145 @@ class PaymentDristributorController extends Controller
             'success' => 200,
             'data' => $data,
         ]);
+    }
+
+    #[OA\Get(
+        path: "/api/v1/getMyDebts",
+        summary: "Lister",
+        tags: ["Distributors Debts"],
+        responses: [
+            new OA\Response(response: 200, description: "Liste")
+        ]
+    )]
+    public function myDebts(): JsonResponse
+    {
+        try {
+
+            $distributor = Distributor::find(Auth::id());
+
+            if (! $distributor) {
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Distributeur introuvable'
+                ], 404);
+            }
+
+            $debts = DebtDistributor::with([
+                'sale',
+                'distributor',
+                'user'
+            ])
+                ->where('distributor_id', $distributor->id)
+                ->whereIn('status', [
+                    'pending',
+                    'partial'
+                ])
+                ->latest()
+                ->get();
+
+            $debts->transform(function ($item) {
+
+                $item->remaining_amount =
+                    $item->loan_amount - $item->paid_amount;
+
+                return $item;
+            });
+
+            $total_remaining = $debts->sum('remaining_amount');
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+
+                'summary' => [
+                    'total_debts' => $debts->count(),
+                    'total_remaining' => $total_remaining,
+                ],
+
+                'data' => $debts
+            ]);
+        } catch (\Throwable $e) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur serveur',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    #[OA\Get(
+        path: "/api/v1/getmyPayments",
+        summary: "Lister",
+        tags: ["Distributors Debts"],
+        responses: [
+            new OA\Response(response: 200, description: "Liste")
+        ]
+    )]
+    public function myPayments(): JsonResponse
+    {
+        try {
+
+            $distributor = Distributor::find(Auth::id());
+
+            if (! $distributor) {
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Distributeur introuvable'
+                ], 404);
+            }
+
+            $payments = PaymentDistributor::with([
+                'debt.sale',
+                'cashAccount',
+                'user'
+            ])
+                ->whereHas('debt', function ($query) use ($distributor) {
+
+                    $query->where(
+                        'distributor_id',
+                        $distributor->id
+                    );
+                })
+                ->latest()
+                ->get();
+
+            $payments->transform(function ($item) {
+
+                $debt = $item->debtDistributor;
+
+                $item->remaining_amount =
+                    $debt->loan_amount - $debt->paid_amount;
+
+                return $item;
+            });
+
+            $total_paid = $payments->sum('paid_amount');
+
+            $total_remaining = $payments->sum('remaining_amount');
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+
+                'summary' => [
+                    'total_payments' => $payments->count(),
+                    'total_paid_amount' => $total_paid,
+                    'total_remaining_amount' => $total_remaining,
+                ],
+
+                'data' => $payments
+
+            ]);
+        } catch (\Throwable $e) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur serveur',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

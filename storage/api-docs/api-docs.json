@@ -1730,75 +1730,88 @@
                 "tags": [
                     "About"
                 ],
-                "summary": "Créer ou mettre à jour les informations About",
+                "summary": "Créer ou mettre à jour les informations de l'entreprise",
                 "operationId": "921ee414ccdca3253be944e920d7ee24",
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
                                 "required": [
-                                    "denomination",
-                                    "details"
+                                    "opening_time",
+                                    "closing_time"
                                 ],
                                 "properties": {
                                     "denomination": {
                                         "type": "string",
-                                        "example": "Afrigaz Express"
+                                        "example": "Ma Société SARL"
                                     },
                                     "details": {
                                         "type": "string",
-                                        "example": "Détails de la société"
+                                        "example": "Description de l'entreprise"
                                     },
                                     "register": {
                                         "type": "string",
-                                        "example": "RC12345"
+                                        "example": "1234567"
                                     },
                                     "national_id": {
                                         "type": "string",
-                                        "example": "123456789"
-                                    },
-                                    "tax_number": {
-                                        "type": "string",
-                                        "example": "TAX123456"
+                                        "example": "ID123456"
                                     },
                                     "import_export": {
                                         "type": "string",
-                                        "example": "TAX123456"
+                                        "example": "YES"
+                                    },
+                                    "tax_number": {
+                                        "type": "string",
+                                        "example": "NIF-987654"
                                     },
                                     "phone": {
                                         "type": "string",
-                                        "example": "+243990000000"
-                                    },
-                                    "opening_time": {
-                                        "type": "time",
-                                        "example": "08:00"
-                                    },
-                                    "closing_time": {
-                                        "type": "time",
-                                        "example": "17:00"
-                                    },
-                                    "grace_minutes": {
-                                        "type": "string",
-                                        "example": "15"
+                                        "example": "+243999999999"
                                     },
                                     "address": {
                                         "type": "string",
-                                        "example": "Kinshasa, RDC"
+                                        "example": "Kinshasa, Gombe"
                                     },
                                     "email": {
                                         "type": "string",
-                                        "example": "contact@afrigaz.com"
+                                        "example": "contact@entreprise.com"
                                     },
                                     "logo": {
-                                        "description": "Fichier image",
+                                        "description": "Logo principal",
                                         "type": "string",
                                         "format": "binary"
                                     },
                                     "logo2": {
-                                        "description": "Fichier image",
+                                        "description": "Second logo",
                                         "type": "string",
                                         "format": "binary"
+                                    },
+                                    "opening_time": {
+                                        "type": "string",
+                                        "format": "time",
+                                        "example": "08:00"
+                                    },
+                                    "closing_time": {
+                                        "type": "string",
+                                        "format": "time",
+                                        "example": "18:00"
+                                    },
+                                    "grace_minutes": {
+                                        "type": "integer",
+                                        "example": 15
+                                    },
+                                    "working_days": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "example": [
+                                            "monday",
+                                            "tuesday",
+                                            "wednesday"
+                                        ]
                                     }
                                 },
                                 "type": "object"
@@ -1807,14 +1820,11 @@
                     }
                 },
                 "responses": {
-                    "201": {
-                        "description": "Données créées avec succès"
-                    },
                     "200": {
-                        "description": "Données mises à jour avec succès"
+                        "description": "Mis à jour avec succès"
                     },
-                    "422": {
-                        "description": "Validation des données échouée"
+                    "201": {
+                        "description": "Créé avec succès"
                     },
                     "500": {
                         "description": "Erreur serveur"
@@ -2663,6 +2673,34 @@
                 }
             }
         },
+        "/api/v1/getMyDebts": {
+            "get": {
+                "tags": [
+                    "Distributors Debts"
+                ],
+                "summary": "Lister",
+                "operationId": "610cf1789a36e09fe3269f19521e143b",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/getmyPayments": {
+            "get": {
+                "tags": [
+                    "Distributors Debts"
+                ],
+                "summary": "Lister",
+                "operationId": "99b985acc810674373464398dfda3118",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
         "/api/v1/distributorGetAllData": {
             "get": {
                 "tags": [
@@ -2760,49 +2798,216 @@
                 "tags": [
                     "Distributeurs"
                 ],
-                "summary": "Créer",
+                "summary": "Créer un distributeur (physique ou entreprise avec KYC)",
                 "operationId": "ee6aff58559b6d2c6b17964bb930b1e8",
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
                                 "required": [
-                                    "name",
-                                    "email",
-                                    "caution_amount",
-                                    "operation_date",
-                                    "category_distributor_id"
+                                    "type",
+                                    "name"
                                 ],
                                 "properties": {
+                                    "type": {
+                                        "type": "string",
+                                        "example": "physical",
+                                        "enum": [
+                                            "physical",
+                                            "company"
+                                        ]
+                                    },
                                     "name": {
                                         "type": "string",
-                                        "example": "Entreprise X"
+                                        "example": "Jean Paul"
                                     },
-                                    "address": {
+                                    "gender": {
                                         "type": "string",
-                                        "example": "Kinshasa"
+                                        "example": "M"
+                                    },
+                                    "identity_type": {
+                                        "type": "string",
+                                        "example": "Carte d'électeur"
+                                    },
+                                    "identity_number": {
+                                        "type": "string",
+                                        "example": "123456789"
+                                    },
+                                    "rccm": {
+                                        "type": "string",
+                                        "example": "RCCM12345"
+                                    },
+                                    "idnat": {
+                                        "type": "string",
+                                        "example": "IDNAT67890"
+                                    },
+                                    "tax_number": {
+                                        "type": "string",
+                                        "example": "IMPOT123"
+                                    },
+                                    "manager_name": {
+                                        "type": "string",
+                                        "example": "John Manager"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+243810000000"
                                     },
                                     "email": {
                                         "type": "string",
                                         "example": "test@mail.com"
                                     },
-                                    "phone": {
+                                    "country": {
                                         "type": "string",
-                                        "example": "099999999"
+                                        "example": "RDC"
                                     },
-                                    "zone": {
+                                    "city": {
+                                        "type": "string",
+                                        "example": "Kinshasa"
+                                    },
+                                    "commune": {
                                         "type": "string",
                                         "example": "Gombe"
                                     },
-                                    "caution_amount": {
-                                        "type": "number",
-                                        "example": 1000
-                                    },
-                                    "operation_date": {
+                                    "quartier": {
                                         "type": "string",
-                                        "format": "date",
-                                        "example": "2024-01-01"
+                                        "example": "Centre"
+                                    },
+                                    "avenue": {
+                                        "type": "string",
+                                        "example": "Av. Fikin"
+                                    },
+                                    "category_distributor_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "identity_document": {
+                                        "description": "Pièce d'identité (PDF, JPG, PNG)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Distributeur créé avec succès"
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/distributorUpdate/{id}": {
+            "put": {
+                "tags": [
+                    "Distributeurs"
+                ],
+                "summary": "Mettre à jour un distributeur (physique ou entreprise)",
+                "operationId": "cc9cf28147c39be0a9971b5037ad049e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID du distributeur",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "type": {
+                                        "type": "string",
+                                        "example": "company",
+                                        "enum": [
+                                            "physical",
+                                            "company"
+                                        ]
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Entreprise ABC"
+                                    },
+                                    "gender": {
+                                        "type": "string",
+                                        "example": "M"
+                                    },
+                                    "rccm": {
+                                        "type": "string",
+                                        "example": "RCCM12345"
+                                    },
+                                    "idnat": {
+                                        "type": "string",
+                                        "example": "IDNAT67890"
+                                    },
+                                    "tax_number": {
+                                        "type": "string",
+                                        "example": "IMPOT123"
+                                    },
+                                    "manager_name": {
+                                        "type": "string",
+                                        "example": "John Manager"
+                                    },
+                                    "identity_type": {
+                                        "type": "string",
+                                        "example": "Carte d'électeur"
+                                    },
+                                    "identity_number": {
+                                        "type": "string",
+                                        "example": "123456789"
+                                    },
+                                    "identity_document": {
+                                        "description": "Document d'identité (PDF, JPG, PNG)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+243810000000"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "update@mail.com"
+                                    },
+                                    "country": {
+                                        "type": "string",
+                                        "example": "RDC"
+                                    },
+                                    "city": {
+                                        "type": "string",
+                                        "example": "Kinshasa"
+                                    },
+                                    "commune": {
+                                        "type": "string",
+                                        "example": "Gombe"
+                                    },
+                                    "quartier": {
+                                        "type": "string",
+                                        "example": "Centre"
+                                    },
+                                    "avenue": {
+                                        "type": "string",
+                                        "example": "Av. Fikin"
                                     },
                                     "category_distributor_id": {
                                         "type": "integer",
@@ -2815,40 +3020,24 @@
                     }
                 },
                 "responses": {
-                    "201": {
-                        "description": "Créé"
+                    "200": {
+                        "description": "Distributeur mis à jour avec succès"
                     },
                     "422": {
-                        "description": "Erreur validation"
-                    }
-                }
-            }
-        },
-        "/api/v1/distributorUpdate/{id}": {
-            "put": {
-                "tags": [
-                    "Distributeurs"
-                ],
-                "summary": "Mettre à jour un distributeur",
-                "operationId": "cc9cf28147c39be0a9971b5037ad049e",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Mis à jour"
+                        "description": "Erreur de validation"
                     },
                     "404": {
-                        "description": "Introuvable"
+                        "description": "Distributeur introuvable"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/v1/distributorDelete/{id}": {

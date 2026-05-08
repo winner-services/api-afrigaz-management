@@ -542,6 +542,7 @@ class SaleController extends Controller
                                 'distributor_id' => $distributorId,
                                 'loan_amount' => $remaining,
                                 'motif' => 'Dette Vente #' . $sale->id,
+                                'reference' => $sale->reference,
                                 'paid_amount' => $paidAmount,
                                 'transaction_date' => now(),
                                 'status' => $sale->status,

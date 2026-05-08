@@ -13,9 +13,29 @@ use Illuminate\Database\Eloquent\Model;
     'transaction_date',
     'motif',
     'status',
-    'user_id'
+    'user_id',
+    'reference'
 ])]
 class DebtDistributor extends Model
 {
-    //
+    public function distributor()
+    {
+        return $this->belongsTo(Distributor::class);
+    }
+
+    public function sale()
+    {
+        return $this->belongsTo(Sale::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+    public function payments()
+    {
+        return $this->hasMany(
+            PaymentDistributor::class
+        );
+    }
 }

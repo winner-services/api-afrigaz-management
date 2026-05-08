@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api\Auth\OverTime;
 
 use App\Http\Controllers\Controller;
 use App\Models\OvertimeRequest;
-use App\Services\WhatsappService;
+use App\Services\EmessService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use OpenApi\Attributes as OA;
@@ -439,5 +439,18 @@ class OvertimeController extends Controller
                 'error' => config('app.debug') ? $th->getMessage() : null
             ], 500);
         }
+    }
+
+
+    public function sms(EmessService $sms)
+    {
+        return response()->json(
+
+            $sms->sendSms(
+                '+243997604471',
+                'Bonjour depuis Laravel'
+            )
+
+        );
     }
 }

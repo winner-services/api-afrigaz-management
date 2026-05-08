@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Dristributor;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SendDistributorSmsJob;
 use App\Models\Caussion;
 use App\Models\Currency;
 use App\Models\DebtDistributor;
@@ -11,6 +12,7 @@ use App\Models\StockByBranch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -44,7 +46,6 @@ class DistributorController extends Controller
                     $q2->where('name', 'like', "%$search%")
                         ->orWhere('email', 'like', "%$search%")
                         ->orWhere('phone', 'like', "%$search%")
-                        ->orWhere('zone', 'like', "%$search%")
                         ->orWhereHas('addedBy', function ($q3) use ($search) {
                             $q3->where('name', 'like', "%$search%");
                         })
@@ -92,7 +93,6 @@ class DistributorController extends Controller
                     $q2->where('name', 'like', "%$search%")
                         ->orWhere('email', 'like', "%$search%")
                         ->orWhere('phone', 'like', "%$search%")
-                        ->orWhere('zone', 'like', "%$search%")
                         ->orWhereHas('addedBy', function ($q3) use ($search) {
                             $q3->where('name', 'like', "%$search%");
                         })
@@ -220,27 +220,72 @@ class DistributorController extends Controller
 
     #[OA\Post(
         path: "/api/v1/distributorStoreData",
-        summary: "Créer",
+        summary: "Créer un distributeur (physique ou entreprise avec KYC)",
         tags: ["Distributeurs"],
+        security: [["bearerAuth" => []]],
+
         requestBody: new OA\RequestBody(
             required: true,
-            content: new OA\JsonContent(
-                required: ["name", "email", "caution_amount", "operation_date", "category_distributor_id"],
-                properties: [
-                    new OA\Property(property: "name", type: "string", example: "Entreprise X"),
-                    new OA\Property(property: "address", type: "string", example: "Kinshasa"),
-                    new OA\Property(property: "email", type: "string", example: "test@mail.com"),
-                    new OA\Property(property: "phone", type: "string", example: "099999999"),
-                    new OA\Property(property: "zone", type: "string", example: "Gombe"),
-                    new OA\Property(property: "caution_amount", type: "number", example: 1000),
-                    new OA\Property(property: "operation_date", type: "string", format: "date", example: "2024-01-01"),
-                    new OA\Property(property: "category_distributor_id", type: "integer", example: 1)
-                ]
+            content: new OA\MediaType(
+                mediaType: "multipart/form-data",
+                schema: new OA\Schema(
+                    required: ["type", "name"],
+
+                    properties: [
+
+                        new OA\Property(
+                            property: "type",
+                            type: "string",
+                            enum: ["physical", "company"],
+                            example: "physical"
+                        ),
+
+                        new OA\Property(property: "name", type: "string", example: "Jean Paul"),
+                        new OA\Property(property: "gender", type: "string", example: "M"),
+
+                        new OA\Property(property: "identity_type", type: "string", example: "Carte d'électeur"),
+                        new OA\Property(property: "identity_number", type: "string", example: "123456789"),
+
+                        new OA\Property(property: "rccm", type: "string", example: "RCCM12345"),
+                        new OA\Property(property: "idnat", type: "string", example: "IDNAT67890"),
+                        new OA\Property(property: "tax_number", type: "string", example: "IMPOT123"),
+                        new OA\Property(property: "manager_name", type: "string", example: "John Manager"),
+
+                        new OA\Property(property: "phone", type: "string", example: "+243810000000"),
+                        new OA\Property(property: "email", type: "string", example: "test@mail.com"),
+
+                        new OA\Property(property: "country", type: "string", example: "RDC"),
+                        new OA\Property(property: "city", type: "string", example: "Kinshasa"),
+                        new OA\Property(property: "commune", type: "string", example: "Gombe"),
+                        new OA\Property(property: "quartier", type: "string", example: "Centre"),
+                        new OA\Property(property: "avenue", type: "string", example: "Av. Fikin"),
+
+                        new OA\Property(property: "category_distributor_id", type: "integer", example: 1),
+
+                        new OA\Property(
+                            property: "identity_document",
+                            type: "string",
+                            format: "binary",
+                            description: "Pièce d'identité (PDF, JPG, PNG)"
+                        )
+                    ]
+                )
             )
         ),
+
         responses: [
-            new OA\Response(response: 201, description: "Créé"),
-            new OA\Response(response: 422, description: "Erreur validation")
+            new OA\Response(
+                response: 201,
+                description: "Distributeur créé avec succès"
+            ),
+            new OA\Response(
+                response: 422,
+                description: "Erreur de validation"
+            ),
+            new OA\Response(
+                response: 500,
+                description: "Erreur serveur"
+            )
         ]
     )]
     public function store(Request $request): JsonResponse
@@ -248,46 +293,76 @@ class DistributorController extends Controller
         try {
 
             $data = $request->validate([
+
+                'type' => 'required|in:physical,company',
+
                 'name' => 'required|string|max:255|unique:distributors,name',
-                'address' => 'nullable|string',
-                'email' => 'nullable|email|unique:distributors,email',
+
+                'gender' => 'nullable|string|max:20',
+
+                'rccm' => 'nullable|string|max:255',
+                'idnat' => 'nullable|string|max:255',
+                'tax_number' => 'nullable|string|max:255',
+                'manager_name' => 'nullable|string|max:255',
+
+                'identity_type' => 'nullable|string|max:100',
+                'identity_number' => 'nullable|string|max:100',
+
+                'identity_document' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
+
                 'phone' => 'nullable|string|max:20|unique:distributors,phone',
-                'zone' => 'nullable|string',
-                'caution_amount' => 'nullable|numeric|min:0',
-                'operation_date' => 'nullable|date',
-                'loan_amount' => 'nullable|numeric|min:0',
-                'account_id' => 'nullable|integer|exists:cash_accounts,id',
-                'category_distributor_id' => 'nullable|integer|exists:category_distributors,id'
+                'email' => 'nullable|email|unique:distributors,email',
+                'password' => 'nullable|string|max:100',
+
+                'country' => 'nullable|string|max:100',
+                'city' => 'nullable|string|max:100',
+                'commune' => 'nullable|string|max:100',
+                'quartier' => 'nullable|string|max:100',
+                'avenue' => 'nullable|string|max:100',
+
+                'category_distributor_id' => 'nullable|integer|exists:category_distributors,id',
             ]);
+
+            if ($request->hasFile('identity_document')) {
+
+                $filename = uniqid() . '.' . $request->file('identity_document')->extension();
+
+                $path = $request->file('identity_document')
+                    ->storeAs('distributors/identity', $filename, 'public');
+
+                $data['identity_document'] = $path;
+            }
 
             $result = DB::transaction(function () use ($data) {
 
                 $data['addedBy'] = Auth::id();
-                $data['reference'] = fake()->unique()->numerify('DB-#####');
-
-                $loan_amount = $data['loan_amount'] ?? 0;
-                $caution_amount = $data['caution_amount'] ?? 0;
-                $account_id = $data['account_id'] ?? 1;
-
+                $data['reference'] = 'DB-' . random_int(10000, 99999);
 
                 $item = Distributor::create($data);
 
-                $causion = Caussion::where('category_distributor_id', $item->category_distributor_id)->first();
+                $caution = Caussion::where(
+                    'category_distributor_id',
+                    $item->category_distributor_id
+                )->first();
 
-                $caution_amount = optional($causion)->amount ?? 0;
                 DebtDistributor::create([
                     'distributor_id' => $item->id,
-                    'loan_amount' => $caution_amount,
+                    'loan_amount' => $caution?->amount ?? 0,
                     'paid_amount' => 0,
                     'transaction_date' => now(),
                     'motif' => 'Caution initiale',
                     'status' => 'pending',
+                    'reference' => $data['reference'],
                     'user_id' => Auth::id(),
                 ]);
 
-
                 return $item;
             });
+
+            if ($result->phone) {
+                SendDistributorSmsJob::dispatch($result->id)
+                    ->onQueue('sms');
+            }
 
             return response()->json([
                 'message' => 'Client créé avec succès',
@@ -310,16 +385,87 @@ class DistributorController extends Controller
             ], 500);
         }
     }
+
     #[OA\Put(
         path: "/api/v1/distributorUpdate/{id}",
-        summary: "Mettre à jour un distributeur",
+        summary: "Mettre à jour un distributeur (physique ou entreprise)",
         tags: ["Distributeurs"],
+        security: [["bearerAuth" => []]],
+
         parameters: [
-            new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer"))
+            new OA\Parameter(
+                name: "id",
+                in: "path",
+                required: true,
+                description: "ID du distributeur",
+                schema: new OA\Schema(type: "integer", example: 1)
+            )
         ],
+
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\MediaType(
+                mediaType: "multipart/form-data",
+                schema: new OA\Schema(
+                    properties: [
+
+                        new OA\Property(
+                            property: "type",
+                            type: "string",
+                            enum: ["physical", "company"],
+                            example: "company"
+                        ),
+
+                        new OA\Property(property: "name", type: "string", example: "Entreprise ABC"),
+                        new OA\Property(property: "gender", type: "string", example: "M"),
+
+                        new OA\Property(property: "rccm", type: "string", example: "RCCM12345"),
+                        new OA\Property(property: "idnat", type: "string", example: "IDNAT67890"),
+                        new OA\Property(property: "tax_number", type: "string", example: "IMPOT123"),
+                        new OA\Property(property: "manager_name", type: "string", example: "John Manager"),
+
+                        new OA\Property(property: "identity_type", type: "string", example: "Carte d'électeur"),
+                        new OA\Property(property: "identity_number", type: "string", example: "123456789"),
+
+                        new OA\Property(
+                            property: "identity_document",
+                            type: "string",
+                            format: "binary",
+                            description: "Document d'identité (PDF, JPG, PNG)"
+                        ),
+
+                        new OA\Property(property: "phone", type: "string", example: "+243810000000"),
+                        new OA\Property(property: "email", type: "string", example: "update@mail.com"),
+
+                        new OA\Property(property: "country", type: "string", example: "RDC"),
+                        new OA\Property(property: "city", type: "string", example: "Kinshasa"),
+                        new OA\Property(property: "commune", type: "string", example: "Gombe"),
+                        new OA\Property(property: "quartier", type: "string", example: "Centre"),
+                        new OA\Property(property: "avenue", type: "string", example: "Av. Fikin"),
+
+                        new OA\Property(property: "category_distributor_id", type: "integer", example: 1),
+                    ]
+                )
+            )
+        ),
+
         responses: [
-            new OA\Response(response: 200, description: "Mis à jour"),
-            new OA\Response(response: 404, description: "Introuvable")
+            new OA\Response(
+                response: 200,
+                description: "Distributeur mis à jour avec succès"
+            ),
+            new OA\Response(
+                response: 422,
+                description: "Erreur de validation"
+            ),
+            new OA\Response(
+                response: 404,
+                description: "Distributeur introuvable"
+            ),
+            new OA\Response(
+                response: 500,
+                description: "Erreur serveur"
+            )
         ]
     )]
     public function update(Request $request, $id): JsonResponse
@@ -329,74 +475,76 @@ class DistributorController extends Controller
             $item = Distributor::findOrFail($id);
 
             $data = $request->validate([
-                'name' => [
-                    'nullable',
-                    'string',
-                    'max:255',
-                    Rule::unique('distributors', 'name')->ignore($id)
-                ],
-                'address' => ['nullable', 'string'],
-                'email' => [
-                    'nullable',
-                    'email',
-                    Rule::unique('distributors', 'email')->ignore($id)
-                ],
-                'phone' => [
-                    'nullable',
-                    'string',
-                    'max:20',
-                    Rule::unique('distributors', 'phone')->ignore($id)
-                ],
-                'zone' => ['nullable', 'string'],
-                'caution_amount' => 'nullable|numeric|min:0',
-                'operation_date' => 'nullable|date',
-                'category_distributor_id' => 'nullable|integer|exists:category_distributors,id'
+
+                'type' => 'nullable|in:physical,company',
+
+                'name' => 'nullable|string|max:255|unique:distributors,name,' . $id,
+
+                'gender' => 'nullable|string|max:20',
+
+                'rccm' => 'nullable|string|max:255',
+                'idnat' => 'nullable|string|max:255',
+                'tax_number' => 'nullable|string|max:255',
+                'manager_name' => 'nullable|string|max:255',
+
+                'identity_type' => 'nullable|string|max:100',
+                'identity_number' => 'nullable|string|max:100',
+
+                'identity_document' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
+
+                'phone' => 'nullable|string|max:20|unique:distributors,phone,' . $id,
+                'email' => 'nullable|email|unique:distributors,email,' . $id,
+                'password' => 'nullable|string|max:100',
+
+                'country' => 'nullable|string|max:100',
+                'city' => 'nullable|string|max:100',
+                'commune' => 'nullable|string|max:100',
+                'quartier' => 'nullable|string|max:100',
+                'avenue' => 'nullable|string|max:100',
+
+                'category_distributor_id' => 'nullable|integer|exists:category_distributors,id',
             ]);
 
-            $result = DB::transaction(function () use ($data, $item) {
+            if ($request->hasFile('identity_document')) {
 
-                $item->update($data);
-
-                $causion = Caussion::where('category_distributor_id', $item->category_distributor_id)->first();
-
-                $caution_amount = optional($causion)->amount ?? 0;
-
-                $debt = DebtDistributor::where('distributor_id', $item->id)
-                    ->where('motif', 'Caution initiale')
-                    ->first();
-
-                if ($debt) {
-                    $debt->update([
-                        'loan_amount' => $caution_amount,
-                        'user_id' => Auth::id(),
-                    ]);
-                } else {
-                    DebtDistributor::create([
-                        'distributor_id' => $item->id,
-                        'loan_amount' => $caution_amount,
-                        'paid_amount' => 0,
-                        'transaction_date' => now(),
-                        'motif' => 'Caution initiale',
-                        'status' => 'pending',
-                        'user_id' => Auth::id(),
-                    ]);
+                if ($item->identity_document) {
+                    Storage::disk('public')->delete($item->identity_document);
                 }
 
-                return $item;
+                $filename = uniqid() . '.' . $request->file('identity_document')->extension();
+
+                $path = $request->file('identity_document')
+                    ->storeAs('distributors/identity', $filename, 'public');
+
+                $data['identity_document'] = $path;
+            }
+
+            DB::transaction(function () use ($item, $data) {
+
+                $data['updatedBy'] = Auth::id();
+
+                $item->update($data);
             });
 
             return response()->json([
-                'message' => 'Client mis à jour',
+                'message' => 'Distributeur mis à jour avec succès',
                 'status' => 200,
-                'data' => $item
+                'data' => $item->fresh()
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+
+            return response()->json([
+                'message' => 'Erreur de validation',
+                'errors' => $e->errors(),
+                'status' => 422
+            ], 422);
         } catch (\Throwable $e) {
 
             return response()->json([
-                'message' => 'Erreur',
-                'errors' => [$e->getMessage()],
-                'status' => 422
-            ], 422);
+                'message' => 'Erreur serveur',
+                'error' => $e->getMessage(),
+                'status' => 500
+            ], 500);
         }
     }
 

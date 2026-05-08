@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('paid_amount', 10, 2);
             $table->date('transaction_date');
             $table->string('motif')->nullable();
+            $table->string('reference')->unique();
             $table->enum('status', ['pending', 'partial', 'paid'])->default('pending');
             $table->foreignId('user_id')->nullable()->constrained('users')->cascadeOnDelete();
             $table->timestamps();

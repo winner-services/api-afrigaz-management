@@ -49,52 +49,133 @@ class CompanyController extends Controller
     }
 
     #[OA\Post(
-        path: '/api/v1/aboutStoreData',
-        summary: 'Créer ou mettre à jour les informations About',
-        tags: ['About'],
+        path: "/api/v1/aboutStoreData",
+        summary: "Créer ou mettre à jour les informations de l'entreprise",
+        tags: ["About"],
         requestBody: new OA\RequestBody(
             required: true,
-            content: new OA\JsonContent(
-                required: ['denomination', 'details'],
-                properties: [
-                    new OA\Property(property: 'denomination', type: 'string', example: 'Afrigaz Express'),
-                    new OA\Property(property: 'details', type: 'string', example: 'Détails de la société'),
-                    new OA\Property(property: 'register', type: 'string', example: 'RC12345'),
-                    new OA\Property(property: 'national_id', type: 'string', example: '123456789'),
-                    new OA\Property(property: 'tax_number', type: 'string', example: 'TAX123456'),
-                    new OA\Property(property: 'import_export', type: 'string', example: 'TAX123456'),
-                    new OA\Property(property: 'phone', type: 'string', example: '+243990000000'),
-                    new OA\Property(property: 'opening_time', type: 'time', example: '08:00'),
-                    new OA\Property(property: 'closing_time', type: 'time', example: '17:00'),
-                    new OA\Property(property: 'grace_minutes', type: 'string', example: '15'),
-                    new OA\Property(property: 'address', type: 'string', example: 'Kinshasa, RDC'),
-                    new OA\Property(property: 'email', type: 'string', example: 'contact@afrigaz.com'),
-                    new OA\Property(property: 'logo', type: 'string', format: 'binary', description: 'Fichier image'),
-                    new OA\Property(property: 'logo2', type: 'string', format: 'binary', description: 'Fichier image'),
-                ]
+            content: new OA\MediaType(
+                mediaType: "multipart/form-data",
+                schema: new OA\Schema(
+                    required: ["opening_time", "closing_time"],
+                    properties: [
+
+                        new OA\Property(
+                            property: "denomination",
+                            type: "string",
+                            example: "Ma Société SARL"
+                        ),
+
+                        new OA\Property(
+                            property: "details",
+                            type: "string",
+                            example: "Description de l'entreprise"
+                        ),
+
+                        new OA\Property(
+                            property: "register",
+                            type: "string",
+                            example: "1234567"
+                        ),
+
+                        new OA\Property(
+                            property: "national_id",
+                            type: "string",
+                            example: "ID123456"
+                        ),
+
+                        new OA\Property(
+                            property: "import_export",
+                            type: "string",
+                            example: "YES"
+                        ),
+
+                        new OA\Property(
+                            property: "tax_number",
+                            type: "string",
+                            example: "NIF-987654"
+                        ),
+
+                        new OA\Property(
+                            property: "phone",
+                            type: "string",
+                            example: "+243999999999"
+                        ),
+
+                        new OA\Property(
+                            property: "address",
+                            type: "string",
+                            example: "Kinshasa, Gombe"
+                        ),
+
+                        new OA\Property(
+                            property: "email",
+                            type: "string",
+                            example: "contact@entreprise.com"
+                        ),
+
+                        new OA\Property(
+                            property: "logo",
+                            type: "string",
+                            format: "binary",
+                            description: "Logo principal"
+                        ),
+
+                        new OA\Property(
+                            property: "logo2",
+                            type: "string",
+                            format: "binary",
+                            description: "Second logo"
+                        ),
+
+                        new OA\Property(
+                            property: "opening_time",
+                            type: "string",
+                            format: "time",
+                            example: "08:00"
+                        ),
+
+                        new OA\Property(
+                            property: "closing_time",
+                            type: "string",
+                            format: "time",
+                            example: "18:00"
+                        ),
+
+                        new OA\Property(
+                            property: "grace_minutes",
+                            type: "integer",
+                            example: 15
+                        ),
+
+                        // ✅ CORRECTION ICI
+                        new OA\Property(
+                            property: "working_days",
+                            type: "array",
+                            items: new OA\Items(
+                                type: "string"
+                            ),
+                            example: ["monday", "tuesday", "wednesday"]
+                        ),
+                    ]
+                )
             )
         ),
         responses: [
             new OA\Response(
-                response: 201,
-                description: 'Données créées avec succès'
-            ),
-            new OA\Response(
                 response: 200,
-                description: 'Données mises à jour avec succès'
+                description: "Mis à jour avec succès"
             ),
             new OA\Response(
-                response: 422,
-                description: 'Validation des données échouée'
+                response: 201,
+                description: "Créé avec succès"
             ),
             new OA\Response(
                 response: 500,
-                description: 'Erreur serveur'
+                description: "Erreur serveur"
             )
         ]
     )]
-
-
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
