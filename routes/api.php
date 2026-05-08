@@ -79,6 +79,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
         Route::controller(OvertimeController::class)->group(function () {
             Route::post('/overtimeRequest', 'request');
+            Route::put('/updateOvertimeRequest/{id}', 'update');
             Route::put('/approveRequest/{id}', 'approve');
             Route::put('/rejecteRequest/{id}', 'rejecte');
             Route::get('/overtimeGetData', 'index');

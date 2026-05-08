@@ -124,6 +124,55 @@ class OvertimeController extends Controller
         }
     }
 
+    public function update(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'minutes' => 'required|integer|min:1',
+                'reason' => 'required|string'
+            ]);
+
+            $user = Auth::user();
+
+            $overtime = OvertimeRequest::findOrFail($id);
+
+            if (!$user->is_admin && $overtime->user_id !== $user->id) {
+                return response()->json([
+                    'success' => false,
+                    'status' => 403,
+                    'message' => 'Accès refusé'
+                ], 403);
+            }
+
+            if ($overtime->status !== 'pending') {
+                return response()->json([
+                    'success' => false,
+                    'status' => 422,
+                    'message' => 'Impossible de modifier une demande déjà traitée'
+                ], 422);
+            }
+
+            $overtime->update([
+                'requested_minutes' => $request->minutes,
+                'reason' => $request->reason,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'message' => 'Demande mise à jour avec succès',
+                'data' => $overtime
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'message' => 'Une erreur est survenue lors de la mise à jour',
+                'error' => config('app.debug') ? $th->getMessage() : null
+            ], 500);
+        }
+    }
+
     #[OA\Patch(
         path: "/api/v1/approveRequest/{id}",
         summary: "Approuver une demande d'heures supplémentaires",
