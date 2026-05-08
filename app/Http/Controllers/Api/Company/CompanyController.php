@@ -67,7 +67,7 @@ class CompanyController extends Controller
                         ),
 
                         new OA\Property(
-                            property: "details",
+                            property: "rccm",
                             type: "string",
                             example: "Description de l'entreprise"
                         ),
@@ -180,7 +180,7 @@ class CompanyController extends Controller
     {
         $validated = $request->validate([
             'denomination'   => ['nullable', 'string'],
-            'details'        => ['nullable', 'string'],
+            'rccm'        => ['nullable', 'string'],
             'register'       => ['nullable', 'string'],
             'national_id'    => ['nullable', 'string'],
             'import_export'  => ['nullable', 'string'],
