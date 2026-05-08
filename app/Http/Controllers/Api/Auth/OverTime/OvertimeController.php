@@ -367,14 +367,20 @@ class OvertimeController extends Controller
     public function index(Request $request)
     {
         try {
+            $user = Auth::user();
+
             $query = OvertimeRequest::with('user', 'approvedBy', 'rejectedBy')
                 ->orderByDesc('created_at');
+
+            if (!$user->is_admin) {
+                $query->where('user_id', $user->id);
+            }
 
             if ($request->filled('status')) {
                 $query->where('status', $request->status);
             }
 
-            if ($request->filled('user_id')) {
+            if ($request->filled('user_id') && $user->is_admin) {
                 $query->where('user_id', $request->user_id);
             }
 
@@ -388,10 +394,6 @@ class OvertimeController extends Controller
                 $query->whereHas('user', function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%");
                 });
-            }
-
-            if (!Auth::user()->is_admin) {
-                $query->where('user_id', Auth::id());
             }
 
             $overtimes = $query->paginate($request->get('per_page', 10));
