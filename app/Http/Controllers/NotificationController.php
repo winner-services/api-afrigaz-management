@@ -2,20 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\OvertimeRequest;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Request;
 
 class NotificationController extends Controller
 {
 
     public function getAdminNotifications()
     {
-        $notifications = DB::table('notifications')
+        // $notifications = DB::table('notifications')
 
-            ->whereNull('read_at')
+        //     ->whereNull('read_at')
 
-            ->orderBy('created_at', 'desc')
+        //     ->orderBy('created_at', 'desc')
 
+        //     ->get()
+        $notifications = DatabaseNotification::whereNull('read_at')
+            ->latest()
             ->get()
 
             ->map(function ($notification) {
@@ -56,4 +62,8 @@ class NotificationController extends Controller
             'data' => $notifications
         ]);
     }
+
+    
+
+   
 }

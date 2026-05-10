@@ -308,36 +308,116 @@ class OvertimeController extends Controller
             )
         ]
     )]
-    public function approve($id)
-    {
-        try {
-            $overtime = OvertimeRequest::findOrFail($id);
+    // public function approve($id)
+    // {
+    //     try {
+    //         $overtime = OvertimeRequest::findOrFail($id);
 
-            $until = now()->addMinutes(
-                $overtime->requested_minutes
-            );
+    //         $until = now()->addMinutes(
+    //             $overtime->requested_minutes
+    //         );
+
+    //         $overtime->update([
+    //             'status' => 'approved',
+    //             'approved_by' => Auth::id(),
+    //             'approved_until' => $until,
+    //             'approved_at' => now(),
+    //         ]);
+
+    //         $overtime->user->update([
+    //             'overtime_until' => $until
+    //         ]);
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'status' => 200,
+    //             'message' => 'Heures supp approuvées'
+    //         ]);
+    //     } catch (\Throwable $th) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => 'Une erreur est survenue lors de la création',
+    //             'error'   => config('app.debug') ? $th->getMessage() : null
+    //         ], 500);
+    //     }
+    // }
+
+    public function approve(Request $request, $id)
+    {
+        DB::beginTransaction();
+
+        try {
+
+            $admin = Auth::user();
+
+            $overtime = OvertimeRequest::with('user')
+                ->findOrFail($id);
+
+            if ($overtime->status !== 'pending') {
+
+                return response()->json([
+
+                    'success' => false,
+
+                    'message' =>
+                    'Demande déjà traitée'
+
+                ], 422);
+            }
+
+            $approvedUntil = now()
+                ->addMinutes(
+                    $overtime->requested_minutes
+                );
 
             $overtime->update([
+
                 'status' => 'approved',
-                'approved_by' => Auth::id(),
-                'approved_until' => $until,
+
                 'approved_at' => now(),
+
+                'approved_until' => $approvedUntil,
+
+                'approved_by' => $admin->id
             ]);
 
-            $overtime->user->update([
-                'overtime_until' => $until
-            ]);
+            $notification = $admin
+                ->notifications()
+                ->find(
+                    $request->notification_id
+                );
+
+            if ($notification) {
+
+                $notification->markAsRead();
+            }
+
+            DB::commit();
 
             return response()->json([
+
                 'success' => true,
                 'status' => 200,
-                'message' => 'Heures supp approuvées'
+                'message' =>
+                'Demande approuvée',
+
+                'data' => $overtime
             ]);
         } catch (\Throwable $th) {
+
+            DB::rollBack();
+
             return response()->json([
-                'status'  => false,
-                'message' => 'Une erreur est survenue lors de la création',
-                'error'   => config('app.debug') ? $th->getMessage() : null
+
+                'success' => false,
+
+                'message' => 'Erreur',
+
+                'error' =>
+                config('app.debug')
+                    ? $th->getMessage()
+                    : null
+
             ], 500);
         }
     }
@@ -389,27 +469,98 @@ class OvertimeController extends Controller
             )
         ]
     )]
-    public function rejecte($id)
+    // public function rejecte($id)
+    // {
+    //     try {
+    //         $overtime = OvertimeRequest::findOrFail($id);
+
+    //         $overtime->update([
+    //             'status' => 'rejected',
+    //             'rejected_by' => Auth::id(),
+    //             'rejected_at' => now(),
+    //         ]);
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'status' => 200,
+    //             'message' => 'Heures supp rejectées'
+    //         ]);
+    //     } catch (\Throwable $th) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => 'Une erreur est survenue lors de la création',
+    //             'error'   => config('app.debug') ? $th->getMessage() : null
+    //         ], 500);
+    //     }
+    // }
+
+    public function rejecte(Request $request, $id)
     {
+        DB::beginTransaction();
+
         try {
+
+            $admin = Auth::user();
+
             $overtime = OvertimeRequest::findOrFail($id);
 
+            if ($overtime->status !== 'pending') {
+
+                return response()->json([
+
+                    'success' => false,
+
+                    'message' =>
+                    'Déjà traitée'
+
+                ], 422);
+            }
+
             $overtime->update([
+
                 'status' => 'rejected',
-                'rejected_by' => Auth::id(),
+
                 'rejected_at' => now(),
+
+                'rejected_by' => $admin->id
             ]);
 
+            $notification = $admin
+                ->notifications()
+                ->find(
+                    $request->notification_id
+                );
+
+            if ($notification) {
+
+                $notification->markAsRead();
+            }
+
+            DB::commit();
+
             return response()->json([
+
                 'success' => true,
-                'status' => 200,
-                'message' => 'Heures supp rejectées'
+
+                'message' =>
+                'Demande rejetée'
+
             ]);
         } catch (\Throwable $th) {
+
+            DB::rollBack();
+
             return response()->json([
-                'status'  => false,
-                'message' => 'Une erreur est survenue lors de la création',
-                'error'   => config('app.debug') ? $th->getMessage() : null
+
+                'success' => false,
+
+                'message' => 'Erreur',
+
+                'error' =>
+                config('app.debug')
+                    ? $th->getMessage()
+                    : null
+
             ], 500);
         }
     }
