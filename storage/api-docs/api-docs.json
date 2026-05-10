@@ -6144,7 +6144,7 @@
                 "tags": [
                     "Suppliers"
                 ],
-                "summary": "Créer",
+                "summary": "Créer un fournisseur",
                 "operationId": "72dac99cbb4291d60f7dbd9f10ddf7d5",
                 "requestBody": {
                     "required": true,
@@ -6152,21 +6152,69 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "name"
+                                    "name",
+                                    "phone"
                                 ],
                                 "properties": {
                                     "name": {
                                         "type": "string",
-                                        "example": "John Doe"
-                                    },
-                                    "address": {
-                                        "type": "string",
-                                        "example": "Dar"
+                                        "example": "AfriGaz Supplier"
                                     },
                                     "phone": {
                                         "type": "string",
-                                        "example": "+243990000000",
+                                        "example": "+243990000000"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "Kinshasa Gombe",
                                         "nullable": true
+                                    },
+                                    "company_name": {
+                                        "type": "string",
+                                        "example": "AfriGaz SARL",
+                                        "nullable": true
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "contact@afrigaz.com",
+                                        "nullable": true
+                                    },
+                                    "country": {
+                                        "type": "string",
+                                        "example": "RDC",
+                                        "nullable": true
+                                    },
+                                    "city": {
+                                        "type": "string",
+                                        "example": "Kinshasa",
+                                        "nullable": true
+                                    },
+                                    "tax_number": {
+                                        "type": "string",
+                                        "example": "A123456789",
+                                        "nullable": true
+                                    },
+                                    "rccm": {
+                                        "type": "string",
+                                        "example": "CD/KIN/RCCM/24-B-1234",
+                                        "nullable": true
+                                    },
+                                    "idnat": {
+                                        "type": "string",
+                                        "example": "01-F4300-N12345X",
+                                        "nullable": true
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "example": "created",
+                                        "nullable": true,
+                                        "enum": [
+                                            "created",
+                                            "active",
+                                            "inactive",
+                                            "blocked"
+                                        ]
                                     }
                                 },
                                 "type": "object"
@@ -6176,10 +6224,13 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Données créées avec succès"
+                        "description": "Fournisseur créé avec succès"
                     },
                     "422": {
-                        "description": "Validation des données échouée"
+                        "description": "Erreur de validation"
+                    },
+                    "404": {
+                        "description": "Ressource introuvable"
                     },
                     "500": {
                         "description": "Erreur serveur"
@@ -6192,15 +6243,17 @@
                 "tags": [
                     "Suppliers"
                 ],
-                "summary": "Modifier",
+                "summary": "Modifier un fournisseur",
                 "operationId": "20b79b7442d76e0a141a5a4a6a0c1a97",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
+                        "description": "ID du fournisseur",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "integer",
+                            "example": 1
                         }
                     }
                 ],
@@ -6209,19 +6262,70 @@
                     "content": {
                         "application/json": {
                             "schema": {
+                                "required": [
+                                    "name",
+                                    "phone"
+                                ],
                                 "properties": {
                                     "name": {
                                         "type": "string",
-                                        "example": "John Doe"
-                                    },
-                                    "address": {
-                                        "type": "string",
-                                        "example": "Dar"
+                                        "example": "AfriGaz Supplier"
                                     },
                                     "phone": {
                                         "type": "string",
-                                        "example": "+243990000000",
+                                        "example": "+243990000000"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "Kinshasa Gombe",
                                         "nullable": true
+                                    },
+                                    "company_name": {
+                                        "type": "string",
+                                        "example": "AfriGaz SARL",
+                                        "nullable": true
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "contact@afrigaz.com",
+                                        "nullable": true
+                                    },
+                                    "country": {
+                                        "type": "string",
+                                        "example": "RDC",
+                                        "nullable": true
+                                    },
+                                    "city": {
+                                        "type": "string",
+                                        "example": "Kinshasa",
+                                        "nullable": true
+                                    },
+                                    "tax_number": {
+                                        "type": "string",
+                                        "example": "A123456789",
+                                        "nullable": true
+                                    },
+                                    "rccm": {
+                                        "type": "string",
+                                        "example": "CD/KIN/RCCM/24-B-1234",
+                                        "nullable": true
+                                    },
+                                    "idnat": {
+                                        "type": "string",
+                                        "example": "01-F4300-N12345X",
+                                        "nullable": true
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "example": "active",
+                                        "nullable": true,
+                                        "enum": [
+                                            "created",
+                                            "active",
+                                            "inactive",
+                                            "blocked"
+                                        ]
                                     }
                                 },
                                 "type": "object"
@@ -6231,10 +6335,16 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "mise à jour"
+                        "description": "Fournisseur mis à jour avec succès"
                     },
                     "404": {
-                        "description": "Non trouvée"
+                        "description": "Fournisseur introuvable"
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
                     }
                 }
             }
