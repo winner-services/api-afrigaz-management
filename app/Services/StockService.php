@@ -1046,81 +1046,6 @@ class StockService
         });
     }
 
-    // public function decreaseStockMultiple($branchId, array $products, $isEmpty = true)
-    // {
-    //     return DB::transaction(function () use ($branchId, $products, $isEmpty) {
-
-    //         $grouped = [];
-    //         $errors = [];
-
-    //         foreach ($products as $product) {
-
-    //             $productId = $product['product_id'];
-
-    //             foreach ($product['returns'] as $item) {
-
-    //                 $condition = 'good';
-    //                 $qty = $item['quantity'];
-
-    //                 $key = $productId . '-' . $condition;
-
-    //                 if (!isset($grouped[$key])) {
-    //                     $grouped[$key] = [
-    //                         'product_id' => $productId,
-    //                         'condition' => $condition,
-    //                         'quantity' => 0
-    //                     ];
-    //                 }
-
-    //                 $grouped[$key]['quantity'] += $qty;
-    //             }
-    //         }
-
-    //         foreach ($grouped as $item) {
-
-    //             $stock = StockByBranch::where([
-    //                 'branche_id' => $branchId,
-    //                 'product_id' => $item['product_id'],
-    //                 'is_empty' => $isEmpty,
-    //                 'condition_state' => $item['condition']
-    //             ])->lockForUpdate()->first();
-
-    //             if (!$stock || $stock->stock_quantity < $item['quantity']) {
-
-    //                 $errors[] = [
-    //                     'product_id' => $item['product_id'],
-    //                     'condition_state' => $item['condition'],
-    //                     'requested' => $item['quantity'],
-    //                     'available' => $stock->stock_quantity ?? 0,
-    //                     'message' => 'Stock insuffisant'
-    //                 ];
-    //             }
-    //         }
-
-    //         if (!empty($errors)) {
-
-    //             throw new StockException(
-    //                 "Stock insuffisant pour un ou plusieurs produits",
-    //                 $errors
-    //             );
-    //         }
-
-    //         foreach ($grouped as $item) {
-
-    //             StockByBranch::where([
-    //                 'branche_id' => $branchId,
-    //                 'product_id' => $item['product_id'],
-    //                 'is_empty' => $isEmpty,
-    //                 'condition_state' => 'good'
-    //             ])->decrement('stock_quantity', $item['quantity']);
-    //         }
-
-    //         return [
-    //             'success' => true,
-    //             'message' => 'Stock mis à jour avec succès'
-    //         ];
-    //     });
-    // }
 
     public function storeReturn(array $data)
     {
@@ -1135,14 +1060,12 @@ class StockService
 
             $totalItems = 0;
 
-            // 🔥 1. calcul total
             foreach ($products as $product) {
                 foreach ($product['returns'] as $item) {
                     $totalItems += $item['quantity'];
                 }
             }
 
-            // 🔥 2. créer header
             $return = BottleReturn::create([
                 'branch_id' => $branchId,
                 'agent_id' => $agentId,
@@ -1153,7 +1076,6 @@ class StockService
                 'reference' => fake()->unique()->numerify('RET-#####')
             ]);
 
-            // 🔥 3. traiter chaque produit
             foreach ($products as $product) {
 
                 $productId = $product['product_id'];

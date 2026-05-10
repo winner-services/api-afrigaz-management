@@ -99,4 +99,10 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Branche::class);
     }
+    public function overtimeRequests()
+    {
+        return $this->hasMany(
+            OvertimeRequest::class
+        );
+    }
 }

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api\Auth\OverTime;
 
 use App\Http\Controllers\Controller;
 use App\Models\OvertimeRequest;
+use App\Models\User;
+use App\Notifications\OvertimeRequestNotification;
 use App\Services\EmessService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -87,9 +89,13 @@ class OvertimeController extends Controller
     public function request(Request $request)
     {
         try {
+
             $request->validate([
+
                 'minutes' => 'required|integer|min:1',
+
                 'reason' => 'required|string'
+
             ]);
 
             $overtime = OvertimeRequest::create([
@@ -108,21 +114,103 @@ class OvertimeController extends Controller
 
             ]);
 
+            $admins = User::where('is_admin', true)->get();
+
+            foreach ($admins as $admin) {
+
+                $admin->notify(
+
+                    new OvertimeRequestNotification([
+
+                        'title' =>
+                        'Demande heures supplémentaires',
+
+                        'message' =>
+                        Auth::user()->name .
+                            ' demande ' .
+                            $request->minutes .
+                            ' minutes supplémentaires.',
+
+                        'user_id' => Auth::id(),
+
+                        'user_name' => Auth::user()->name,
+
+                        'minutes' => $request->minutes,
+
+                        'reason' => $request->reason,
+
+                        'overtime_id' => $overtime->id
+
+                    ])
+                );
+            }
+
             return response()->json([
 
                 'success' => true,
-                'status' => 201,
-                'message' => 'Demande envoyée avec succès',
+
+                'message' =>
+                'Demande envoyée avec succès',
+
                 'data' => $overtime
-            ]);
+
+            ], 201);
         } catch (\Throwable $th) {
+
             return response()->json([
-                'status'  => false,
-                'message' => 'Une erreur est survenue lors de la création',
-                'error'   => config('app.debug') ? $th->getMessage() : null
+
+                'success' => false,
+
+                'message' =>
+                'Erreur lors de la demande',
+
+                'error' =>
+                config('app.debug')
+                    ? $th->getMessage()
+                    : null
+
             ], 500);
         }
     }
+    // public function request(Request $request)
+    // {
+    //     try {
+    //         $request->validate([
+    //             'minutes' => 'required|integer|min:1',
+    //             'reason' => 'required|string'
+    //         ]);
+
+    //         $overtime = OvertimeRequest::create([
+
+    //             'user_id' => Auth::id(),
+
+    //             'operation_date' => now(),
+
+    //             'requested_at' => now(),
+
+    //             'requested_minutes' => $request->minutes,
+
+    //             'reason' => $request->reason,
+
+    //             'status' => 'pending'
+
+    //         ]);
+
+    //         return response()->json([
+
+    //             'success' => true,
+    //             'status' => 201,
+    //             'message' => 'Demande envoyée avec succès',
+    //             'data' => $overtime
+    //         ]);
+    //     } catch (\Throwable $th) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => 'Une erreur est survenue lors de la création',
+    //             'error'   => config('app.debug') ? $th->getMessage() : null
+    //         ], 500);
+    //     }
+    // }
 
     public function update(Request $request, $id)
     {

@@ -194,10 +194,10 @@ class ProductController extends Controller
     )]
     public function getTransfertProductOptionsData()
     {
-        // $branchId = request()->get('branch_id', 1);
         $branchId = (int) request()->input('branch_id', 1);
 
-        $gasPrice = Product::where('category_id', 1)->value('wholesale_price');
+        $gasPrice = Product::where('category_id', 1)
+            ->value('wholesale_price') ?? 0;
 
         $data = Product::join('units', 'products.unit_id', '=', 'units.id')
             ->leftJoin('stock_by_branches', function ($join) use ($branchId) {
@@ -211,13 +211,14 @@ class ProductController extends Controller
             ->select(
                 'products.*',
                 'units.abreviation',
-                'stock_by_branches.stock_quantity',
-                DB::raw("
-                CASE 
-                    WHEN products.category_id = 2 THEN $gasPrice
-                    ELSE NULL
-                END AS gas_price
-            ")
+                'stock_by_branches.stock_quantity'
+            )
+            ->selectRaw(
+                'CASE 
+                WHEN products.category_id = 2 THEN ?
+                ELSE NULL
+            END AS gas_price',
+                [$gasPrice]
             )
             ->get();
 
@@ -226,31 +227,40 @@ class ProductController extends Controller
             'data' => $data
         ]);
     }
-
-
     // public function getTransfertProductOptionsData()
     // {
+    //     $branchId = (int) request()->input('branch_id', 1);
+
     //     $gasPrice = Product::where('category_id', 1)->value('wholesale_price');
 
     //     $data = Product::join('units', 'products.unit_id', '=', 'units.id')
+    //         ->leftJoin('stock_by_branches', function ($join) use ($branchId) {
+    //             $join->on('products.id', '=', 'stock_by_branches.product_id')
+    //                 ->where('stock_by_branches.branche_id', '=', $branchId);
+    //         })
     //         ->where('products.status', 'created')
-    //         ->whereIn('category_id', [2, 3])
+    //         ->whereIn('products.category_id', [2, 3])
+    //         ->where('stock_by_branches.is_empty', 0)
+    //         ->where('stock_by_branches.condition_state', 'good')
     //         ->select(
     //             'products.*',
     //             'units.abreviation',
+    //             'stock_by_branches.stock_quantity',
     //             DB::raw("
-    //         CASE 
-    // WHEN products.category_id = 2 THEN $gasPrice
-    //     ELSE NULL
-    // END AS gas_price
-    //     ")
+    //             CASE 
+    //                 WHEN products.category_id = 2 THEN $gasPrice
+    //                 ELSE NULL
+    //             END AS gas_price
+    //         ")
     //         )
     //         ->get();
+
     //     return response()->json([
     //         'status' => true,
     //         'data' => $data
     //     ]);
     // }
+
     #[OA\Get(
         path: "/api/v1/getProductOptionsByBranche",
         summary: "Lister",
