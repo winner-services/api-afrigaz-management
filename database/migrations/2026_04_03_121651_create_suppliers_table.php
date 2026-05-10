@@ -17,6 +17,15 @@ return new class extends Migration
             $table->string('address')->nullable();
             $table->string('phone')->nullable();
             $table->string('status')->default('created');
+
+            $table->string('company_name')->nullable();
+            $table->string('email')->nullable();
+            $table->string('country')->nullable();
+            $table->string('city')->nullable();
+            $table->string('tax_number')->nullable();
+            $table->string('rccm')->nullable();
+            $table->string('idnat')->nullable();
+
             $table->foreignId('addedBy')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });

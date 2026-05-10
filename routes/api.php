@@ -83,7 +83,6 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::put('/approveRequest/{id}', 'approve');
             Route::put('/rejecteRequest/{id}', 'rejecte');
             Route::get('/overtimeGetData', 'index');
-            Route::get('/sms-test', 'sms');
         });
 
         Route::controller(UserController::class)->group(function () {

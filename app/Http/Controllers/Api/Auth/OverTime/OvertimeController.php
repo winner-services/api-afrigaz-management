@@ -701,17 +701,4 @@ class OvertimeController extends Controller
             ], 500);
         }
     }
-
-
-    public function sms(EmessService $sms)
-    {
-        return response()->json(
-
-            $sms->sendSms(
-                '+243997604471',
-                'Bonjour depuis Laravel'
-            )
-
-        );
-    }
 }

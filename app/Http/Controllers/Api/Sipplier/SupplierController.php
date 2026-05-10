@@ -8,6 +8,7 @@ use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,17 +26,15 @@ class SupplierController extends Controller
     )]
     public function index(): JsonResponse
     {
-        // $devise = Currency::where('status', 'created')->latest()->get();
         $devise = Currency::where('status', 'created')
-                ->orderByRaw("currency_type = 'devise_principale' DESC")
-                ->latest()
-                ->get();
+            ->orderByRaw("currency_type = 'devise_principale' DESC")
+            ->latest()
+            ->get();
         $page = request('paginate', 10);
         $q = request('q', '');
         $sort_direction = request('sort_direction', 'desc');
         $sort_field = request('sort_field', 'id');
 
-        // 🔒 Sécurité tri
         $allowedSortFields = ['id', 'name', 'phone', 'created_at'];
 
         if (!in_array($sort_field, $allowedSortFields)) {
@@ -54,7 +53,6 @@ class SupplierController extends Controller
             )
             ->where('suppliers.status', 'created')
 
-            // 🔍 Recherche
             ->when($q, function ($query) use ($q) {
                 $query->where(function ($sub) use ($q) {
                     $sub->where('suppliers.name', 'LIKE', "%{$q}%")
@@ -96,28 +94,115 @@ class SupplierController extends Controller
 
     #[OA\Post(
         path: '/api/v1/supplierStoreData',
-        summary: 'Créer',
+        summary: 'Créer un fournisseur',
         tags: ['Suppliers'],
+
         requestBody: new OA\RequestBody(
             required: true,
+
             content: new OA\JsonContent(
-                required: ['name'],
+
+                required: ['name', 'phone'],
+
                 properties: [
-                    new OA\Property(property: "name", type: "string", example: "John Doe"),
-                    new OA\Property(property: "address", type: "string", example: "Dar"),
-                    new OA\Property(property: "phone", type: "string", nullable: true, example: "+243990000000")
+
+                    new OA\Property(
+                        property: 'name',
+                        type: 'string',
+                        example: 'AfriGaz Supplier'
+                    ),
+
+                    new OA\Property(
+                        property: 'phone',
+                        type: 'string',
+                        example: '+243990000000'
+                    ),
+
+                    new OA\Property(
+                        property: 'address',
+                        type: 'string',
+                        nullable: true,
+                        example: 'Kinshasa Gombe'
+                    ),
+
+                    new OA\Property(
+                        property: 'company_name',
+                        type: 'string',
+                        nullable: true,
+                        example: 'AfriGaz SARL'
+                    ),
+
+                    new OA\Property(
+                        property: 'email',
+                        type: 'string',
+                        format: 'email',
+                        nullable: true,
+                        example: 'contact@afrigaz.com'
+                    ),
+
+                    new OA\Property(
+                        property: 'country',
+                        type: 'string',
+                        nullable: true,
+                        example: 'RDC'
+                    ),
+
+                    new OA\Property(
+                        property: 'city',
+                        type: 'string',
+                        nullable: true,
+                        example: 'Kinshasa'
+                    ),
+
+                    new OA\Property(
+                        property: 'tax_number',
+                        type: 'string',
+                        nullable: true,
+                        example: 'A123456789'
+                    ),
+
+                    new OA\Property(
+                        property: 'rccm',
+                        type: 'string',
+                        nullable: true,
+                        example: 'CD/KIN/RCCM/24-B-1234'
+                    ),
+
+                    new OA\Property(
+                        property: 'idnat',
+                        type: 'string',
+                        nullable: true,
+                        example: '01-F4300-N12345X'
+                    ),
+
+                    new OA\Property(
+                        property: 'status',
+                        type: 'string',
+                        nullable: true,
+                        example: 'created',
+                        enum: ['created', 'active', 'inactive', 'blocked']
+                    ),
                 ]
             )
         ),
+
         responses: [
+
             new OA\Response(
                 response: 201,
-                description: 'Données créées avec succès'
+                description: 'Fournisseur créé avec succès'
             ),
+
             new OA\Response(
                 response: 422,
-                description: 'Validation des données échouée'
+                description: 'Erreur de validation'
             ),
+
+            new OA\Response(
+                response: 404,
+                description: 'Ressource introuvable'
+            ),
+
             new OA\Response(
                 response: 500,
                 description: 'Erreur serveur'
@@ -128,122 +213,473 @@ class SupplierController extends Controller
     public function store(Request $request): JsonResponse
     {
         $rules = [
-            'name' => ['nullable', 'string', 'max:255', 'unique:suppliers,name'],
-            'address' => ['nullable', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'max:20', 'unique:suppliers,phone']
+
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                'unique:suppliers,name'
+            ],
+
+            'phone' => [
+                'required',
+                'string',
+                'max:20',
+                'unique:suppliers,phone'
+            ],
+
+            'address' => [
+                'nullable',
+                'string',
+                'max:255'
+            ],
+
+            'company_name' => [
+                'nullable',
+                'string',
+                'max:255'
+            ],
+
+            'email' => [
+                'nullable',
+                'email',
+                'max:255',
+                'unique:suppliers,email'
+            ],
+
+            'country' => [
+                'nullable',
+                'string',
+                'max:100'
+            ],
+
+            'city' => [
+                'nullable',
+                'string',
+                'max:100'
+            ],
+
+            'tax_number' => [
+                'nullable',
+                'string',
+                'max:100',
+                'unique:suppliers,tax_number'
+            ],
+
+            'rccm' => [
+                'nullable',
+                'string',
+                'max:100',
+                'unique:suppliers,rccm'
+            ],
+
+            'idnat' => [
+                'nullable',
+                'string',
+                'max:100',
+                'unique:suppliers,idnat'
+            ],
+
+            'status' => [
+                'nullable',
+                'in:created,active,inactive,blocked'
+            ],
         ];
 
         $messages = [
+
+            'name.required' => 'Le nom du fournisseur est obligatoire.',
+            'name.unique' => 'Ce nom existe déjà.',
+
             'phone.required' => 'Le numéro de téléphone est obligatoire.',
             'phone.unique' => 'Ce numéro existe déjà.',
-            'name.unique' => 'Ce nom existe déjà.',
+
+            'email.email' => 'Adresse email invalide.',
+            'email.unique' => 'Cet email existe déjà.',
+
+            'tax_number.unique' => 'Le numéro fiscal existe déjà.',
+            'rccm.unique' => 'Le RCCM existe déjà.',
+            'idnat.unique' => 'Cet IDNAT existe déjà.',
         ];
 
-        $validator = Validator::make($request->all(), $rules, $messages);
+        $validator = Validator::make(
+            $request->all(),
+            $rules,
+            $messages
+        );
 
         if ($validator->fails()) {
+
             return response()->json([
+
                 'status' => false,
-                'message' => 'Données invalides',
+                'message' => 'Données invalides.',
                 'errors' => $validator->errors()
+
             ], 422);
         }
 
         DB::beginTransaction();
 
-        $authId = Auth::id();
-
         try {
+
             $supplier = Supplier::create([
+
                 'name' => $request->name,
                 'address' => $request->address,
                 'phone' => $request->phone,
-                'addedBy' => $authId
+                'status' => $request->status ?? 'created',
+
+                'company_name' => $request->company_name,
+                'email' => $request->email,
+                'country' => $request->country,
+                'city' => $request->city,
+
+                'tax_number' => $request->tax_number,
+                'rccm' => $request->rccm,
+                'idnat' => $request->idnat,
+
+                'addedBy' => Auth::id(),
             ]);
 
             DB::commit();
 
             return response()->json([
+
                 'status' => true,
-                'message' => 'Fournisseur créé avec succès',
+                'message' => 'Fournisseur créé avec succès.',
                 'data' => $supplier
+
             ], 201);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+
             DB::rollBack();
 
+            Log::error('Erreur création fournisseur', [
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+            ]);
+
             return response()->json([
+
                 'status' => false,
-                'message' => 'Erreur serveur',
-                'error' => config('app.debug') ? $e->getMessage() : null
+                'message' => 'Une erreur est survenue lors de la création du fournisseur.',
+                'error' => config('app.debug')
+                    ? $e->getMessage()
+                    : null
+
             ], 500);
         }
     }
 
     #[OA\Put(
         path: "/api/v1/supplierUpdate/{id}",
-        summary: "Modifier",
+        summary: "Modifier un fournisseur",
         tags: ["Suppliers"],
+
         parameters: [
-            new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer"))
+
+            new OA\Parameter(
+                name: "id",
+                in: "path",
+                required: true,
+
+                description: "ID du fournisseur",
+
+                schema: new OA\Schema(
+                    type: "integer",
+                    example: 1
+                )
+            )
         ],
+
         requestBody: new OA\RequestBody(
+
             required: true,
+
             content: new OA\JsonContent(
+
+                required: ["name", "phone"],
+
                 properties: [
-                    new OA\Property(property: "name", type: "string", example: "John Doe"),
-                    new OA\Property(property: "address", type: "string", example: "Dar"),
-                    new OA\Property(property: "phone", type: "string", nullable: true, example: "+243990000000")
+
+                    new OA\Property(
+                        property: "name",
+                        type: "string",
+                        example: "AfriGaz Supplier"
+                    ),
+
+                    new OA\Property(
+                        property: "phone",
+                        type: "string",
+                        example: "+243990000000"
+                    ),
+
+                    new OA\Property(
+                        property: "address",
+                        type: "string",
+                        nullable: true,
+                        example: "Kinshasa Gombe"
+                    ),
+
+                    new OA\Property(
+                        property: "company_name",
+                        type: "string",
+                        nullable: true,
+                        example: "AfriGaz SARL"
+                    ),
+
+                    new OA\Property(
+                        property: "email",
+                        type: "string",
+                        format: "email",
+                        nullable: true,
+                        example: "contact@afrigaz.com"
+                    ),
+
+                    new OA\Property(
+                        property: "country",
+                        type: "string",
+                        nullable: true,
+                        example: "RDC"
+                    ),
+
+                    new OA\Property(
+                        property: "city",
+                        type: "string",
+                        nullable: true,
+                        example: "Kinshasa"
+                    ),
+
+                    new OA\Property(
+                        property: "tax_number",
+                        type: "string",
+                        nullable: true,
+                        example: "A123456789"
+                    ),
+
+                    new OA\Property(
+                        property: "rccm",
+                        type: "string",
+                        nullable: true,
+                        example: "CD/KIN/RCCM/24-B-1234"
+                    ),
+
+                    new OA\Property(
+                        property: "idnat",
+                        type: "string",
+                        nullable: true,
+                        example: "01-F4300-N12345X"
+                    ),
+
+                    new OA\Property(
+                        property: "status",
+                        type: "string",
+                        nullable: true,
+                        example: "active",
+                        enum: ["created", "active", "inactive", "blocked"]
+                    ),
                 ]
             )
         ),
+
         responses: [
-            new OA\Response(response: 200, description: "mise à jour"),
-            new OA\Response(response: 404, description: "Non trouvée")
+
+            new OA\Response(
+                response: 200,
+                description: "Fournisseur mis à jour avec succès"
+            ),
+
+            new OA\Response(
+                response: 404,
+                description: "Fournisseur introuvable"
+            ),
+
+            new OA\Response(
+                response: 422,
+                description: "Erreur de validation"
+            ),
+
+            new OA\Response(
+                response: 500,
+                description: "Erreur serveur"
+            )
         ]
     )]
     public function update(Request $request, $id): JsonResponse
     {
         $supplier = Supplier::find($id);
 
-        if (!$supplier) {
+        if (! $supplier) {
+
             return response()->json([
+
                 'status' => false,
-                'message' => 'Fournisseur introuvable'
+                'message' => 'Fournisseur introuvable.'
+
             ], 404);
         }
 
         $rules = [
-            'name' => ['nullable', 'string', 'max:255'],
-            'address' => ['nullable', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'max:20', 'unique:suppliers,phone,' . $supplier->id],
+
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                'unique:suppliers,name,' . $supplier->id
+            ],
+
+            'phone' => [
+                'required',
+                'string',
+                'max:20',
+                'unique:suppliers,phone,' . $supplier->id
+            ],
+
+            'address' => [
+                'nullable',
+                'string',
+                'max:255'
+            ],
+
+            'company_name' => [
+                'nullable',
+                'string',
+                'max:255'
+            ],
+
+            'email' => [
+                'nullable',
+                'email',
+                'max:255',
+                'unique:suppliers,email,' . $supplier->id
+            ],
+
+            'country' => [
+                'nullable',
+                'string',
+                'max:100'
+            ],
+
+            'city' => [
+                'nullable',
+                'string',
+                'max:100'
+            ],
+
+            'tax_number' => [
+                'nullable',
+                'string',
+                'max:100',
+                'unique:suppliers,tax_number,' . $supplier->id
+            ],
+
+            'rccm' => [
+                'nullable',
+                'string',
+                'max:100',
+                'unique:suppliers,rccm,' . $supplier->id
+            ],
+
+            'idnat' => [
+                'nullable',
+                'string',
+                'max:100',
+                'unique:suppliers,idnat,' . $supplier->id
+            ],
+
+            'status' => [
+                'nullable',
+                'in:created,active,inactive,blocked'
+            ],
         ];
 
         $messages = [
-            'phone.required' => 'Le numéro est obligatoire.',
+
+            'name.required' => 'Le nom du fournisseur est obligatoire.',
+            'name.unique' => 'Ce nom existe déjà.',
+
+            'phone.required' => 'Le numéro de téléphone est obligatoire.',
             'phone.unique' => 'Ce numéro existe déjà.',
+
+            'email.email' => 'Adresse email invalide.',
+            'email.unique' => 'Cet email existe déjà.',
+
+            'tax_number.unique' => 'Le numéro fiscal existe déjà.',
+            'rccm.unique' => 'Le RCCM existe déjà.',
+            'idnat.unique' => 'Cet IDNAT existe déjà.',
         ];
 
-        $validator = Validator::make($request->all(), $rules, $messages);
+        $validator = Validator::make(
+            $request->all(),
+            $rules,
+            $messages
+        );
 
         if ($validator->fails()) {
+
             return response()->json([
+
                 'status' => false,
-                'message' => 'Données invalides',
+                'message' => 'Données invalides.',
                 'errors' => $validator->errors()
+
             ], 422);
         }
 
-        $supplier->update([
-            'name' => $request->name,
-            'address' => $request->address,
-            'phone' => $request->phone,
-        ]);
+        DB::beginTransaction();
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Fournisseur mis à jour',
-            'data' => $supplier
-        ]);
+        try {
+
+            $supplier->update([
+
+                'name' => $request->name,
+                'address' => $request->address,
+                'phone' => $request->phone,
+                'status' => $request->status ?? $supplier->status,
+
+                'company_name' => $request->company_name,
+                'email' => $request->email,
+
+                'country' => $request->country,
+                'city' => $request->city,
+
+                'tax_number' => $request->tax_number,
+                'rccm' => $request->rccm,
+                'idnat' => $request->idnat,
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+
+                'status' => true,
+                'message' => 'Fournisseur mis à jour avec succès.',
+                'data' => $supplier->fresh()
+
+            ]);
+        } catch (\Throwable $e) {
+
+            DB::rollBack();
+
+            Log::error('Erreur mise à jour fournisseur', [
+
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+            ]);
+
+            return response()->json([
+
+                'status' => false,
+                'message' => 'Une erreur est survenue lors de la mise à jour.',
+                'error' => config('app.debug')
+                    ? $e->getMessage()
+                    : null
+
+            ], 500);
+        }
     }
 
     #[OA\Put(
