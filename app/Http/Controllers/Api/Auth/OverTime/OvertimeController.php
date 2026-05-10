@@ -9,6 +9,7 @@ use App\Notifications\OvertimeRequestNotification;
 use App\Services\EmessService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use OpenApi\Attributes as OA;
 
 use function Illuminate\Support\now;
