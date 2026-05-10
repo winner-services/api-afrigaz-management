@@ -2693,34 +2693,6 @@
                 }
             }
         },
-        "/api/v1/getMyDebts": {
-            "get": {
-                "tags": [
-                    "Distributors Debts"
-                ],
-                "summary": "Lister",
-                "operationId": "610cf1789a36e09fe3269f19521e143b",
-                "responses": {
-                    "200": {
-                        "description": "Liste"
-                    }
-                }
-            }
-        },
-        "/api/v1/getmyPayments": {
-            "get": {
-                "tags": [
-                    "Distributors Debts"
-                ],
-                "summary": "Lister",
-                "operationId": "99b985acc810674373464398dfda3118",
-                "responses": {
-                    "200": {
-                        "description": "Liste"
-                    }
-                }
-            }
-        },
         "/api/v1/distributorGetAllData": {
             "get": {
                 "tags": [
@@ -8111,6 +8083,225 @@
                     }
                 }
             }
+        },
+        "/api/v1/auth/loginDistributor": {
+            "post": {
+                "tags": [
+                    "Distributeurs Auth"
+                ],
+                "summary": "Authentification",
+                "description": "Connexion avec email ou téléphone + mot de passe",
+                "operationId": "185afd23d9e24fb46e72dad6c9765ae9",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "user@example.com ou 0990000000"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "password123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Connexion réussie",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Connexion réussie."
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "token": {
+                                                    "type": "string",
+                                                    "example": "1|abcdefg123456"
+                                                },
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "John Doe"
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "example": "user@example.com"
+                                                        },
+                                                        "phone": {
+                                                            "type": "string",
+                                                            "example": "0990000000"
+                                                        },
+                                                        "active": {
+                                                            "type": "boolean",
+                                                            "example": true
+                                                        },
+                                                        "role": {
+                                                            "type": "string",
+                                                            "example": "Admin"
+                                                        },
+                                                        "permissions": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            },
+                                                            "example": [
+                                                                "Voir_User",
+                                                                "Ajouter_User"
+                                                            ]
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Identifiants incorrects"
+                    },
+                    "403": {
+                        "description": "Compte désactivé"
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/logoutDistributor": {
+            "post": {
+                "tags": [
+                    "Distributeurs Auth"
+                ],
+                "summary": "Déconnexion",
+                "description": "Déconnecte l'utilisateur authentifié en supprimant son token actif",
+                "operationId": "2a3b074858e61644924b5c6aad2a052f",
+                "responses": {
+                    "200": {
+                        "description": "Déconnexion réussie",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Déconnexion réussie."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Utilisateur non authentifié"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/auth/distributorProfil": {
+            "get": {
+                "tags": [
+                    "Distributeurs Auth"
+                ],
+                "summary": "Liste des Distributeurs",
+                "operationId": "2a7a46f50f1b7d169906268bced73b21",
+                "parameters": [
+                    {
+                        "name": "paginate",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    },
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "example": "Kinshasa"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Liste paginée"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/getMyDebts": {
+            "get": {
+                "tags": [
+                    "istributeurs Auth"
+                ],
+                "summary": "Lister",
+                "operationId": "5de17bc33ffed3d8fe7eb4e1e7425dd3",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/getmyPayments": {
+            "get": {
+                "tags": [
+                    "istributeurs Auth"
+                ],
+                "summary": "Lister",
+                "operationId": "7ec52846868c016f87ff59eff52ba81a",
+                "responses": {
+                    "200": {
+                        "description": "Liste"
+                    }
+                }
+            }
         }
     },
     "tags": [
@@ -8265,6 +8456,14 @@
         {
             "name": "Users",
             "description": "Users"
+        },
+        {
+            "name": "Distributeurs Auth",
+            "description": "Distributeurs Auth"
+        },
+        {
+            "name": "istributeurs Auth",
+            "description": "istributeurs Auth"
         }
     ]
 }

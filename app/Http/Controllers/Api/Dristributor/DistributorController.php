@@ -13,7 +13,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
@@ -322,6 +321,7 @@ class DistributorController extends Controller
 
                 'category_distributor_id' => 'nullable|integer|exists:category_distributors,id',
             ]);
+            $data['password'] =  bcrypt($request->input('password'));
 
             if ($request->hasFile('identity_document')) {
 
@@ -504,7 +504,7 @@ class DistributorController extends Controller
 
                 'category_distributor_id' => 'nullable|integer|exists:category_distributors,id',
             ]);
-
+            $data['password'] =  bcrypt($request->input('password'));
             if ($request->hasFile('identity_document')) {
 
                 if ($item->identity_document) {

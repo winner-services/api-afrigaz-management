@@ -37,6 +37,7 @@ use App\Http\Controllers\Api\Tank\TankController;
 use App\Http\Controllers\Api\Transaction\TransactionController;
 use App\Http\Controllers\Api\Transfer\TransefrController;
 use App\Http\Controllers\Api\Users\UserController;
+use App\Http\Controllers\Distributor\Authenticate\AuthDistribController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
@@ -52,6 +53,18 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             ->name('login')
             ->middleware('login.time');
 
+        Route::controller(AuthDistribController::class)->group(function () {
+            Route::post('/loginDistributor', 'loginDistrib');
+        });
+
+        Route::middleware('auth:distributor')->group(function () {
+            Route::controller(AuthDistribController::class)->group(function () {
+                Route::get('/distributorProfil', 'profile');
+                Route::get('/getMyDebts', 'myDebts');
+                Route::get('/getmyPayments', 'myPayments');
+            });
+        });
+
         Route::middleware([
             'auth:sanctum',
         ])->group(function () {
@@ -59,6 +72,11 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/logout', [
                 AuthenticationController::class,
                 'logout'
+            ]);
+
+            Route::post('/logoutDistributor', [
+                AuthDistribController::class,
+                'logoutDistrib'
             ]);
         });
     });
@@ -68,6 +86,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     | API PROTEGÉE
     |--------------------------------------------------------------------------
     */
+
     Route::middleware([
         'auth:sanctum',
         'work.access'
@@ -304,8 +323,6 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/payDistributorDebt', 'payDebt');
             Route::get('/distributorDebtsGetAllData', 'distributorWithDebts');
             Route::get('/getAllPaymentDebts', 'getAllPayments');
-            Route::get('/getMyDebts', 'myDebts');
-            Route::get('/getmyPayments', 'myPayments');
         });
 
         Route::controller(TransactionController::class)->group(function () {
