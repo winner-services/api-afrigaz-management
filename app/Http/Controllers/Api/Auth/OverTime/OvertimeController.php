@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Notifications\OvertimeRequestNotification;
 use App\Services\EmessService;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use OpenApi\Attributes as OA;
@@ -382,14 +383,11 @@ class OvertimeController extends Controller
                 'approved_by' => $admin->id
             ]);
 
-            $notification = $admin
-                ->notifications()
-                ->find(
-                    $request->notification_id
-                );
+            $notification = DatabaseNotification::find(
+                $request->notification_id
+            );
 
             if ($notification) {
-
                 $notification->markAsRead();
             }
 
@@ -526,14 +524,11 @@ class OvertimeController extends Controller
                 'rejected_by' => $admin->id
             ]);
 
-            $notification = $admin
-                ->notifications()
-                ->find(
-                    $request->notification_id
-                );
+            $notification = DatabaseNotification::find(
+                $request->notification_id
+            );
 
             if ($notification) {
-
                 $notification->markAsRead();
             }
 
