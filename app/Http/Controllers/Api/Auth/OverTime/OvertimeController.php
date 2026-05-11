@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\OvertimeRequest;
 use App\Models\User;
 use App\Notifications\OvertimeRequestNotification;
-use App\Services\EmessService;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Auth;
@@ -174,45 +173,6 @@ class OvertimeController extends Controller
             ], 500);
         }
     }
-    // public function request(Request $request)
-    // {
-    //     try {
-    //         $request->validate([
-    //             'minutes' => 'required|integer|min:1',
-    //             'reason' => 'required|string'
-    //         ]);
-
-    //         $overtime = OvertimeRequest::create([
-
-    //             'user_id' => Auth::id(),
-
-    //             'operation_date' => now(),
-
-    //             'requested_at' => now(),
-
-    //             'requested_minutes' => $request->minutes,
-
-    //             'reason' => $request->reason,
-
-    //             'status' => 'pending'
-
-    //         ]);
-
-    //         return response()->json([
-
-    //             'success' => true,
-    //             'status' => 201,
-    //             'message' => 'Demande envoyée avec succès',
-    //             'data' => $overtime
-    //         ]);
-    //     } catch (\Throwable $th) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => 'Une erreur est survenue lors de la création',
-    //             'error'   => config('app.debug') ? $th->getMessage() : null
-    //         ], 500);
-    //     }
-    // }
 
     public function update(Request $request, $id)
     {
@@ -310,39 +270,6 @@ class OvertimeController extends Controller
             )
         ]
     )]
-    // public function approve($id)
-    // {
-    //     try {
-    //         $overtime = OvertimeRequest::findOrFail($id);
-
-    //         $until = now()->addMinutes(
-    //             $overtime->requested_minutes
-    //         );
-
-    //         $overtime->update([
-    //             'status' => 'approved',
-    //             'approved_by' => Auth::id(),
-    //             'approved_until' => $until,
-    //             'approved_at' => now(),
-    //         ]);
-
-    //         $overtime->user->update([
-    //             'overtime_until' => $until
-    //         ]);
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'status' => 200,
-    //             'message' => 'Heures supp approuvées'
-    //         ]);
-    //     } catch (\Throwable $th) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => 'Une erreur est survenue lors de la création',
-    //             'error'   => config('app.debug') ? $th->getMessage() : null
-    //         ], 500);
-    //     }
-    // }
 
     public function approve(Request $request, $id)
     {
@@ -383,13 +310,12 @@ class OvertimeController extends Controller
                 'approved_by' => $admin->id
             ]);
 
-            $notification = DatabaseNotification::find(
+            DatabaseNotification::where(
+                'id',
                 $request->notification_id
-            );
-
-            if ($notification) {
-                $notification->markAsRead();
-            }
+            )->update([
+                'read_at' => now()
+            ]);
 
             DB::commit();
 
