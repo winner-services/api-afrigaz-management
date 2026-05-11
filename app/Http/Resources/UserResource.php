@@ -22,7 +22,11 @@ class UserResource extends JsonResource
             'status'     => $this->status,
             'is_active'    => $this->active ? 'active' : 'disabled',
             // 'roles'     => $this->roles->pluck('name'),
-            'roles' => $this->roles->first()?->name,
+            // 'roles' => $this->roles->first()?->name,
+            'roles' => $this->roles->first() ? [
+                'id'   => $this->roles->first()->id,
+                'name' => $this->roles->first()->name,
+            ] : null,
             // 'role_id'    => $this->roles->pluck('id'),
             'permissions' => $this->permissions_list,
             'created_at' => $this->created_at?->toDateTimeString(),
