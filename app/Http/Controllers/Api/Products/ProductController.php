@@ -168,9 +168,7 @@ class ProductController extends Controller
         $accessoirs = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
             ->where('stock_by_branches.branche_id', 1)
             ->where('products.status', 'created')
-            ->where(function ($query) {
-                $query->where('products.category_id', 3);
-            })
+            ->where('products.category_id', '>=', 3)
             ->select('products.*', 'stock_by_branches.stock_quantity as stock_quantity')
             ->get();
 
@@ -227,39 +225,6 @@ class ProductController extends Controller
             'data' => $data
         ]);
     }
-    // public function getTransfertProductOptionsData()
-    // {
-    //     $branchId = (int) request()->input('branch_id', 1);
-
-    //     $gasPrice = Product::where('category_id', 1)->value('wholesale_price');
-
-    //     $data = Product::join('units', 'products.unit_id', '=', 'units.id')
-    //         ->leftJoin('stock_by_branches', function ($join) use ($branchId) {
-    //             $join->on('products.id', '=', 'stock_by_branches.product_id')
-    //                 ->where('stock_by_branches.branche_id', '=', $branchId);
-    //         })
-    //         ->where('products.status', 'created')
-    //         ->whereIn('products.category_id', [2, 3])
-    //         ->where('stock_by_branches.is_empty', 0)
-    //         ->where('stock_by_branches.condition_state', 'good')
-    //         ->select(
-    //             'products.*',
-    //             'units.abreviation',
-    //             'stock_by_branches.stock_quantity',
-    //             DB::raw("
-    //             CASE 
-    //                 WHEN products.category_id = 2 THEN $gasPrice
-    //                 ELSE NULL
-    //             END AS gas_price
-    //         ")
-    //         )
-    //         ->get();
-
-    //     return response()->json([
-    //         'status' => true,
-    //         'data' => $data
-    //     ]);
-    // }
 
     #[OA\Get(
         path: "/api/v1/getProductOptionsByBranche",
