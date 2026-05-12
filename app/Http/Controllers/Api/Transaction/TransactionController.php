@@ -290,6 +290,10 @@ class TransactionController extends Controller
                 ->orderByRaw("currency_type = 'devise_principale' DESC")
                 ->latest()
                 ->get();
+            $about = About::first();
+            if ($about) {
+                $this->imageService->transform($about, ['logo', 'logo2']);
+            }
 
 
             $brancheId = request("branche_id", 1);
@@ -332,6 +336,7 @@ class TransactionController extends Controller
 
             return response()->json([
                 'success' => true,
+                'info_company' => $about,
                 'data' => $transactions,
                 'devise' => $devise
             ]);

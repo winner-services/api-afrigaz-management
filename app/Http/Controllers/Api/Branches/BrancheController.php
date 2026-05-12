@@ -125,7 +125,7 @@ class BrancheController extends Controller
             DB::commit();
             return response()->json([
                 'status' => true,
-                'message' => 'Branche créée avec succès',
+                'message' => 'Point de vente créé avec succès',
                 'data' => $branch
             ], 201);
         } catch (\Throwable $e) {
@@ -140,7 +140,7 @@ class BrancheController extends Controller
 
     #[OA\Put(
         path: "/api/v1/brancheUpdate/{id}",
-        summary: "Modifier une branche",
+        summary: "Modifier un point de vente",
         tags: ["Branches"],
         parameters: [
             new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer"))
@@ -173,7 +173,7 @@ class BrancheController extends Controller
         if (!$branch) {
             return response()->json([
                 'status'  => false,
-                'message' => 'Branche introuvable'
+                'message' => 'Point de vente introuvable'
             ], 404);
         }
 
@@ -220,7 +220,7 @@ class BrancheController extends Controller
             DB::commit();
             return response()->json([
                 'status'  => true,
-                'message' => 'Branche mise à jour',
+                'message' => 'Point de vente mis à jour',
                 'data'    => $branch
             ]);
         } catch (\Throwable $th) {
@@ -235,7 +235,7 @@ class BrancheController extends Controller
 
     #[OA\Put(
         path: "/api/v1/brancheDelete/{id}",
-        summary: "Supprimer une branche",
+        summary: "Supprimer un point de vente",
         tags: ["Branches"],
         parameters: [
             new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer"))
@@ -253,7 +253,7 @@ class BrancheController extends Controller
             if (!$branch) {
                 return response()->json([
                     'status' => false,
-                    'message' => 'Branche introuvable'
+                    'message' => 'Point de vente introuvable'
                 ], 404);
             }
 
@@ -262,7 +262,7 @@ class BrancheController extends Controller
 
             return response()->json([
                 'status' => true,
-                'message' => 'Branche supprimée'
+                'message' => 'Point de vente supprimé'
             ]);
         } catch (\Throwable $th) {
             return response()->json([
