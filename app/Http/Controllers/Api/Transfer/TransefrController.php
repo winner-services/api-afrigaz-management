@@ -449,9 +449,11 @@ class TransefrController extends Controller
 
         $user = Auth::user();
 
-        $branche = Branche::where('user_id', $user->id)->first();
+        // Vérifie si l'utilisateur est admin
+        $isAdmin = $user->role === 'admin';
 
-        $brancheId = $branche?->id;
+        // Branche de l'utilisateur
+        $branche = Branche::where('user_id', $user->id)->first();
 
         $query = Transfer::with([
             'items.product:id,name',
@@ -460,15 +462,27 @@ class TransefrController extends Controller
             'driver:id,name'
         ]);
 
-        if ($brancheId && $brancheId != 1) {
+        // Si ce n'est pas un admin
+        if (!$isAdmin) {
 
-            $query->where(function ($q) use ($brancheId) {
+            // Vérifie si une branche existe
+            if (!$branche) {
 
-                $q->where('to_branch_id', $brancheId)
-                    ->orWhere('from_branch_id', $brancheId);
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Aucune branche associée à cet utilisateur'
+                ], 404);
+            }
+
+            // Filtrer les transferts de sa branche
+            $query->where(function ($q) use ($branche) {
+
+                $q->where('to_branch_id', $branche->id)
+                    ->orWhere('from_branch_id', $branche->id);
             });
         }
 
+        // Filtres
         $transfers = $query
             ->whereDate('transfer_date', '>=', $start_date)
             ->whereDate('transfer_date', '<=', $end_date)
@@ -478,13 +492,19 @@ class TransefrController extends Controller
                 $query->where(function ($sub) use ($q) {
 
                     $sub->where('reference', 'like', "%{$q}%")
+
                         ->orWhereHas('fromBranch', function ($branch) use ($q) {
+
                             $branch->where('name', 'like', "%{$q}%");
                         })
+
                         ->orWhereHas('toBranch', function ($branch) use ($q) {
+
                             $branch->where('name', 'like', "%{$q}%");
                         })
+
                         ->orWhereHas('items.product', function ($product) use ($q) {
+
                             $product->where('name', 'like', "%{$q}%");
                         });
                 });
