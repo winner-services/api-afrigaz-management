@@ -79,72 +79,145 @@ class TankService
         });
     }
 
-    public function consumeGas($tankId, $qty, $referenceType = null, $referenceId = null, $operation_date = null)
-    {
-        return DB::transaction(function () use ($tankId, $qty, $referenceType, $referenceId, $operation_date) {
+    // public function consumeGas($tankId, $qty, $referenceType = null, $referenceId = null, $operation_date = null)
+    // {
+    //     return DB::transaction(function () use ($tankId, $qty, $referenceType, $referenceId, $operation_date) {
 
-            $tank = Tank::findOrFail($tankId);
+    //         $tank = Tank::findOrFail($tankId);
 
-            if ($tank->current_level < $qty) {
-                throw new \Exception("Gaz insuffisant");
-            }
+    //         if ($tank->current_level < $qty) {
+    //             throw new \Exception("Gaz insuffisant");
+    //         }
 
-            $operation_date = $operation_date ?? now();
+    //         $operation_date = $operation_date ?? now();
 
-            $tank->decrement('current_level', $qty);
-            $gaz = Product::where('category_id', 1)->firstOrFail();
-            TankMovement::create([
-                'tank_id' => $tank->id,
-                'type' => 'exit',
-                'quantity' => $qty,
-                'reference_type' => $referenceType,
-                'reference_id' => $referenceId,
-                'unit_price' => $gaz->wholesale_price,
-                'addedBy' => Auth::id(),
-                'note' => 'Remplissage des bouteilles',
-                'operation_date' => $operation_date
-            ]);
+    //         $tank->decrement('current_level', $qty);
+    //         $gaz = Product::where('category_id', 1)->firstOrFail();
+    //         TankMovement::create([
+    //             'tank_id' => $tank->id,
+    //             'type' => 'exit',
+    //             'quantity' => $qty,
+    //             'reference_type' => $referenceType,
+    //             'reference_id' => $referenceId,
+    //             'unit_price' => $gaz->wholesale_price,
+    //             'addedBy' => Auth::id(),
+    //             'note' => 'Remplissage des bouteilles',
+    //             'operation_date' => $operation_date
+    //         ]);
 
 
 
-            $stock = StockByBranch::firstOrCreate([
-                'branche_id' => 1,
-                'product_id' => $gaz->id,
-            ], [
-                'stock_quantity' => 0,
-                'status' => 'created'
-            ]);
+    //         $stock = StockByBranch::firstOrCreate([
+    //             'branche_id' => 1,
+    //             'product_id' => $gaz->id,
+    //         ], [
+    //             'stock_quantity' => 0,
+    //             'status' => 'created'
+    //         ]);
 
-            $stockBefore = $stock->stock_quantity;
-            $stockAfter = $stockBefore - $qty;
+    //         $stockBefore = $stock->stock_quantity;
+    //         $stockAfter = $stockBefore - $qty;
 
-            $stock->decrement('stock_quantity', $qty);
+    //         $stock->decrement('stock_quantity', $qty);
 
-            ProductLedger::create([
-                'product_id' => $gaz->id,
-                'branch_id' => $tank->branch_id ?? 1,
-                'operation_date' => $operation_date,
-                'type' => 'sale',
-                'movement' => 'out',
-                'quantity' => -$qty,
-                'stock_before' => $stockBefore,
-                'stock_after' => $stockAfter,
-                'reference_type' => $referenceType ?? 'tank_consumption',
-                'reference_id' => $referenceId ?? $tank->id,
-                'notes' => 'Consommation gaz (remplissage bouteilles)',
-                'addedBy' => Auth::id(),
-                'status' => 'posted',
-            ]);
+    //         ProductLedger::create([
+    //             'product_id' => $gaz->id,
+    //             'branch_id' => $tank->branch_id ?? 1,
+    //             'operation_date' => $operation_date,
+    //             'type' => 'sale',
+    //             'movement' => 'out',
+    //             'quantity' => -$qty,
+    //             'stock_before' => $stockBefore,
+    //             'stock_after' => $stockAfter,
+    //             'reference_type' => $referenceType ?? 'tank_consumption',
+    //             'reference_id' => $referenceId ?? $tank->id,
+    //             'notes' => 'Consommation gaz (remplissage bouteilles)',
+    //             'addedBy' => Auth::id(),
+    //             'status' => 'posted',
+    //         ]);
 
-            return $tank;
-        });
+    //         return $tank;
+    //     });
+    // }
+    public function consumeGas(
+        $tankId,
+        $qty,
+        $referenceType = null,
+        $referenceId = null,
+        $operation_date = null
+    ) {
+
+        $tank = Tank::where('id', $tankId)
+            ->lockForUpdate()
+            ->firstOrFail();
+
+        if ($tank->current_level < $qty) {
+            throw new \Exception("Gaz insuffisant");
+        }
+
+        $operation_date = $operation_date ?? now();
+
+        // Déduction du niveau du tank
+        $tank->decrement('current_level', $qty);
+
+        // Produit gaz
+        $gaz = Product::where('category_id', 1)
+            ->firstOrFail();
+
+        // Mouvement du tank
+        TankMovement::create([
+            'tank_id' => $tank->id,
+            'type' => 'exit',
+            'quantity' => $qty,
+            'reference_type' => $referenceType,
+            'reference_id' => $referenceId,
+            'unit_price' => $gaz->wholesale_price,
+            'addedBy' => Auth::id(),
+            'note' => 'Remplissage des bouteilles',
+            'operation_date' => $operation_date
+        ]);
+
+        // Stock gaz
+        $stock = StockByBranch::firstOrCreate([
+            'branche_id' => 1,
+            'product_id' => $gaz->id,
+        ], [
+            'stock_quantity' => 0,
+            'status' => 'created'
+        ]);
+
+        $stockBefore = $stock->stock_quantity;
+        $stockAfter = $stockBefore - $qty;
+
+        $stock->decrement('stock_quantity', $qty);
+
+        ProductLedger::create([
+            'product_id' => $gaz->id,
+            'branch_id' => $tank->branch_id ?? 1,
+            'operation_date' => $operation_date,
+            'type' => 'sale',
+            'movement' => 'out',
+            'quantity' => -$qty,
+            'stock_before' => $stockBefore,
+            'stock_after' => $stockAfter,
+            'reference_type' => $referenceType ?? 'tank_consumption',
+            'reference_id' => $referenceId ?? $tank->id,
+            'notes' => 'Consommation gaz (remplissage bouteilles)',
+            'addedBy' => Auth::id(),
+            'status' => 'posted',
+        ]);
+
+        return $tank->fresh();
     }
 
     public function adjust($tankId, $qty, $type, $operation_date = null)
     {
         return DB::transaction(function () use ($tankId, $qty, $type, $operation_date) {
 
-            $tank = Tank::findOrFail($tankId);
+            // $tank = Tank::findOrFail($tankId);
+            $tank = Tank::where('id', $tankId)
+                ->lockForUpdate()
+                ->firstOrFail();
 
             $operation_date = $operation_date ?? now();
 

@@ -212,6 +212,11 @@ class SaleController extends Controller
             ->orderByRaw("currency_type = 'devise_principale' DESC")
             ->latest()
             ->get();
+        $about = About::first();
+        if ($about) {
+            $this->imageService->transform($about, ['logo', 'logo2']);
+        }
+
         $branches = Branche::latest()->get();
 
         $perPage = $request->query('per_page', 10);
@@ -252,6 +257,7 @@ class SaleController extends Controller
             'status' => 200,
             'devise' => $devise,
             'branches' => $branches,
+            'info_company' => $about,
             'data' => $sales
         ]);
     }
