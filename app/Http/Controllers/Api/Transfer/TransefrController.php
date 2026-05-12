@@ -436,7 +436,7 @@ class TransefrController extends Controller
     {
         $start_date = request(
             'start_date',
-            now()->startOfMonth()->format('Y-m-d')
+            now()->startOfYear()->format('Y-m-d')
         );
 
         $end_date = request(
@@ -474,17 +474,16 @@ class TransefrController extends Controller
                 ], 404);
             }
 
-            // Filtrer les transferts de sa branche
-            $query->where(function ($q) {
-                $q->where('to_branch_id', 2)
-                    ->orWhere('from_branch_id', 2);
+            $query->where(function ($q) use ($branche) {
+
+                $q->where('to_branch_id', $branche->id)
+                    ->orWhere('from_branch_id', $branche->id);
             });
         }
 
-        // Filtres
         $transfers = $query
-            // ->whereDate('transfer_date', '>=', $start_date)
-            // ->whereDate('transfer_date', '<=', $end_date)
+            ->whereDate('transfer_date', '>=', $start_date)
+            ->whereDate('transfer_date', '<=', $end_date)
 
             ->when($q, function ($query) use ($q) {
 
