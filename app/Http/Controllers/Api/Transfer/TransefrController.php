@@ -445,6 +445,7 @@ class TransefrController extends Controller
         $branche = Branche::where('user_id', $user->id)->first();
 
         $brancheId = $branche?->id;
+        dd($brancheId);
 
         $query = Transfer::with([
             'items.product:id,name',
