@@ -188,17 +188,19 @@ class TransefrController extends Controller
     )]
     public function transferBatch(Request $request)
     {
-        $request->validate([
-            'from_branch' => 'required|integer|exists:branches,id',
-            'to_branch_id' => 'required|integer|exists:branches,id',
-            'transfer_date' => 'nullable',
-            'driver' => 'nullable|integer|exists:users,id',
-            'charoit' => 'nullable|integer|exists:charoits,id',
-            'products' => 'required|array|min:1',
-            'products.*.product_id' => 'required|integer|exists:products,id',
-            'products.*.quantity' => 'required|integer|min:1'
-        ]);
         try {
+
+            $request->validate([
+                'from_branch' => 'required|integer|exists:branches,id',
+                'to_branch_id' => 'required|integer|exists:branches,id',
+                'transfer_date' => 'nullable',
+                'driver' => 'nullable|integer|exists:users,id',
+                'charoit' => 'nullable|integer|exists:charoits,id',
+                'products' => 'required|array|min:1',
+                'products.*.product_id' => 'required|integer|exists:products,id',
+                'products.*.quantity' => 'required|integer|min:1'
+            ]);
+
             $transfer = StockService::transferMultipleProductsWithRecord(
                 $request->from_branch,
                 $request->to_branch_id,
@@ -216,14 +218,58 @@ class TransefrController extends Controller
                 'reference' => $transfer->reference,
                 'items' => $transfer->items()->with('product:id,name')->get()
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+
+            return response()->json([
+                'message' => 'Erreur de validation',
+                'errors' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
 
             return response()->json([
                 'message' => 'Erreur transfert',
-                'errors' => json_decode($e->getMessage(), true) ?? $e->getMessage()
+                'errors' => $e->getMessage()
             ], 400);
         }
     }
+    // public function transferBatch(Request $request)
+    // {
+    //     $request->validate([
+    //         'from_branch' => 'required|integer|exists:branches,id',
+    //         'to_branch_id' => 'required|integer|exists:branches,id',
+    //         'transfer_date' => 'nullable',
+    //         'driver' => 'nullable|integer|exists:users,id',
+    //         'charoit' => 'nullable|integer|exists:charoits,id',
+    //         'products' => 'required|array|min:1',
+    //         'products.*.product_id' => 'required|integer|exists:products,id',
+    //         'products.*.quantity' => 'required|integer|min:1'
+    //     ]);
+    //     try {
+    //         $transfer = StockService::transferMultipleProductsWithRecord(
+    //             $request->from_branch,
+    //             $request->to_branch_id,
+    //             $request->driver,
+    //             $request->charoit,
+    //             $request->products,
+    //             $request->transfer_date,
+    //             Auth::id()
+    //         );
+
+    //         return response()->json([
+    //             'message' => 'Transfert effectué avec succès',
+    //             'status' => 201,
+    //             'transfer_id' => $transfer->id,
+    //             'reference' => $transfer->reference,
+    //             'items' => $transfer->items()->with('product:id,name')->get()
+    //         ]);
+    //     } catch (\Exception $e) {
+
+    //         return response()->json([
+    //             'message' => 'Erreur transfert',
+    //             'errors' => json_decode($e->getMessage(), true) ?? $e->getMessage()
+    //         ], 400);
+    //     }
+    // }
 
     #[OA\Post(
         path: "/api/v1/adjustStockByBanch",
