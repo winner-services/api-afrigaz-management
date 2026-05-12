@@ -477,8 +477,8 @@ class TransefrController extends Controller
             // Filtrer les transferts de sa branche
             $query->where(function ($q) use ($branche) {
 
-                $q->where('to_branch_id', $branche->id)
-                    ->orWhere('from_branch_id', $branche->id);
+                $q->where('to_branch_id', 2)
+                    ->orWhere('from_branch_id', 2);
             });
         }
 
@@ -519,64 +519,7 @@ class TransefrController extends Controller
             'data' => $transfers
         ]);
     }
-    // public function getTansfertProduct()
-    // {
-
-    //     $start_date = request('start_date', date('Y-m-d'));
-    //     $end_date = request('end_date', date('Y-m-d'));
-    //     $start = Carbon::parse($start_date)->startOfDay();
-    //     $end = Carbon::parse($end_date)->endOfDay();
-
-    //     $page = request("paginate", 10);
-    //     $q = request("q", "");
-
-    //     $branche = Branche::where('user_id', Auth::id())->first();
-
-    //     if (!$branche) {
-    //         $brancheId = 1;
-    //     } else {
-    //         $brancheId = $branche->id;
-    //     }
-
-    //     $data = Transfer::query()
-    //         ->leftJoin('items_transfers', 'transfers.id', '=', 'items_transfers.transfer_id')
-    //         ->leftJoin('branches as from_branch', 'transfers.from_branch_id', '=', 'from_branch.id')
-    //         ->leftJoin('branches as to_branch', 'transfers.to_branch_id', '=', 'to_branch.id')
-    //         ->leftJoin('products', 'items_transfers.product_id', '=', 'products.id')
-    //         ->select(
-    //             'items_transfers.id',
-    //             'transfers.transfer_date',
-    //             'transfers.reference',
-    //             'from_branch.name as from_branch_name',
-    //             'to_branch.name as to_branch_name',
-    //             'products.name as product_name',
-    //             'items_transfers.quantity as sent_quantity',
-    //             'items_transfers.received_quantity',
-    //             'items_transfers.status'
-    //         )
-    //         ->where(function ($query) use ($brancheId) {
-    //             $query->where('transfers.to_branch_id', $brancheId)
-    //                 ->orWhere('transfers.from_branch_id', 1);
-    //         })
-    //         ->whereDate('transfers.transfer_date', '>=', $start_date)
-    //         ->whereDate('transfers.transfer_date', '<=', $end_date)
-    //         ->when($q, function ($query) use ($q) {
-    //             $query->where(function ($sub) use ($q) {
-    //                 $sub->where('transfers.reference', 'like', "%$q%")
-    //                     ->orWhere('from_branch.name', 'like', "%$q%")
-    //                     ->orWhere('to_branch.name', 'like', "%$q%")
-    //                     ->orWhere('products.name', 'like', "%$q%");
-    //             });
-    //         })
-    //         ->orderBy('transfers.created_at', 'desc')
-    //         ->paginate($page);
-    //     return response()->json([
-    //         'status' => 200,
-    //         'message' => 'succès',
-    //         'data' => $data
-    //     ]);
-    // }
-
+    
     #[OA\Post(
         path: '/api/v1/validateReception',
         summary: 'Créer',
