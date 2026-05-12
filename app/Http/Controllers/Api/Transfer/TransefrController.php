@@ -483,8 +483,8 @@ class TransefrController extends Controller
 
         // Filtres
         $transfers = $query
-            ->whereDate('transfer_date', '>=', $start_date)
-            ->whereDate('transfer_date', '<=', $end_date)
+            // ->whereDate('transfer_date', '>=', $start_date)
+            // ->whereDate('transfer_date', '<=', $end_date)
 
             ->when($q, function ($query) use ($q) {
 
