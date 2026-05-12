@@ -490,6 +490,7 @@ class StockService
     }
     public static function transferMultipleProductsWithRecord(
         int $fromBranch,
+        int $toBranch,
         ?string $driver,
         ?string $charoit,
         array $productsQuantities,
@@ -499,6 +500,7 @@ class StockService
 
         return DB::transaction(function () use (
             $fromBranch,
+            $toBranch,
             $driver,
             $charoit,
             $productsQuantities,
@@ -514,6 +516,7 @@ class StockService
 
             $transfer = Transfer::create([
                 'from_branch_id' => $fromBranch,
+                'to_branch_id' => $toBranch,
                 'driver' => $driver,
                 'charoit' => $charoit,
                 'addedBy' => $userId,
@@ -525,20 +528,18 @@ class StockService
             foreach ($productsQuantities as $item) {
 
                 if (
-                    !isset($item['product_id'], $item['quantity'], $item['to_branch_id'])
+                    !isset($item['product_id'], $item['quantity'])
                 ) {
                     throw new \Exception("Format produit invalide");
                 }
 
                 $productId = (int) $item['product_id'];
                 $quantity  = (int) $item['quantity'];
-                $toBranch  = (int) $item['to_branch_id'];
 
                 $product = Product::findOrFail($productId);
 
                 $transfer->items()->create([
                     'product_id'   => $productId,
-                    'to_branch_id' => $toBranch,
                     'quantity'     => $quantity,
                     'transfer_id'  => $transfer->id
                 ]);
@@ -558,7 +559,6 @@ class StockService
                     ]
                 );
             }
-
             return $transfer->load(['items.product']);
         });
     }

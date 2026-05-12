@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['from_branch_id', 'charoit', 'addedBy', 'reference', 'status', 'transfer_date', 'driver'])]
+#[Fillable(['from_branch_id', 'charoit', 'addedBy', 'reference', 'status', 'transfer_date', 'driver', 'to_branch_id'])]
 class Transfer extends Model
 {
     public function items()
@@ -28,5 +28,9 @@ class Transfer extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+    public function toBranch()
+    {
+        return $this->belongsTo(Branche::class, 'to_branch_id');
     }
 }

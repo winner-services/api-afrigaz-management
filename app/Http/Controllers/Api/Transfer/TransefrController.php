@@ -132,7 +132,6 @@ class TransefrController extends Controller
             'items.toBranch'
         ])->orderBy('created_at', 'desc');
 
-        // 🔍 Filtre par branche source
         if ($request->filled('from_branch_id')) {
             $query->where('from_branch_id', $request->from_branch_id);
         }
@@ -191,17 +190,18 @@ class TransefrController extends Controller
     {
         $request->validate([
             'from_branch' => 'required|integer|exists:branches,id',
+            'to_branch_id' => 'required|integer|exists:branches,id',
             'transfer_date' => 'nullable',
             'driver' => 'nullable|integer|exists:users,id',
             'charoit' => 'nullable|integer|exists:charoits,id',
             'products' => 'required|array|min:1',
             'products.*.product_id' => 'required|integer|exists:products,id',
-            'products.*.quantity' => 'required|integer|min:1',
-            'products.*.to_branch_id' => 'required|integer|exists:branches,id',
+            'products.*.quantity' => 'required|integer|min:1'
         ]);
         try {
             $transfer = StockService::transferMultipleProductsWithRecord(
                 $request->from_branch,
+                $request->to_branch_id,
                 $request->driver,
                 $request->charoit,
                 $request->products,
