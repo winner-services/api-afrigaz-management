@@ -188,7 +188,7 @@ class CheckWorkAccess
             ->toArray();
 
         if (!in_array($today, $workingDays, true)) {
-            return $this->deny($request, $user, 'Non working day');
+            return $this->deny($request, $user, 'Jour non ouvrable');
         }
         $opening = Carbon::parse($settings->opening_time);
         $closing = Carbon::parse($settings->closing_time);
@@ -198,11 +198,29 @@ class CheckWorkAccess
         if ($now->between($opening, $closing)) {
             return $next($request);
         }
+        //         if ($now->between($closing, $graceClosing)) {
+
+        //     if ($request->routeIs([
+        //         'api.v1.overtime.request',
+        //         'api.v1.overtime.update',
+        //         'api.v1.overtime.index',
+        //     ])) {
+        //         return $next($request);
+        //     }
+
+        //     return $this->deny(
+        //         $request,
+        //         $user,
+        //         'Durée de travail terminée (période de grâce)'
+        //     );
+        // }
 
         if ($now->between($closing, $graceClosing)) {
 
             $allowedRoutes = [
-                'api.v1.overtime.request'
+                'api.v1.overtime.request',
+                'api.v1.overtime.update',
+                'api.v1.overtime.index'
             ];
 
             $routeName = optional($request->route())->getName();
@@ -211,14 +229,13 @@ class CheckWorkAccess
                 return $next($request);
             }
 
-            return $this->deny($request, $user, 'Work time ended (grace period)');
+            return $this->deny($request, $user, 'Durée de travail terminée (période de grâce)');
         }
 
         if ($user->overtime_until && now()->lessThan($user->overtime_until)) {
             return $next($request);
         }
-
-        return $this->deny($request, $user, 'Access closed');
+        return $this->deny($request, $user, 'Accès fermé');
     }
 
     /**

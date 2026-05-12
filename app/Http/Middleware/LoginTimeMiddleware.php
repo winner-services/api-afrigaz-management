@@ -34,6 +34,7 @@ class LoginTimeMiddleware
         }
 
         $now = now()->addHour();
+        // dd($now->toDateTimeString());
 
         $today = strtolower($now->format('l'));
 
@@ -56,6 +57,7 @@ class LoginTimeMiddleware
         $grace = $closing
             ->copy()
             ->addMinutes($settings->grace_minutes ?? 0);
+            // dd($now->toDateTimeString(), $opening->toDateTimeString(), $closing->toDateTimeString(), $grace->toDateTimeString());
 
         if (! $now->between($opening, $grace)) {
 

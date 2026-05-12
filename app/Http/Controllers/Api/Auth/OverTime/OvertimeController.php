@@ -276,6 +276,7 @@ class OvertimeController extends Controller
         DB::beginTransaction();
 
         try {
+            $notificationId = $request->input('notification_id');
 
             $admin = Auth::user();
 
@@ -309,13 +310,11 @@ class OvertimeController extends Controller
 
                 'approved_by' => $admin->id
             ]);
+            $notification = DatabaseNotification::find($notificationId);
 
-            DatabaseNotification::where(
-                'id',
-                $request->notification_id
-            )->update([
-                'read_at' => now()
-            ]);
+            if ($notification) {
+                $notification->markAsRead();
+            }
 
             DB::commit();
 
@@ -394,36 +393,13 @@ class OvertimeController extends Controller
             )
         ]
     )]
-    // public function rejecte($id)
-    // {
-    //     try {
-    //         $overtime = OvertimeRequest::findOrFail($id);
-
-    //         $overtime->update([
-    //             'status' => 'rejected',
-    //             'rejected_by' => Auth::id(),
-    //             'rejected_at' => now(),
-    //         ]);
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'status' => 200,
-    //             'message' => 'Heures supp rejectées'
-    //         ]);
-    //     } catch (\Throwable $th) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => 'Une erreur est survenue lors de la création',
-    //             'error'   => config('app.debug') ? $th->getMessage() : null
-    //         ], 500);
-    //     }
-    // }
 
     public function rejecte(Request $request, $id)
     {
         DB::beginTransaction();
 
         try {
+            $notificationId = $request->input('notification_id');
 
             $admin = Auth::user();
 
@@ -450,9 +426,7 @@ class OvertimeController extends Controller
                 'rejected_by' => $admin->id
             ]);
 
-            $notification = DatabaseNotification::find(
-                $request->notification_id
-            );
+            $notification = DatabaseNotification::find($notificationId);
 
             if ($notification) {
                 $notification->markAsRead();

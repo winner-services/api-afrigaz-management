@@ -97,11 +97,11 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         });
 
         Route::controller(OvertimeController::class)->group(function () {
-            Route::post('/overtimeRequest', 'request');
-            Route::put('/updateOvertimeRequest/{id}', 'update');
+            Route::post('/overtimeRequest', 'request')->name('overtime.request');
+            Route::put('/updateOvertimeRequest/{id}', 'update')->name('overtime.update');
             Route::put('/approveRequest/{id}', 'approve');
             Route::put('/rejecteRequest/{id}', 'rejecte');
-            Route::get('/overtimeGetData', 'index');
+            Route::get('/overtimeGetData', 'index')->name('overtime.index');
         });
 
         Route::controller(UserController::class)->group(function () {
