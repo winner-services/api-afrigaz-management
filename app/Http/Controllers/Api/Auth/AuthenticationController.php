@@ -129,7 +129,6 @@ class AuthenticationController extends Controller
 
         try {
             $branche = Branche::where('user_id', $user->id)->first();
-            // 🔹 Récupération des permissions
             $rolePermissions = DB::table('role_permission_actions as rpa')
                 ->join('permissions as p', 'rpa.permission_id', '=', 'p.id')
                 ->where('rpa.role_id', $user->role_id)
@@ -142,7 +141,6 @@ class AuthenticationController extends Controller
                 )
                 ->get();
 
-            // 🔹 Transformation en tableau lisible
             $permissions = [];
             $actionMap = [
                 'voir'      => 'Voir',
@@ -159,7 +157,6 @@ class AuthenticationController extends Controller
                 }
             }
 
-            // 🔹 Génération du token
             $device_name = $request->userAgent() ?? 'unknown_device';
             $token = $user->createToken($device_name, ['*'])->plainTextToken;
 
@@ -174,7 +171,7 @@ class AuthenticationController extends Controller
                         'email'       => $user->email,
                         'phone'       => $user->phone,
                         'active'      => $user->active,
-                        'branch_id'   => $user->id,
+                        'branch_id'   => $branche->id ?? null,
                         'branche'     => $branche ? $branche->name : null,
                         'role'        => $user->role->name ?? null,
                         'permissions' => $permissions,
