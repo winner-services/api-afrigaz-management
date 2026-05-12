@@ -137,6 +137,11 @@ class EntryStockController extends Controller
 
     public function index()
     {
+        $about = About::first();
+
+        if ($about) {
+            $this->imageService->transform($about, ['logo', 'logo2']);
+        }
         $devise = Currency::where('status', 'created')
             ->orderByRaw("currency_type = 'devise_principale' DESC")
             ->latest()
@@ -198,6 +203,7 @@ class EntryStockController extends Controller
             'message' => 'succes',
             'status' => 200,
             'devise' => $devise,
+            'info_company' => $about,
             'data' => $entries
         ]);
     }
