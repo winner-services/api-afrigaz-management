@@ -475,8 +475,7 @@ class TransefrController extends Controller
             }
 
             // Filtrer les transferts de sa branche
-            $query->where(function ($q) use ($branche) {
-
+            $query->where(function ($q) {
                 $q->where('to_branch_id', 2)
                     ->orWhere('from_branch_id', 2);
             });
@@ -519,7 +518,7 @@ class TransefrController extends Controller
             'data' => $transfers
         ]);
     }
-    
+
     #[OA\Post(
         path: '/api/v1/validateReception',
         summary: 'Créer',
