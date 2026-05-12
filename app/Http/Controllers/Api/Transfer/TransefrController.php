@@ -434,8 +434,15 @@ class TransefrController extends Controller
 
     public function getTansfertProduct()
     {
-        $start_date = request('start_date', now()->format('Y-m-d'));
-        $end_date = request('end_date', now()->format('Y-m-d'));
+        $start_date = request(
+            'start_date',
+            now()->startOfMonth()->format('Y-m-d')
+        );
+
+        $end_date = request(
+            'end_date',
+            now()->endOfMonth()->format('Y-m-d')
+        );
 
         $page = request('paginate', 10);
         $q = request('q', '');
