@@ -387,7 +387,6 @@ class TransefrController extends Controller
     )]
     public function getTansfertProduct()
     {
-        $user = Auth::user();
 
         $start_date = request('start_date', date('Y-m-d'));
         $end_date = request('end_date', date('Y-m-d'));
@@ -407,19 +406,21 @@ class TransefrController extends Controller
 
         $data = Transfer::join('items_transfers', 'transfers.id', '=', 'items_transfers.transfer_id')
             ->join('branches as from_branch', 'transfers.from_branch_id', '=', 'from_branch.id')
+            ->join('branches as to_branch', 'transfers.to_branch_id', '=', 'to_branch.id')
             ->join('products', 'items_transfers.product_id', '=', 'products.id')
             ->select(
                 'items_transfers.id',
                 'transfers.transfer_date',
                 'transfers.reference',
                 'from_branch.name as from_branch_name',
+                'to_branch.name as to_branch_name',
                 'products.name as product_name',
                 'items_transfers.quantity as sent_quantity',
                 'items_transfers.received_quantity as received_quantity',
                 'items_transfers.status'
             )
             ->where(function ($query) use ($brancheId) {
-                $query->where('items_transfers.to_branch_id', $brancheId)
+                $query->where('transfers.to_branch_id', $brancheId)
                     ->orWhere('transfers.from_branch_id', 1);
             })
             ->whereBetween('transfers.transfer_date', [$start, $end])
@@ -427,6 +428,7 @@ class TransefrController extends Controller
                 $query->where('transfers.reference', 'like', "%$q%")
                     ->orWhere('transfers.transfer_date', 'like', "%$q%")
                     ->orWhere('from_branch.name', 'like', "%$q%")
+                    ->orWhere('to_branch.name', 'like', "%$q%")
                     ->orWhere('products.name', 'like', "%$q%");
             })
             ->orderBy('transfers.created_at', 'desc')
