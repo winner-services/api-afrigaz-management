@@ -449,10 +449,8 @@ class TransefrController extends Controller
 
         $user = Auth::user();
 
-        // Vérifie si l'utilisateur est admin
         $isAdmin = $user->role === 'admin';
 
-        // Branche de l'utilisateur
         $branche = Branche::where('user_id', $user->id)->first();
 
         $query = Transfer::with([
@@ -462,10 +460,8 @@ class TransefrController extends Controller
             'driver:id,name'
         ]);
 
-        // Si ce n'est pas un admin
         if (!$isAdmin) {
 
-            // Vérifie si une branche existe
             if (!$branche) {
 
                 return response()->json([
@@ -550,57 +546,95 @@ class TransefrController extends Controller
     public function receiveTransfer(Request $request): JsonResponse
     {
         try {
+
             $data = $request->validate([
-                'received_quantity' => 'required|integer|min:1',
-                'id' => 'required|integer|exists:items_transfers,id'
+
+                'items' => 'required|array|min:1',
+
+                'items.*.id' => 'required|integer|exists:items_transfers,id',
+
+                'items.*.received_quantity' => 'required|integer|min:1'
+
             ]);
-            $itemId = $data['id'];
 
-            return DB::transaction(function () use ($data, $itemId) {
+            return DB::transaction(function () use ($data) {
 
-                $item = ItemsTransfer::where('id', $itemId)
-                    ->lockForUpdate()
-                    ->firstOrFail();
+                $updatedItems = [];
 
-                if ($item->status === 'completed') {
-                    throw new \Exception("Réception déjà terminée");
+                foreach ($data['items'] as $row) {
+
+                    $item = ItemsTransfer::where('id', $row['id'])
+                        ->lockForUpdate()
+                        ->firstOrFail();
+
+                    if ($item->status === 'completed') {
+
+                        throw new \Exception(
+                            "Réception déjà terminée pour le produit ID {$item->product_id}"
+                        );
+                    }
+
+                    $remaining = $item->quantity - $item->received_quantity;
+
+                    if ($row['received_quantity'] > $remaining) {
+
+                        throw new \Exception(
+                            "La quantité reçue dépasse le restant à recevoir pour l'item {$item->id}"
+                        );
+                    }
+
+                    // Mise à jour quantité reçue
+                    $item->received_quantity += $row['received_quantity'];
+
+                    // Statut
+                    $item->status =
+                        $item->received_quantity >= $item->quantity
+                        ? 'completed'
+                        : 'partial';
+
+                    $item->save();
+
+                    // Augmenter le stock
+                    app(StockService::class)->increaseStock(
+                        $item->transfer->to_branch_id,
+                        $item->product_id,
+                        $row['received_quantity'],
+                        0,
+                        'good'
+                    );
+
+                    $updatedItems[] = $item->fresh();
                 }
 
-                $remaining = $item->quantity - $item->received_quantity;
+                $transferIds = collect($updatedItems)
+                    ->pluck('transfer_id')
+                    ->unique();
 
-                if ($data['received_quantity'] > $remaining) {
-                    throw new \Exception("Quantité dépasse le restant à recevoir");
-                }
+                foreach ($transferIds as $transferId) {
 
-                $item->received_quantity += $data['received_quantity'];
+                    $transfer = Transfer::find($transferId);
 
-                $item->status = $item->received_quantity == $item->quantity
-                    ? 'completed'
-                    : 'partial';
+                    if (
+                        $transfer &&
+                        $transfer->items()
+                        ->where('status', '!=', 'completed')
+                        ->count() === 0
+                    ) {
 
-                $item->save();
-
-                app(StockService::class)->increaseStock(
-                    $item->to_branch_id,
-                    $item->product_id,
-                    $data['received_quantity'],
-                    0,
-                    'good'
-                );
-                $transfer = $item->transfer;
-                if (
-                    $transfer && $transfer->items()
-                    ->where('status', '!=', 'completed')
-                    ->count() === 0
-                ) {
-
-                    $transfer->update(['status' => 'completed']);
+                        $transfer->update([
+                            'status' => 'completed'
+                        ]);
+                    }
                 }
 
                 return response()->json([
+
                     'message' => 'Réception validée avec succès',
+
                     'status' => 200,
-                    'data' => $item
+
+                    'data' => $updatedItems
+
                 ]);
             });
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -623,4 +657,80 @@ class TransefrController extends Controller
             ], 422);
         }
     }
+    // public function receiveTransfer(Request $request): JsonResponse
+    // {
+    //     try {
+    //         $data = $request->validate([
+    //             'received_quantity' => 'required|integer|min:1',
+    //             'id' => 'required|integer|exists:items_transfers,id'
+    //         ]);
+    //         $itemId = $data['id'];
+
+    //         return DB::transaction(function () use ($data, $itemId) {
+
+    //             $item = ItemsTransfer::where('id', $itemId)
+    //                 ->lockForUpdate()
+    //                 ->firstOrFail();
+
+    //             if ($item->status === 'completed') {
+    //                 throw new \Exception("Réception déjà terminée");
+    //             }
+
+    //             $remaining = $item->quantity - $item->received_quantity;
+
+    //             if ($data['received_quantity'] > $remaining) {
+    //                 throw new \Exception("Quantité dépasse le restant à recevoir");
+    //             }
+
+    //             $item->received_quantity += $data['received_quantity'];
+
+    //             $item->status = $item->received_quantity == $item->quantity
+    //                 ? 'completed'
+    //                 : 'partial';
+
+    //             $item->save();
+
+    //             app(StockService::class)->increaseStock(
+    //                 $item->to_branch_id,
+    //                 $item->product_id,
+    //                 $data['received_quantity'],
+    //                 0,
+    //                 'good'
+    //             );
+    //             $transfer = $item->transfer;
+    //             if (
+    //                 $transfer && $transfer->items()
+    //                 ->where('status', '!=', 'completed')
+    //                 ->count() === 0
+    //             ) {
+
+    //                 $transfer->update(['status' => 'completed']);
+    //             }
+
+    //             return response()->json([
+    //                 'message' => 'Réception validée avec succès',
+    //                 'status' => 200,
+    //                 'data' => $item
+    //             ]);
+    //         });
+    //     } catch (\Illuminate\Validation\ValidationException $e) {
+
+    //         return response()->json([
+    //             'message' => 'Erreur de validation',
+    //             'errors' => $e->errors(),
+    //             'status' => 422
+    //         ], 422);
+    //     } catch (\Throwable $e) {
+
+    //         Log::error('Reception error', [
+    //             'error' => $e->getMessage()
+    //         ]);
+
+    //         return response()->json([
+    //             'message' => 'Impossible de valider la réception',
+    //             'errors' => [$e->getMessage()],
+    //             'status' => 422
+    //         ], 422);
+    //     }
+    // }
 }
