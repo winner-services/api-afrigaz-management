@@ -449,7 +449,7 @@ class TransefrController extends Controller
 
         $user = Auth::user();
 
-        $isAdmin = $user->role === 'admin';
+        $isAdmin = (bool) $user->is_admin;
 
         $branche = Branche::where('user_id', $user->id)->first();
 
