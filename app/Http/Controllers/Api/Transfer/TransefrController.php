@@ -585,10 +585,8 @@ class TransefrController extends Controller
                         );
                     }
 
-                    // Mise à jour quantité reçue
                     $item->received_quantity += $row['received_quantity'];
 
-                    // Statut
                     $item->status =
                         $item->received_quantity >= $item->quantity
                         ? 'completed'
@@ -596,7 +594,6 @@ class TransefrController extends Controller
 
                     $item->save();
 
-                    // Augmenter le stock
                     app(StockService::class)->increaseStock(
                         $item->transfer->to_branch_id,
                         $item->product_id,
