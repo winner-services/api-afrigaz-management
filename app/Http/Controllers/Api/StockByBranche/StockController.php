@@ -170,14 +170,16 @@ class StockController extends Controller
             ->get();
 
         $branches = Branche::latest()->get();
+        $brancheId = (int) request('branche_id', 1);
 
-        $brancheId = request('branche_id', 1);
+        if ($brancheId <= 0) {
+            $brancheId = 1;
+        }
         $q = request('q', null);
         $perPage = request('per_page', 10);
 
         $stocks = StockByBranch::with(['product.category', 'product.unit'])
             ->where('branche_id', $brancheId)
-
             ->when($q, function ($query) use ($q) {
                 $query->where(function ($q2) use ($q) {
                     $q2->whereHas('product', function ($q3) use ($q) {
