@@ -171,15 +171,24 @@ class StockController extends Controller
 
         $branches = Branche::latest()->get();
 
+        $request->merge([
+            'branche_id' => $request->filled('branche_id')
+                ? (int) $request->branche_id
+                : null,
+
+            'per_page' => $request->filled('per_page')
+                ? (int) $request->per_page
+                : 10,
+        ]);
+
         $validated = $request->validate([
-            'branche_id' => ['nullable', 'numeric', 'exists:branches,id'],
+            'branche_id' => ['nullable', 'exists:branches,id'],
             'q' => ['nullable', 'string'],
-            'per_page' => ['nullable', 'integer', 'min:1'],
         ]);
 
         $brancheId = $validated['branche_id'] ?? 1;
         $q = $validated['q'] ?? null;
-        $perPage = $validated['per_page'] ?? 10;
+        $perPage = 10;
 
         $stocks = StockByBranch::with(['product.category', 'product.unit'])
             ->where('branche_id', $brancheId)
