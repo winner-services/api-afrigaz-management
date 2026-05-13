@@ -457,7 +457,9 @@ class TransefrController extends Controller
             'items.product:id,name',
             'fromBranch:id,name',
             'toBranch:id,name',
-            'driver:id,name'
+            'driver:id,name',
+            'charoit',
+            'user:id,name'
         ]);
 
         if (!$isAdmin) {
