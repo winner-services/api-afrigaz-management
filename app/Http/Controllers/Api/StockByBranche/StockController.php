@@ -172,7 +172,7 @@ class StockController extends Controller
         $branches = Branche::latest()->get();
 
         $validated = $request->validate([
-            'branche_id' => ['nullable', 'integer', 'exists:branches,id'],
+            'branche_id' => ['nullable', 'numeric', 'exists:branches,id'],
             'q' => ['nullable', 'string'],
             'per_page' => ['nullable', 'integer', 'min:1'],
         ]);
