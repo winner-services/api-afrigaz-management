@@ -148,20 +148,49 @@ class EntryStockController extends Controller
             ->get();
         $q = request('q');
 
-        $entries = StockEntry::with([
-            'supplier:id,name',
-            'user:id,name',
-            'items.product:id,name,unit_id',
-            'items.product.unit:id,abreviation'
-        ])
+        // $entries = StockEntry::with([
+        //     'supplier:id,name',
+        //     'user:id,name',
+        //     'items.product:id,name,unit_id',
+        //     'items.product.unit:id,abreviation'
+        // ])
+        //     ->where('status', '!=', 'deleted')
+        //     ->when($q, function ($query) use ($q) {
+        //         $query->where(function ($sub) use ($q) {
+
+        //             $sub->where('reference', 'like', "%$q%")
+
+        //                 ->orWhereHas('supplier', function ($s) use ($q) {
+        //                     $s->where('name', 'like', "%$q%");
+        //                 });
+        //         });
+        //     })
+        //     ->latest()
+        //     ->paginate(10);
+        $entries = StockEntry::query()
+            ->select([
+                'id',
+                'reference',
+                'transaction_date',
+                'total_amount',
+                'supplier_id',
+                'user_id'
+            ])
+            ->with([
+                'supplier:id,name',
+                'user:id,name',
+                'items:id,stock_entry_id,product_id,quantity,unit_price',
+                'items.product:id,name,unit_id',
+                'items.product.unit:id,abreviation'
+            ])
             ->where('status', '!=', 'deleted')
             ->when($q, function ($query) use ($q) {
                 $query->where(function ($sub) use ($q) {
 
-                    $sub->where('reference', 'like', "%$q%")
+                    $sub->where('reference', 'like', "$q%")
 
                         ->orWhereHas('supplier', function ($s) use ($q) {
-                            $s->where('name', 'like', "%$q%");
+                            $s->where('name', 'like', "$q%");
                         });
                 });
             })
