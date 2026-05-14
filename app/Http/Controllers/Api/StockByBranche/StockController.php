@@ -162,7 +162,7 @@ class StockController extends Controller
         ]
     )]
 
-    public function getStockByBranche(Request $request): JsonResponse
+    public function getStockByBranche(): JsonResponse
     {
         $devise = Currency::where('status', 'created')
             ->orderByRaw("currency_type = 'devise_principale' DESC")
@@ -178,7 +178,7 @@ class StockController extends Controller
         $q = request('q', null);
         $perPage = request('per_page', 10);
 
-        $stocks = StockByBranch::with(['product.category', 'product.unit'])
+        $stocks = StockByBranch::with(['product.category', 'product.unit', 'product.user'])
             ->where('branche_id', $brancheId)
             ->when($q, function ($query) use ($q) {
                 $query->where(function ($q2) use ($q) {
