@@ -51,9 +51,14 @@ class DashBoardController extends Controller
                 ->whereBetween('transaction_date', [$startDate, $endDate])
                 ->sum('total_amount');
 
-            $totalRevenue = Sale::where('branch_id', $branchId)
+            $totalRevenue = 0;
+            $rev = CashTransaction::where('type', 'Revenue')
                 ->whereBetween('transaction_date', [$startDate, $endDate])
-                ->sum('total_amount');
+                ->sum('amount');
+            $dep = CashTransaction::where('type', 'Depense')
+                ->whereBetween('transaction_date', [$startDate, $endDate])
+                ->sum('amount');
+            $totalRevenue += $rev - $dep;
 
             $stockGaz = Tank::sum('current_level');
 
