@@ -11,6 +11,7 @@ use App\Models\Filling;
 use App\Models\ItemSale;
 use App\Models\ItemsStockEntries;
 use App\Models\ItemsTransfer;
+use App\Models\ProductLedger;
 use App\Models\Sale;
 use App\Models\StockByBranch;
 use App\Models\Tank;
@@ -63,11 +64,11 @@ class DashBoardController extends Controller
             $stockGaz = Tank::sum('current_level');
 
             $bottlesFull = StockByBranch::where('branche_id', $branchId)
-                ->where('is_empty', false)
+                ->where('is_empty', 0)
                 ->sum('stock_quantity');
 
             $bottlesEmpty = StockByBranch::where('branche_id', $branchId)
-                ->where('is_empty', true)
+                ->where('is_empty', 1)
                 ->sum('stock_quantity');
 
             $debtsDistrib = DebtDistributor::whereIn('status', ['pending', 'partial'])
@@ -77,12 +78,6 @@ class DashBoardController extends Controller
                 ->sum(DB::raw('COALESCE(loan_amount,0) - COALESCE(paid_amount,0)'));
 
             $debts = $debtsDistrib + $debtCustomer;
-
-            $recipe = CashTransaction::whereBetween('transaction_date', [$startDate, $endDate])
-                ->sum('amount');
-
-            $expenses = CashTransaction::whereBetween('transaction_date', [$startDate, $endDate])
-                ->sum('amount');
 
             $salesByDay = Sale::where('branch_id', $branchId)
                 ->whereBetween('transaction_date', [$startDate, $endDate])
@@ -109,33 +104,49 @@ class DashBoardController extends Controller
                     ];
                 });
 
-            $stockMovement = [
-                [
-                    'label' => 'Achats',
-                    'value' => ItemsStockEntries::sum('quantity') ?? 0
-                ],
-                [
-                    'label' => 'Recharges',
-                    'value' => Filling::sum('total_gas_used') ?? 0
-                ],
-                [
-                    'label' => 'Ventes',
-                    'value' => ItemSale::sum('quantity') ?? 0
-                ],
-                [
-                    'label' => 'Transferts',
-                    'value' => ItemsTransfer::sum('quantity') ?? 0
-                ],
-            ];
+            // $stockMovement = [
+            //     [
+            //         'label' => 'Achats',
+            //         'value' => ItemsStockEntries::sum('quantity') ?? 0
+            //     ],
+            //     [
+            //         'label' => 'Recharges',
+            //         'value' => Filling::sum('total_gas_used') ?? 0
+            //     ],
+            //     [
+            //         'label' => 'Ventes',
+            //         'value' => ItemSale::sum('quantity') ?? 0
+            //     ],
+            //     [
+            //         'label' => 'Transferts',
+            //         'value' => ItemsTransfer::sum('quantity') ?? 0
+            //     ],
+            // ];
+            $stockMovement = ProductLedger::selectRaw('
+        type,
+        SUM(CASE WHEN movement = "in" THEN quantity ELSE 0 END) as total_in,
+        SUM(CASE WHEN movement = "out" THEN quantity ELSE 0 END) as total_out
+    ')
+                ->groupBy('type')
+                ->get();
 
+            //         $tresorerie = CashTransaction::whereBetween('transaction_date', [$startDate, $endDate])
+            //             ->selectRaw("
+            //     DATE(transaction_date) as date,
+            //     SUM(CASE WHEN type = 'Revenue' THEN amount ELSE 0 END) as `in`,
+            //     SUM(CASE WHEN type = 'Depense' THEN amount ELSE 0 END) as `out`
+            // ")
+            //             ->groupBy('date')
+            //             ->orderBy('date')
+            //             ->get();
             $tresorerie = CashTransaction::whereBetween('transaction_date', [$startDate, $endDate])
                 ->selectRaw("
         DATE(transaction_date) as date,
-        SUM(CASE WHEN type = 'Revenue' THEN amount ELSE 0 END) as `in`,
-        SUM(CASE WHEN type = 'Depense' THEN amount ELSE 0 END) as `out`
+        SUM(CASE WHEN type = 'Revenue' THEN amount ELSE 0 END) as total_in,
+        SUM(CASE WHEN type IN ('Depense', 'Expense') THEN amount ELSE 0 END) as total_out
     ")
-                ->groupBy('date')
-                ->orderBy('date')
+                ->groupByRaw('DATE(transaction_date)')
+                ->orderByRaw('DATE(transaction_date)')
                 ->get();
             $data = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
                 ->join('units', 'products.unit_id', '=', 'units.id')
@@ -175,8 +186,8 @@ class DashBoardController extends Controller
                     'bottlesFull' => $bottlesFull,
                     'bottlesEmpty' => $bottlesEmpty,
                     'debts' => $debts,
-                    'expenses' => $expenses,
-                    'recipe' => $recipe
+                    'expenses' => $dep,
+                    'recipe' => $rev
                 ],
                 'salesByDay' => $salesByDay,
                 'salesByType' => $salesByType,
