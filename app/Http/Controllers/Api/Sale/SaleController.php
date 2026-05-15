@@ -10,6 +10,7 @@ use App\Models\Currency;
 use App\Models\CustomerDebt;
 use App\Models\DebtDistributor;
 use App\Models\ItemSale;
+use App\Models\PaymentHistorie;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Services\ImageService;
@@ -484,6 +485,7 @@ class SaleController extends Controller
                 'customer_id' => 'nullable|exists:customers,id|required_without:distributor_id|prohibits:distributor_id',
                 'distributor_id' => 'nullable|exists:distributors,id|required_without:customer_id|prohibits:customer_id',
                 'date_vente' => 'required|date',
+                'date_echeance' => 'nullable|date',
                 'branch_id' => 'nullable|exists:branches,id',
                 'type' => 'required|in:exchange,kit,refill,accessory',
                 'tank_id' => 'nullable|exists:tanks,id',
@@ -553,6 +555,7 @@ class SaleController extends Controller
                                 'transaction_date' => now(),
                                 'status' => $sale->status,
                                 'user_id' => Auth::id(),
+                                'date_echeance' => $data['date_echeance'] ?? null,
                             ]
                         );
                     }
@@ -570,6 +573,7 @@ class SaleController extends Controller
                                 'motif' => 'Dette Vente #' . $sale->id,
                                 'status' => $sale->status,
                                 'user_id' => Auth::id(),
+                                'date_echeance' => $data['date_echeance'] ?? null,
                             ]
                         );
                     }
@@ -579,9 +583,13 @@ class SaleController extends Controller
 
                     $last = CashTransaction::where('cash_account_id', $data['account_id'])
                         ->latest('id')
+                        ->lockForUpdate()
                         ->first();
 
                     $solde = ($last->solde ?? 0) + $paidAmount;
+                    $paymentType = 'sale';
+                    $reference = $customerId ? 'CUST-' . $customerId : 'DIST-' . $distributorId;
+                    $label = $customerId ? 'Paiement vente' : 'Paiement Vente';
 
                     CashTransaction::create([
                         'reason' => 'Paiement vente #' . $sale->id,
@@ -594,6 +602,46 @@ class SaleController extends Controller
                         'cash_account_id' => $data['account_id'],
                         'cash_categorie_id' => 4,
                         'addedBy' => Auth::id()
+                    ]);
+
+                    $paymentMethod = 'cash';
+
+                    if ($paidAmount == 0) {
+                        $paymentMethod = 'credit';
+                    } elseif ($paidAmount < $sale->montant_total) {
+                        $paymentMethod = 'partie';
+                    } elseif ($paidAmount >= $sale->montant_total) {
+                        $paymentMethod = 'cash';
+                    }
+
+                    PaymentHistorie::create([
+
+                        'payment_type' => $paymentType,
+
+                        'reference_id' => $sale->id,
+
+                        'reference' => 'SALE-' . $sale->reference,
+
+                        'customer_id' => $customerId,
+
+                        'distributor_id' => $distributorId,
+
+                        'cash_account_id' => $data['account_id'],
+
+                        'paid_amount' => $paidAmount,
+
+                        'payment_method' => $paymentMethod,
+
+                        'payment_date' => $data['date_echeance'] ?? null,
+
+                        'addedBy' => Auth::id(),
+
+                        'status' => 'paid',
+
+                        'description' =>
+                        $label .
+                            ' - Dette #' .
+                            $sale->id
                     ]);
                 }
 

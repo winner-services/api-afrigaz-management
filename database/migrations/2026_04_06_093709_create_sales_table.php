@@ -25,6 +25,8 @@ return new class extends Migration
             $table->string('status')->default('completed');
             $table->date('transaction_date');
             $table->string('commentaire')->nullable();
+            $table->string('reference_paiement')->nullable();
+            $table->string('payment_method')->nullable();
             $table->timestamps();
         });
     }

@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('motif')->nullable();
             $table->string('reference')->unique();
             $table->enum('status', ['pending', 'partial', 'paid'])->default('pending');
+            $table->date('date_echeance')->nullable();
             $table->foreignId('user_id')->nullable()->constrained('users')->cascadeOnDelete();
             $table->timestamps();
         });

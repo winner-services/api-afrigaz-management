@@ -8,7 +8,9 @@ use App\Models\Customer;
 use App\Models\CustomerDebt;
 use App\Models\CustomerDebtPayment;
 use App\Models\DebtDistributor;
+use App\Models\Distributor;
 use App\Models\PaymentDistributor;
+use App\Models\PaymentHistorie;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -53,14 +55,14 @@ class CustomerDebtPaymentController extends Controller
         $request->validate([
             'distributor_id' => 'nullable|exists:distributors,id',
             'customer_id' => 'nullable|exists:customers,id',
-            'paid_amount' => 'nullable|numeric|min:0.01',
-            'account_id' => 'nullable|exists:cash_accounts,id',
+            'paid_amount' => 'required|numeric|min:0.01',
+            'account_id' => 'required|exists:cash_accounts,id',
             'transaction_date' => 'nullable|date',
-            'due_anount' => 'nullable|numeric|min:0.01',
+            'payment_method' => 'nullable|string'
         ]);
 
-        // 🔥 règle : un seul doit être présent
         if (!$request->distributor_id && !$request->customer_id) {
+
             return response()->json([
                 'success' => false,
                 'message' => 'Veuillez fournir un distributeur ou un client.'
@@ -68,51 +70,96 @@ class CustomerDebtPaymentController extends Controller
         }
 
         if ($request->distributor_id && $request->customer_id) {
+
             return response()->json([
                 'success' => false,
-                'message' => 'Choisir soit distributeur soit client, pas les deux.'
+                'message' => 'Choisir soit distributeur soit client.'
             ], 422);
         }
 
-        try {
-            DB::beginTransaction();
+        DB::beginTransaction();
 
-            $remainingAmount = $request->paid_amount;
+        try {
+
+            $remainingAmount = (float) $request->paid_amount;
+
             $totalPaid = 0;
 
-            $lastTransaction = CashTransaction::where('cash_account_id', $request->account_id)
+            $operationDate = $request->transaction_date ?? now();
+
+            $lastTransaction = CashTransaction::where(
+                'cash_account_id',
+                $request->account_id
+            )
                 ->latest('id')
+                ->lockForUpdate()
                 ->first();
 
-            $currentSolde = $lastTransaction ? $lastTransaction->solde : 0;
+            $currentSolde = $lastTransaction
+                ? $lastTransaction->solde
+                : 0;
 
             if ($request->distributor_id) {
 
-                $debts = DebtDistributor::where('distributor_id', $request->distributor_id)
-                    ->whereIn('status', ['pending', 'partial'])
+                $debts = DebtDistributor::where(
+                    'distributor_id',
+                    $request->distributor_id
+                )
+                    ->whereIn('status', [
+                        'pending',
+                        'partial'
+                    ])
                     ->orderBy('transaction_date', 'asc')
                     ->lockForUpdate()
                     ->get();
 
                 $paymentModel = PaymentDistributor::class;
+
                 $foreignKey = 'debt_distributor_id';
+
                 $cashCategory = 4;
-                $label = 'Distributeur #' . $request->distributor_id;
+
+                $paymentType = 'distributor_debt';
+
+                $label = 'Paiement dette distributeur';
+
+                $customerId = null;
+
+                $distributorId = $request->distributor_id;
             } else {
 
-                $debts = CustomerDebt::where('customer_id', $request->customer_id)
-                    ->whereIn('status', ['pending', 'partial'])
+                $debts = CustomerDebt::where(
+                    'customer_id',
+                    $request->customer_id
+                )
+                    ->whereIn('status', [
+                        'pending',
+                        'partial'
+                    ])
                     ->orderBy('transaction_date', 'asc')
                     ->lockForUpdate()
                     ->get();
 
                 $paymentModel = CustomerDebtPayment::class;
+
                 $foreignKey = 'customer_debt_id';
+
                 $cashCategory = 3;
-                $label = 'Client #' . $request->customer_id;
+
+                $paymentType = 'customer_debt';
+
+                $label = 'Paiement dette client';
+
+                $customerId = $request->customer_id;
+
+                $distributorId = null;
+
             }
 
             if ($debts->isEmpty()) {
+
+                DB::rollBack();
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Aucune dette à payer.'
@@ -121,23 +168,35 @@ class CustomerDebtPaymentController extends Controller
 
             foreach ($debts as $debt) {
 
-                if ($remainingAmount <= 0) break;
+                if ($remainingAmount <= 0) {
+                    break;
+                }
 
-                $debtRemaining = $debt->loan_amount - $debt->paid_amount;
-                if ($debtRemaining <= 0) continue;
+                $debtRemaining =
+                    $debt->loan_amount - $debt->paid_amount;
 
-                $payAmount = min($remainingAmount, $debtRemaining);
+                if ($debtRemaining <= 0) {
+                    continue;
+                }
 
-                // 🔥 CREATE PAYMENT
-                $paymentModel::create([
+                $payAmount = min(
+                    $remainingAmount,
+                    $debtRemaining
+                );
+
+                $payment = $paymentModel::create([
+
                     $foreignKey => $debt->id,
+
                     'paid_amount' => $payAmount,
+
                     'cash_account_id' => $request->account_id,
+
                     'addedBy' => Auth::id(),
-                    'operation_date' => $request->operation_date ?? now(),
+
+                    'operation_date' => $operationDate,
                 ]);
 
-                // 🔥 UPDATE DEBT
                 $debt->paid_amount += $payAmount;
 
                 if ($debt->paid_amount >= $debt->loan_amount) {
@@ -148,46 +207,243 @@ class CustomerDebtPaymentController extends Controller
 
                 $debt->save();
 
-                // 🔥 CASH
                 $currentSolde += $payAmount;
 
+                $reference =
+                    'PAY-' .
+                    strtoupper(uniqid());
+
                 CashTransaction::create([
-                    'reason' => "Paiement dette {$label}",
+
+                    'reason' => $label,
+
                     'type' => 'Revenue',
+
                     'amount' => $payAmount,
-                    'transaction_date' => now(),
+
+                    'transaction_date' => $operationDate,
+
                     'solde' => $currentSolde,
-                    'reference' => 'DEBT-' . $debt->id,
+
+                    'reference' => $reference,
+
                     'reference_id' => $debt->id,
+
                     'cash_account_id' => $request->account_id,
+
                     'cash_categorie_id' => $cashCategory,
+
                     'addedBy' => Auth::id()
                 ]);
 
+                PaymentHistorie::create([
+
+                    'payment_type' => $paymentType,
+
+                    'reference_id' => $payment->id,
+
+                    'reference' => $reference,
+
+                    'customer_id' => $customerId,
+
+                    'distributor_id' => $distributorId,
+
+                    'cash_account_id' => $request->account_id,
+
+                    'paid_amount' => $payAmount,
+
+                    'payment_method' =>
+                    $request->payment_method ?? 'cash',
+
+                    'payment_date' => $operationDate,
+
+                    'addedBy' => Auth::id(),
+
+                    'status' => 'paid',
+
+                    'description' =>
+                    $label .
+                        ' - Dette #' .
+                        $debt->id
+                ]);
+
                 $remainingAmount -= $payAmount;
+
                 $totalPaid += $payAmount;
             }
 
             DB::commit();
 
             return response()->json([
+
                 'success' => true,
-                'message' => 'Paiement effectué.',
+
+                'message' => 'Paiement effectué avec succès.',
+
                 'total_paid' => $totalPaid,
+
                 'remaining_unallocated' => $remainingAmount,
-                'new_balance' => $currentSolde
+
+                'new_balance' => $currentSolde,
+
+                'payment_method' =>
+                $request->payment_method ?? 'cash'
             ]);
         } catch (\Throwable $e) {
 
             DB::rollBack();
 
             return response()->json([
+
                 'success' => false,
+
                 'message' => 'Erreur lors du paiement.',
-                'error' => config('app.debug') ? $e->getMessage() : null
+
+                'error' => config('app.debug')
+                    ? $e->getMessage()
+                    : null
             ], 500);
         }
     }
+    // public function payDebt(Request $request)
+    // {
+    //     $request->validate([
+    //         'distributor_id' => 'nullable|exists:distributors,id',
+    //         'customer_id' => 'nullable|exists:customers,id',
+    //         'paid_amount' => 'nullable|numeric|min:0.01',
+    //         'account_id' => 'nullable|exists:cash_accounts,id',
+    //         'transaction_date' => 'nullable|date',
+    //         'due_anount' => 'nullable|numeric|min:0.01',
+    //     ]);
+
+    //     if (!$request->distributor_id && !$request->customer_id) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Veuillez fournir un distributeur ou un client.'
+    //         ], 422);
+    //     }
+
+    //     if ($request->distributor_id && $request->customer_id) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Choisir soit distributeur soit client, pas les deux.'
+    //         ], 422);
+    //     }
+
+    //     try {
+    //         DB::beginTransaction();
+
+    //         $remainingAmount = $request->paid_amount;
+    //         $totalPaid = 0;
+
+    //         $lastTransaction = CashTransaction::where('cash_account_id', $request->account_id)
+    //             ->latest('id')
+    //             ->first();
+
+    //         $currentSolde = $lastTransaction ? $lastTransaction->solde : 0;
+
+    //         if ($request->distributor_id) {
+
+    //             $debts = DebtDistributor::where('distributor_id', $request->distributor_id)
+    //                 ->whereIn('status', ['pending', 'partial'])
+    //                 ->orderBy('transaction_date', 'asc')
+    //                 ->lockForUpdate()
+    //                 ->get();
+
+    //             $paymentModel = PaymentDistributor::class;
+    //             $foreignKey = 'debt_distributor_id';
+    //             $cashCategory = 4;
+    //             $label = 'Distributeur #' . $request->distributor_id;
+    //         } else {
+
+    //             $debts = CustomerDebt::where('customer_id', $request->customer_id)
+    //                 ->whereIn('status', ['pending', 'partial'])
+    //                 ->orderBy('transaction_date', 'asc')
+    //                 ->lockForUpdate()
+    //                 ->get();
+
+    //             $paymentModel = CustomerDebtPayment::class;
+    //             $foreignKey = 'customer_debt_id';
+    //             $cashCategory = 3;
+    //             $label = 'Client #' . $request->customer_id;
+    //         }
+
+    //         if ($debts->isEmpty()) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Aucune dette à payer.'
+    //             ], 404);
+    //         }
+
+    //         foreach ($debts as $debt) {
+
+    //             if ($remainingAmount <= 0) break;
+
+    //             $debtRemaining = $debt->loan_amount - $debt->paid_amount;
+    //             if ($debtRemaining <= 0) continue;
+
+    //             $payAmount = min($remainingAmount, $debtRemaining);
+
+    //             // 🔥 CREATE PAYMENT
+    //             $paymentModel::create([
+    //                 $foreignKey => $debt->id,
+    //                 'paid_amount' => $payAmount,
+    //                 'cash_account_id' => $request->account_id,
+    //                 'addedBy' => Auth::id(),
+    //                 'operation_date' => $request->operation_date ?? now(),
+    //             ]);
+
+    //             // 🔥 UPDATE DEBT
+    //             $debt->paid_amount += $payAmount;
+
+    //             if ($debt->paid_amount >= $debt->loan_amount) {
+    //                 $debt->status = 'paid';
+    //             } else {
+    //                 $debt->status = 'partial';
+    //             }
+
+    //             $debt->save();
+
+    //             // 🔥 CASH
+    //             $currentSolde += $payAmount;
+
+    //             CashTransaction::create([
+    //                 'reason' => "Paiement dette {$label}",
+    //                 'type' => 'Revenue',
+    //                 'amount' => $payAmount,
+    //                 'transaction_date' => now(),
+    //                 'solde' => $currentSolde,
+    //                 'reference' => 'DEBT-' . $debt->id,
+    //                 'reference_id' => $debt->id,
+    //                 'cash_account_id' => $request->account_id,
+    //                 'cash_categorie_id' => $cashCategory,
+    //                 'addedBy' => Auth::id()
+    //             ]);
+
+    //             $remainingAmount -= $payAmount;
+    //             $totalPaid += $payAmount;
+    //         }
+
+    //         DB::commit();
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Paiement effectué.',
+    //             'total_paid' => $totalPaid,
+    //             'remaining_unallocated' => $remainingAmount,
+    //             'new_balance' => $currentSolde
+    //         ]);
+    //     } catch (\Throwable $e) {
+
+    //         DB::rollBack();
+
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Erreur lors du paiement.',
+    //             'error' => config('app.debug') ? $e->getMessage() : null
+    //         ], 500);
+    //     }
+    // }
 
     #[OA\Get(
         path: "/api/v1/customerDebtsGetAllData",

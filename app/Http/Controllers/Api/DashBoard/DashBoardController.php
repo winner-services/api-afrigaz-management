@@ -17,6 +17,7 @@ use App\Models\Tank;
 use Illuminate\Support\Facades\DB;
 use OpenApi\Attributes as OA;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class DashBoardController extends Controller
 {
@@ -36,16 +37,15 @@ class DashBoardController extends Controller
                 ->latest()
                 ->get();
 
-            $validated = $request->validate([
-                'branche_id' => ['nullable', 'integer'],
-                'start_date' => ['nullable', 'date'],
-                'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-            ]);
+            $branchId = request('branche_id', 1);
 
-            $branchId = $validated['branche_id'] ?? 1;
+            $startDate = request('date_start')
+                ? Carbon::parse(request('date_start'))->startOfDay()
+                : now()->startOfMonth();
 
-            $startDate = $validated['start_date'] ?? now()->startOfMonth();
-            $endDate = $validated['end_date'] ?? now();
+            $endDate = request('date_end')
+                ? Carbon::parse(request('date_end'))->endOfDay()
+                : now();
 
             $totalSales = Sale::where('branch_id', $branchId)
                 ->whereBetween('transaction_date', [$startDate, $endDate])
