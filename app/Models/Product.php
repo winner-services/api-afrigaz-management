@@ -34,7 +34,7 @@ class Product extends Model
         return $this->belongsTo(Unit::class, 'unit_id');
     }
 
-    public function user()
+    public function addedBy()
     {
         return $this->belongsTo(User::class, 'addedBy');
     }
@@ -47,7 +47,7 @@ class Product extends Model
                 ->orWhere('products.status', 'like', $term)
                 ->orWhere('products.weight_kg', 'like', $term)
                 ->orWhere('products.wholesale_price', 'like', $term)
-                ->orWhereHas('user', function ($q2) use ($term) {
+                ->orWhereHas('addedBy', function ($q2) use ($term) {
                     $q2->where('users.name', 'like', $term);
                 })
                 ->orWhereHas('category', function ($q3) use ($term) {

@@ -178,7 +178,7 @@ class StockController extends Controller
         $q = request('q', null);
         $perPage = request('per_page', 10);
 
-        $stocks = StockByBranch::with(['product.category', 'product.unit', 'product.user'])
+        $stocks = StockByBranch::with(['product.category', 'product.unit', 'product.addedBy'])
             ->where('branche_id', $brancheId)
             ->when($q, function ($query) use ($q) {
                 $query->where(function ($q2) use ($q) {
