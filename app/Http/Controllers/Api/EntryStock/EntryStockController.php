@@ -173,7 +173,7 @@ class EntryStockController extends Controller
                 'supplier:id,name',
                 'user:id,name',
 
-                'items:id,stock_entry_id,product_id,quantity,unit_price',
+                'items:id,stock_entries_id,product_id,quantity,unit_price',
 
                 'items.product:id,name,unit_id',
 
