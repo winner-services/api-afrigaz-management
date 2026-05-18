@@ -134,75 +134,6 @@ class EntryStockController extends Controller
             new OA\Response(response: 200, description: "Liste")
         ]
     )]
-    public function index()
-    {
-        $about = About::first();
-
-        if ($about) {
-            $this->imageService->transform($about, ['logo', 'logo2']);
-        }
-
-        $devise = cache()->remember('currencies_created', 3600, function () {
-            return Currency::select(
-                'id',
-                'designation',
-                'symbol',
-                'currency_type',
-                'conversion_amount',
-                'status'
-            )
-                ->where('status', 'created')
-                ->orderByRaw("currency_type = 'devise_principale' DESC")
-                ->latest()
-                ->get();
-        });
-
-        $q = request('q');
-
-        $entries = StockEntry::query()
-            ->select(
-                'id',
-                'reference',
-                'transaction_date',
-                'total_amount',
-                'supplier_id',
-                'addedBy',
-                'status'
-            )
-            ->with([
-                'supplier:id,name',
-                'user:id,name',
-
-                'items:id,stock_entries_id,product_id,quantity,unit_price',
-
-                'items.product:id,name,unit_id',
-
-                'items.product.unit:id,abreviation'
-            ])
-            ->where('status', '!=', 'deleted')
-
-            ->when($q, function ($query) use ($q) {
-                $query->where(function ($sub) use ($q) {
-
-                    $sub->where('reference', 'like', "%{$q}%")
-
-                        ->orWhereHas('supplier', function ($s) use ($q) {
-                            $s->where('name', 'like', "%{$q}%");
-                        });
-                });
-            })
-
-            ->latest('id')
-            ->paginate(10);
-
-        return response()->json([
-            'message' => 'success',
-            'status' => 200,
-            'devise' => $devise,
-            'info_company' => $about,
-            'data' => $entries
-        ]);
-    }
     // public function index()
     // {
     //     $about = About::first();
@@ -210,69 +141,138 @@ class EntryStockController extends Controller
     //     if ($about) {
     //         $this->imageService->transform($about, ['logo', 'logo2']);
     //     }
-    //     $devise = Currency::where('status', 'created')
-    //         ->orderByRaw("currency_type = 'devise_principale' DESC")
-    //         ->latest()
-    //         ->get();
+
+    //     $devise = cache()->remember('currencies_created', 3600, function () {
+    //         return Currency::select(
+    //             'id',
+    //             'designation',
+    //             'symbol',
+    //             'currency_type',
+    //             'conversion_amount',
+    //             'status'
+    //         )
+    //             ->where('status', 'created')
+    //             ->orderByRaw("currency_type = 'devise_principale' DESC")
+    //             ->latest()
+    //             ->get();
+    //     });
+
     //     $q = request('q');
 
-    //     $entries = StockEntry::with([
-    //         'supplier:id,name',
-    //         'user:id,name',
-    //         'items.product:id,name,unit_id',
-    //         'items.product.unit:id,abreviation'
-    //     ])
+    //     $entries = StockEntry::query()
+    //         ->select(
+    //             'id',
+    //             'reference',
+    //             'transaction_date',
+    //             'total_amount',
+    //             'supplier_id',
+    //             'addedBy',
+    //             'status'
+    //         )
+    //         ->with([
+    //             'supplier:id,name',
+    //             'user:id,name',
+
+    //             'items:id,stock_entries_id,product_id,quantity,unit_price',
+
+    //             'items.product:id,name,unit_id',
+
+    //             'items.product.unit:id,abreviation'
+    //         ])
     //         ->where('status', '!=', 'deleted')
+
     //         ->when($q, function ($query) use ($q) {
     //             $query->where(function ($sub) use ($q) {
 
-    //                 $sub->where('reference', 'like', "%$q%")
+    //                 $sub->where('reference', 'like', "%{$q}%")
 
     //                     ->orWhereHas('supplier', function ($s) use ($q) {
-    //                         $s->where('name', 'like', "%$q%");
+    //                         $s->where('name', 'like', "%{$q}%");
     //                     });
     //             });
     //         })
-    //         ->latest()
+
+    //         ->latest('id')
     //         ->paginate(10);
 
-    //     $data = $entries->getCollection()->map(function ($entry) {
-    //         return [
-    //             'id' => $entry->id,
-    //             'reference' => $entry->reference,
-    //             'transaction_date' => $entry->transaction_date,
-    //             'total_amount' => $entry->total_amount,
-
-    //             'supplier' => $entry->supplier ? [
-    //                 'id' => $entry->supplier->id,
-    //                 'name' => $entry->supplier->name,
-    //             ] : null,
-
-    //             'user' => $entry->user ? [
-    //                 'id' => $entry->user->id,
-    //                 'name' => $entry->user->name,
-    //             ] : null,
-
-    //             'items' => $entry->items->map(function ($item) {
-    //                 return [
-    //                     'id' => $item->id,
-    //                     'quantity' => $item->quantity,
-    //                     'unit_price' => $item->unit_price,
-    //                     'name' => $item->product->name ?? null,
-    //                     'unit' => $item->product->unit->abreviation ?? null,
-    //                 ];
-    //             }),
-    //         ];
-    //     });
-
-    //     $entries->setCollection($data);
-
     //     return response()->json([
-    //         'message' => 'succes',
+    //         'message' => 'success',
     //         'status' => 200,
     //         'devise' => $devise,
     //         'info_company' => $about,
     //         'data' => $entries
     //     ]);
     // }
+    public function index()
+    {
+        $about = About::first();
+
+        if ($about) {
+            $this->imageService->transform($about, ['logo', 'logo2']);
+        }
+        $devise = Currency::where('status', 'created')
+            ->orderByRaw("currency_type = 'devise_principale' DESC")
+            ->latest()
+            ->get();
+        $q = request('q');
+
+        $entries = StockEntry::with([
+            'supplier:id,name',
+            'user:id,name',
+            'items.product:id,name,unit_id',
+            'items.product.unit:id,abreviation'
+        ])
+            ->where('status', '!=', 'deleted')
+            ->when($q, function ($query) use ($q) {
+                $query->where(function ($sub) use ($q) {
+
+                    $sub->where('reference', 'like', "%$q%")
+
+                        ->orWhereHas('supplier', function ($s) use ($q) {
+                            $s->where('name', 'like', "%$q%");
+                        });
+                });
+            })
+            ->latest()
+            ->paginate(10);
+
+        $data = $entries->getCollection()->map(function ($entry) {
+            return [
+                'id' => $entry->id,
+                'reference' => $entry->reference,
+                'transaction_date' => $entry->transaction_date,
+                'total_amount' => $entry->total_amount,
+
+                'supplier' => $entry->supplier ? [
+                    'id' => $entry->supplier->id,
+                    'name' => $entry->supplier->name,
+                ] : null,
+
+                'user' => $entry->user ? [
+                    'id' => $entry->user->id,
+                    'name' => $entry->user->name,
+                ] : null,
+
+                'items' => $entry->items->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'quantity' => $item->quantity,
+                        'unit_price' => $item->unit_price,
+                        'name' => $item->product->name ?? null,
+                        'unit' => $item->product->unit->abreviation ?? null,
+                    ];
+                }),
+            ];
+        });
+
+        $entries->setCollection($data);
+
+        return response()->json([
+            'message' => 'succes',
+            'status' => 200,
+            'devise' => $devise,
+            'info_company' => $about,
+            'data' => $entries
+        ]);
+    }
 }

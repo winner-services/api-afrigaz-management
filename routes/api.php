@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\Dristributor\DistributorController;
 use App\Http\Controllers\Api\EntryStock\EntryStockController;
 use App\Http\Controllers\Api\Filling\FillingController;
 use App\Http\Controllers\Api\MovementStock\MovementController;
+use App\Http\Controllers\Api\Oders\OdersController;
 use App\Http\Controllers\Api\Payment\PayementController;
 use App\Http\Controllers\Api\Permission\PermissionController;
 use App\Http\Controllers\Api\Products\CategoryController;
@@ -370,6 +371,14 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/deliveriesReport', 'deliveriesReport');
             Route::post('/salesReport', 'salesReport');
             Route::post('/productStockReport', 'productStockCard');
+        });
+
+        Route::controller(OdersController::class)->group(function () {
+            Route::post('/orderStoreData', 'store');
+            // Route::get('/ordersGetAllData', 'index');
+            // Route::get('/ordersByBranchGetData', 'indexByBranche');
+            Route::put('/orderUpdate/{id}', 'update');
+            // Route::put('/orderDelete/{id}', 'destroy');
         });
     });
 });
