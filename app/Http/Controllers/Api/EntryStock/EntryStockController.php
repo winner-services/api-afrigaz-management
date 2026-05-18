@@ -145,9 +145,11 @@ class EntryStockController extends Controller
         $devise = cache()->remember('currencies_created', 3600, function () {
             return Currency::select(
                 'id',
-                'name',
+                'designation',
                 'symbol',
-                'currency_type'
+                'currency_type',
+                'conversion_amount',
+                'status'
             )
                 ->where('status', 'created')
                 ->orderByRaw("currency_type = 'devise_principale' DESC")
