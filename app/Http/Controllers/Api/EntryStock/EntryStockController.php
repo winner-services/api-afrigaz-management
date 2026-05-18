@@ -166,7 +166,8 @@ class EntryStockController extends Controller
                 'transaction_date',
                 'total_amount',
                 'supplier_id',
-                'user_id'
+                'addedBy',
+                'status'
             )
             ->with([
                 'supplier:id,name',
