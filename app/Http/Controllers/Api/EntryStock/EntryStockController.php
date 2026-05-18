@@ -136,9 +136,7 @@ class EntryStockController extends Controller
     )]
     public function index()
     {
-        $about = cache()->remember('about_company', 3600, function () {
-            return About::select('id', 'logo', 'logo2')->first();
-        });
+        $about = About::first();
 
         if ($about) {
             $this->imageService->transform($about, ['logo', 'logo2']);
