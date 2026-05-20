@@ -663,7 +663,9 @@ class OdersController extends Controller
 
             $query = Order::with([
                 'items.product',
-                'distributor'
+                'distributor',
+                'confirmedBy',
+                'rejectedBy'
             ])
                 ->where(
                     'distributor_id',
