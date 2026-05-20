@@ -94,7 +94,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
         Route::controller(OdersController::class)->group(function () {
             Route::post('/orderStoreData', 'store');
-            // Route::get('/ordersGetAllData', 'index');
+            Route::get('/ordersGetAllData', 'ordersGetAllData');
             // Route::get('/ordersByBranchGetData', 'indexByBranche');
             Route::put('/orderUpdate/{id}', 'updateData');
             // Route::put('/orderDelete/{id}', 'destroy');
