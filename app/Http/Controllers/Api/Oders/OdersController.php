@@ -673,9 +673,6 @@ class OdersController extends Controller
                 )
                 ->latest();
 
-            /**
-             * Filtre statut
-             */
             if ($request->filled('status')) {
 
                 $query->where(
@@ -683,10 +680,6 @@ class OdersController extends Controller
                     $request->status
                 );
             }
-
-            /**
-             * Recherche référence
-             */
             if ($request->filled('search')) {
 
                 $query->where(
@@ -727,5 +720,75 @@ class OdersController extends Controller
 
             ], 500);
         }
+    }
+
+    public function validateOders($id)
+    {
+        $order = Order::with('items')->find($id);
+
+        if (! $order) {
+
+            return response()->json([
+
+                'success' => false,
+
+                'status' => 404,
+
+                'message' => 'Commande introuvable'
+
+            ], 404);
+        }
+        $order->update([
+
+            'status' => 'confirmed',
+
+            'confirmed_by' => Auth::id()
+        ]);
+        return response()->json([
+
+            'success' => true,
+
+            'status' => 200,
+
+            'message' => 'Commande confirmée avec succès',
+
+            'data' => $order
+
+        ], 200);
+    }
+
+    public function rejectOders($id)
+    {
+        $order = Order::with('items')->find($id);
+
+        if (! $order) {
+
+            return response()->json([
+
+                'success' => false,
+
+                'status' => 404,
+
+                'message' => 'Commande introuvable'
+
+            ], 404);
+        }
+        $order->update([
+
+            'status' => 'rejected',
+
+            'rejected_by' => Auth::id()
+        ]);
+        return response()->json([
+
+            'success' => true,
+
+            'status' => 200,
+
+            'message' => 'Commande rejetée avec succès',
+
+            'data' => $order
+
+        ], 200);
     }
 }
