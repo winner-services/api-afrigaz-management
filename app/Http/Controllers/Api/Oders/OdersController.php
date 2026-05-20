@@ -243,7 +243,7 @@ class OdersController extends Controller
 
                 'order_date' => $validated['order_date'],
 
-                'paid_amount' => 0,
+                'amount' => 0,
 
                 'total' => 0,
             ]);
