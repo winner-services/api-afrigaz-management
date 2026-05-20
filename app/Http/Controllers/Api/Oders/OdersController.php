@@ -9,29 +9,160 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class OdersController extends Controller
 {
+    // public function store(Request $request): JsonResponse
+    // {
+    //     $validated = $request->validate([
+
+    //         // 'payment_method' => [
+    //         //     'nullable',
+    //         //     'string',
+    //         //     'max:255'
+    //         // ],
+
+    //         'delivery_address' => [
+    //             'nullable',
+    //             'string'
+    //         ],
+
+    //         // 'paid_amount' => [
+    //         //     'nullable',
+    //         //     'numeric',
+    //         //     'min:1'
+    //         // ],
+
+    //         'order_date' => [
+    //             'required',
+    //             'date'
+    //         ],
+
+    //         'products' => [
+    //             'required',
+    //             'array',
+    //             'min:1'
+    //         ],
+
+    //         'products.*.product_id' => [
+    //             'required',
+    //             'exists:products,id'
+    //         ],
+
+    //         'products.*.quantity' => [
+    //             'required',
+    //             'integer',
+    //             'min:1'
+    //         ],
+    //     ]);
+
+    //     DB::beginTransaction();
+    //     $distributor = Auth::guard('distributor')->user();
+
+    //     if (! $distributor) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Non authentifié'
+    //         ], 401);
+    //     }
+
+    //     try {
+
+    //         $total = 0;
+
+    //         $order = Order::create([
+
+    //             'distributor_id' => $distributor->id,
+
+    //             'reference' => 'ORD-' . strtoupper(uniqid()),
+
+    //             'status' => 'pending',
+
+    //             'delivery_address' => $validated['delivery_address'] ?? null,
+
+    //             'note' => 'Commande des produits',
+
+    //             'order_date' => $validated['order_date'],
+    //             'paid_amount' => 0,
+    //         ]);
+
+
+    //         foreach ($validated['products'] as $item) {
+
+    //             $product = Product::findOrFail(
+    //                 $item['product_id']
+    //             );
+
+    //             $quantity = (int) $item['quantity'];
+
+    //             $unitPrice = $product->wholesale_price;
+
+    //             $subtotal = $quantity * $unitPrice;
+
+    //             $total += $subtotal;
+
+    //             $order->items()->create([
+
+    //                 'product_id' => $product->id,
+
+    //                 'quantity' => $quantity,
+
+    //                 'unit_price' => $unitPrice,
+
+    //                 'subtotal' => $subtotal,
+    //             ]);
+    //         }
+
+    //         $order->update([
+    //             'total' => $total
+    //         ]);
+
+    //         DB::commit();
+
+    //         $order->load([
+    //             'distributor',
+    //             'items.product'
+    //         ]);
+
+    //         return response()->json([
+
+    //             'success' => true,
+
+    //             'status' => 201,
+
+    //             'message' => 'Commande créée avec succès',
+
+    //             'data' => $order
+
+    //         ], 201);
+    //     } catch (\Throwable $e) {
+
+    //         DB::rollBack();
+
+    //         return response()->json([
+
+    //             'success' => false,
+
+    //             'status' => 500,
+
+    //             'message' => 'Erreur lors de la création de la commande',
+
+    //             'error' => config('app.debug')
+    //                 ? $e->getMessage()
+    //                 : null
+
+    //         ], 500);
+    //     }
+    // }
     public function store(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-
-            // 'payment_method' => [
-            //     'nullable',
-            //     'string',
-            //     'max:255'
-            // ],
+        $validator = Validator::make($request->all(), [
 
             'delivery_address' => [
                 'nullable',
                 'string'
             ],
-
-            // 'paid_amount' => [
-            //     'nullable',
-            //     'numeric',
-            //     'min:1'
-            // ],
 
             'order_date' => [
                 'required',
@@ -46,6 +177,7 @@ class OdersController extends Controller
 
             'products.*.product_id' => [
                 'required',
+                'integer',
                 'exists:products,id'
             ],
 
@@ -54,19 +186,46 @@ class OdersController extends Controller
                 'integer',
                 'min:1'
             ],
+
         ]);
 
-        DB::beginTransaction();
-        $distributor = Auth::guard('distributor')->user();
+        if ($validator->fails()) {
 
-        if (! $distributor) {
             return response()->json([
-                'status' => false,
-                'message' => 'Non authentifié'
-            ], 401);
+
+                'success' => false,
+
+                'status' => 422,
+
+                'message' => 'Erreur de validation',
+
+                'errors' => $validator->errors(),
+
+                'data_received' => $request->all()
+
+            ], 422);
         }
 
+        $validated = $validator->validated();
+
+        DB::beginTransaction();
+
         try {
+
+            $distributor = Auth::guard('distributor')->user();
+
+            if (! $distributor) {
+
+                return response()->json([
+
+                    'success' => false,
+
+                    'status' => 401,
+
+                    'message' => 'Non authentifié'
+
+                ], 401);
+            }
 
             $total = 0;
 
@@ -83,19 +242,36 @@ class OdersController extends Controller
                 'note' => 'Commande des produits',
 
                 'order_date' => $validated['order_date'],
-                'paid_amount' => 0,
-            ]);
 
+                'paid_amount' => 0,
+
+                'total' => 0,
+            ]);
 
             foreach ($validated['products'] as $item) {
 
-                $product = Product::findOrFail(
-                    $item['product_id']
-                );
+                $product = Product::find($item['product_id']);
+
+                if (! $product) {
+
+                    DB::rollBack();
+
+                    return response()->json([
+
+                        'success' => false,
+
+                        'status' => 404,
+
+                        'message' => 'Produit introuvable',
+
+                        'product_id' => $item['product_id']
+
+                    ], 404);
+                }
 
                 $quantity = (int) $item['quantity'];
 
-                $unitPrice = $product->wholesale_price;
+                $unitPrice = (float) $product->wholesale_price;
 
                 $subtotal = $quantity * $unitPrice;
 
@@ -149,7 +325,7 @@ class OdersController extends Controller
 
                 'error' => config('app.debug')
                     ? $e->getMessage()
-                    : null
+                    : 'Erreur interne du serveur'
 
             ], 500);
         }

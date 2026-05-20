@@ -90,6 +90,19 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
     Route::middleware([
         'auth:sanctum',
+    ])->group(function () {
+
+        Route::controller(OdersController::class)->group(function () {
+            Route::post('/orderStoreData', 'store');
+            // Route::get('/ordersGetAllData', 'index');
+            // Route::get('/ordersByBranchGetData', 'indexByBranche');
+            Route::put('/orderUpdate/{id}', 'update');
+            // Route::put('/orderDelete/{id}', 'destroy');
+        });
+    });
+
+    Route::middleware([
+        'auth:sanctum',
         'work.access'
     ])->group(function () {
 
@@ -371,14 +384,6 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/deliveriesReport', 'deliveriesReport');
             Route::post('/salesReport', 'salesReport');
             Route::post('/productStockReport', 'productStockCard');
-        });
-
-        Route::controller(OdersController::class)->group(function () {
-            Route::post('/orderStoreData', 'store');
-            // Route::get('/ordersGetAllData', 'index');
-            // Route::get('/ordersByBranchGetData', 'indexByBranche');
-            Route::put('/orderUpdate/{id}', 'update');
-            // Route::put('/orderDelete/{id}', 'destroy');
         });
     });
 });
