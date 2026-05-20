@@ -19,4 +19,13 @@ class Order extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+    public function confirmedBy()
+    {
+        return $this->belongsTo(User::class, 'confirmed_by');
+    }
+
+    public function rejectedBy()
+    {
+        return $this->belongsTo(User::class, 'rejected_by');
+    }
 }
