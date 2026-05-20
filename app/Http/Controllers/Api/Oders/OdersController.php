@@ -722,6 +722,50 @@ class OdersController extends Controller
         }
     }
 
+    #[OA\Put(
+        path: "/api/v1/validateOder/{id}",
+        summary: "Confirmer une commande distributeur",
+        tags: ["Distributor Orders"],
+        security: [["bearerAuth" => []]],
+
+        parameters: [
+
+            new OA\Parameter(
+                name: "id",
+                in: "path",
+                required: true,
+                description: "ID de la commande",
+
+                schema: new OA\Schema(
+                    type: "integer",
+                    example: 1
+                )
+            ),
+        ],
+
+        responses: [
+
+            new OA\Response(
+                response: 200,
+                description: "Commande confirmée avec succès"
+            ),
+
+            new OA\Response(
+                response: 404,
+                description: "Commande introuvable"
+            ),
+
+            new OA\Response(
+                response: 401,
+                description: "Non authentifié"
+            ),
+
+            new OA\Response(
+                response: 500,
+                description: "Erreur serveur"
+            ),
+        ]
+    )]
     public function validateOders($id)
     {
         $order = Order::with('items')->find($id);
@@ -738,12 +782,14 @@ class OdersController extends Controller
 
             ], 404);
         }
+
         $order->update([
 
             'status' => 'confirmed',
 
             'confirmed_by' => Auth::id()
         ]);
+
         return response()->json([
 
             'success' => true,
@@ -756,7 +802,50 @@ class OdersController extends Controller
 
         ], 200);
     }
+    #[OA\Put(
+        path: "/api/v1/rejectOder/{id}",
+        summary: "Rejeter une commande distributeur",
+        tags: ["Distributor Orders"],
+        security: [["bearerAuth" => []]],
 
+        parameters: [
+
+            new OA\Parameter(
+                name: "id",
+                in: "path",
+                required: true,
+                description: "ID de la commande",
+
+                schema: new OA\Schema(
+                    type: "integer",
+                    example: 1
+                )
+            ),
+        ],
+
+        responses: [
+
+            new OA\Response(
+                response: 200,
+                description: "Commande rejetée avec succès"
+            ),
+
+            new OA\Response(
+                response: 404,
+                description: "Commande introuvable"
+            ),
+
+            new OA\Response(
+                response: 401,
+                description: "Non authentifié"
+            ),
+
+            new OA\Response(
+                response: 500,
+                description: "Erreur serveur"
+            ),
+        ]
+    )]
     public function rejectOders($id)
     {
         $order = Order::with('items')->find($id);
@@ -773,12 +862,14 @@ class OdersController extends Controller
 
             ], 404);
         }
+
         $order->update([
 
             'status' => 'rejected',
 
             'rejected_by' => Auth::id()
         ]);
+
         return response()->json([
 
             'success' => true,

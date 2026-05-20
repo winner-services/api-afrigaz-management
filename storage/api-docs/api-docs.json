@@ -821,7 +821,7 @@
                 "tags": [
                     "Branches"
                 ],
-                "summary": "Modifier une branche",
+                "summary": "Modifier un point de vente",
                 "operationId": "79a9d7ab88586f309ddea4532bd981ee",
                 "parameters": [
                     {
@@ -892,7 +892,7 @@
                 "tags": [
                     "Branches"
                 ],
-                "summary": "Supprimer une branche",
+                "summary": "Supprimer un point de vente",
                 "operationId": "72b32a0d0def57db643650db85ad7245",
                 "parameters": [
                     {
@@ -3448,6 +3448,302 @@
                         }
                     }
                 }
+            }
+        },
+        "/api/v1/distributor/orders": {
+            "post": {
+                "tags": [
+                    "Distributor Orders"
+                ],
+                "summary": "Créer une commande distributeur multi produits",
+                "operationId": "3d99d3a78c351204ae29d4ea8c970bd2",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "order_date",
+                                    "products"
+                                ],
+                                "properties": {
+                                    "delivery_address": {
+                                        "type": "string",
+                                        "example": "Goma Himbi"
+                                    },
+                                    "order_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-05-20"
+                                    },
+                                    "products": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "product_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "quantity": {
+                                                    "type": "integer",
+                                                    "example": 5
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Commande créée avec succès"
+                    },
+                    "401": {
+                        "description": "Non authentifié"
+                    },
+                    "404": {
+                        "description": "Produit introuvable"
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/distributor/orders/{id}": {
+            "post": {
+                "tags": [
+                    "Distributor Orders"
+                ],
+                "summary": "Modifier une commande distributeur",
+                "operationId": "830a0c6850e745a01f904b499f1b33ba",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la commande",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "order_date",
+                                    "products"
+                                ],
+                                "properties": {
+                                    "delivery_address": {
+                                        "type": "string",
+                                        "example": "Goma Katindo"
+                                    },
+                                    "order_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-05-21"
+                                    },
+                                    "products": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "product_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "quantity": {
+                                                    "type": "integer",
+                                                    "example": 3
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Commande modifiée avec succès"
+                    },
+                    "401": {
+                        "description": "Non authentifié"
+                    },
+                    "403": {
+                        "description": "Accès refusé"
+                    },
+                    "404": {
+                        "description": "Commande ou produit introuvable"
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/ordersGetAllData": {
+            "get": {
+                "tags": [
+                    "Distributor Orders"
+                ],
+                "summary": "Lister toutes les commandes du distributeur connecté",
+                "operationId": "3dde5dd3739760a3b8be3d737b377159",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filtrer par statut",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "pending"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Recherche par référence",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "ORD-"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Nombre d'éléments par page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Liste des commandes récupérée avec succès"
+                    },
+                    "401": {
+                        "description": "Non authentifié"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/validateOder/{id}": {
+            "put": {
+                "tags": [
+                    "Distributor Orders"
+                ],
+                "summary": "Confirmer une commande distributeur",
+                "operationId": "173a3a790a383c6ba0aa8c72e121b9cf",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la commande",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Commande confirmée avec succès"
+                    },
+                    "404": {
+                        "description": "Commande introuvable"
+                    },
+                    "401": {
+                        "description": "Non authentifié"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/rejectOder/{id}": {
+            "put": {
+                "tags": [
+                    "Distributor Orders"
+                ],
+                "summary": "Rejeter une commande distributeur",
+                "operationId": "2607025615eb9e5e3d9e875d23ba1b31",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la commande",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Commande rejetée avec succès"
+                    },
+                    "404": {
+                        "description": "Commande introuvable"
+                    },
+                    "401": {
+                        "description": "Non authentifié"
+                    },
+                    "500": {
+                        "description": "Erreur serveur"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/v1/debtPaymentStore": {
@@ -8388,6 +8684,10 @@
         {
             "name": "Stock Movements",
             "description": "Stock Movements"
+        },
+        {
+            "name": "Distributor Orders",
+            "description": "Distributor Orders"
         },
         {
             "name": "Payment",
