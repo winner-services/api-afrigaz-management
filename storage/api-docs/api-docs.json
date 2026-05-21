@@ -3450,13 +3450,13 @@
                 }
             }
         },
-        "/api/v1/distributor/orders": {
+        "/api/v1/orderStoreData": {
             "post": {
                 "tags": [
                     "Distributor Orders"
                 ],
                 "summary": "Créer une commande distributeur multi produits",
-                "operationId": "3d99d3a78c351204ae29d4ea8c970bd2",
+                "operationId": "94cc26ae09dfb5e33816bf3f6b111c4d",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -3522,13 +3522,13 @@
                 ]
             }
         },
-        "/api/v1/distributor/orders/{id}": {
+        "/api/v1/orderUpdate/{id}": {
             "post": {
                 "tags": [
                     "Distributor Orders"
                 ],
                 "summary": "Modifier une commande distributeur",
-                "operationId": "830a0c6850e745a01f904b499f1b33ba",
+                "operationId": "c0f4279d01e6bb5c0d282adc46b68358",
                 "parameters": [
                     {
                         "name": "id",
@@ -3672,7 +3672,7 @@
                     "Distributor Orders"
                 ],
                 "summary": "Confirmer une commande distributeur",
-                "operationId": "173a3a790a383c6ba0aa8c72e121b9cf",
+                "operationId": "a85764817beab7920e125399274868f6",
                 "parameters": [
                     {
                         "name": "id",
@@ -3712,7 +3712,7 @@
                     "Distributor Orders"
                 ],
                 "summary": "Rejeter une commande distributeur",
-                "operationId": "2607025615eb9e5e3d9e875d23ba1b31",
+                "operationId": "7deb111b153f9b12d44b141ca34b2ac2",
                 "parameters": [
                     {
                         "name": "id",

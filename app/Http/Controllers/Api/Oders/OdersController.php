@@ -17,7 +17,7 @@ use OpenApi\Attributes as OA;
 class OdersController extends Controller
 {
     #[OA\Post(
-        path: "/api/v1/distributor/orders",
+        path: "/api/v1/orderStoreData",
         summary: "Créer une commande distributeur multi produits",
         tags: ["Distributor Orders"],
         security: [["bearerAuth" => []]],
@@ -281,7 +281,7 @@ class OdersController extends Controller
         }
     }
     #[OA\Post(
-        path: "/api/v1/distributor/orders/{id}",
+        path: "/api/v1/orderUpdate/{id}",
         summary: "Modifier une commande distributeur",
         tags: ["Distributor Orders"],
         security: [["bearerAuth" => []]],
@@ -847,42 +847,6 @@ class OdersController extends Controller
             ),
         ]
     )]
-    // public function rejectOders($id)
-    // {
-    //     $order = Order::with('items')->find($id);
-
-    //     if (! $order) {
-
-    //         return response()->json([
-
-    //             'success' => false,
-
-    //             'status' => 404,
-
-    //             'message' => 'Commande introuvable'
-
-    //         ], 404);
-    //     }
-
-    //     $order->update([
-
-    //         'status' => 'rejected',
-
-    //         'rejected_by' => Auth::id()
-    //     ]);
-
-    //     return response()->json([
-
-    //         'success' => true,
-
-    //         'status' => 200,
-
-    //         'message' => 'Commande rejetée avec succès',
-
-    //         'data' => $order
-
-    //     ], 200);
-    // }
 
     public function rejectOrders($id)
     {
