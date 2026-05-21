@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\Oders;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SendDistributorSmsJob;
+use App\Models\Distributor;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
@@ -766,40 +768,39 @@ class OdersController extends Controller
             ),
         ]
     )]
-    public function validateOders($id)
+    public function validateOrders($id)
     {
         $order = Order::with('items')->find($id);
 
         if (! $order) {
 
             return response()->json([
-
                 'success' => false,
-
                 'status' => 404,
-
                 'message' => 'Commande introuvable'
-
             ], 404);
         }
 
+        $distributor = Distributor::find($order->distributor_id);
+
+        if ($distributor && $distributor->phone) {
+
+            SendDistributorSmsJob::dispatch(
+                $distributor->id,
+                'order_confirmed'
+            )->onQueue('sms');
+        }
+
         $order->update([
-
             'status' => 'confirmed',
-
             'confirmed_by' => Auth::id()
         ]);
 
         return response()->json([
-
             'success' => true,
-
             'status' => 200,
-
             'message' => 'Commande confirmée avec succès',
-
-            'data' => $order
-
+            'data' => $order->fresh()
         ], 200);
     }
     #[OA\Put(
@@ -846,40 +847,66 @@ class OdersController extends Controller
             ),
         ]
     )]
-    public function rejectOders($id)
+    // public function rejectOders($id)
+    // {
+    //     $order = Order::with('items')->find($id);
+
+    //     if (! $order) {
+
+    //         return response()->json([
+
+    //             'success' => false,
+
+    //             'status' => 404,
+
+    //             'message' => 'Commande introuvable'
+
+    //         ], 404);
+    //     }
+
+    //     $order->update([
+
+    //         'status' => 'rejected',
+
+    //         'rejected_by' => Auth::id()
+    //     ]);
+
+    //     return response()->json([
+
+    //         'success' => true,
+
+    //         'status' => 200,
+
+    //         'message' => 'Commande rejetée avec succès',
+
+    //         'data' => $order
+
+    //     ], 200);
+    // }
+
+    public function rejectOrders($id)
     {
         $order = Order::with('items')->find($id);
 
         if (! $order) {
 
             return response()->json([
-
                 'success' => false,
-
                 'status' => 404,
-
                 'message' => 'Commande introuvable'
-
             ], 404);
         }
 
         $order->update([
-
             'status' => 'rejected',
-
             'rejected_by' => Auth::id()
         ]);
 
         return response()->json([
-
             'success' => true,
-
             'status' => 200,
-
             'message' => 'Commande rejetée avec succès',
-
-            'data' => $order
-
+            'data' => $order->fresh()
         ], 200);
     }
 }

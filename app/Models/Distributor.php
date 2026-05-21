@@ -12,7 +12,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 // class Distributor extends Model
 class Distributor extends Authenticatable
 {
-    use HasApiTokens;
+    use HasApiTokens, Notifiable;
     public function addedBy()
     {
         return $this->belongsTo(User::class, 'addedBy');

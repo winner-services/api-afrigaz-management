@@ -359,9 +359,19 @@ class DistributorController extends Controller
                 return $item;
             });
 
-            if ($result->phone) {
-                SendDistributorSmsJob::dispatch($result->id)
-                    ->onQueue('sms');
+            // if ($result->phone) {
+            //     SendDistributorSmsJob::dispatch($result->id)
+            //         ->onQueue('sms');
+            // }
+            if ($result?->phone) {
+
+                SendDistributorSmsJob::dispatch(
+
+                    $result->id,
+
+                    'registration'
+
+                )->onQueue('sms');
             }
 
             return response()->json([

@@ -96,8 +96,8 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/orderStoreData', 'store');
             Route::get('/ordersGetAllData', 'ordersGetAllData');
             Route::put('/orderUpdate/{id}', 'updateData');
-            Route::put('/validateOder/{id}', 'validateOders');
-            Route::put('/rejectOder/{id}', 'rejectOders');
+            Route::put('/validateOder/{id}', 'validateOrders');
+            Route::put('/rejectOder/{id}', 'rejectOrders');
         });
     });
 
