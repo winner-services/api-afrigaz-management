@@ -98,6 +98,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::put('/orderUpdate/{id}', 'updateData');
             Route::put('/validateOder/{id}', 'validateOrders');
             Route::put('/rejectOder/{id}', 'rejectOrders');
+            Route::get('/getDashboardDistributor', 'getDashboardData');
         });
     });
 

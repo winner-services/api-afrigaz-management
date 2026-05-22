@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Oders;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\SendDistributorSmsJob;
+use App\Models\DebtDistributor;
 use App\Models\Distributor;
 use App\Models\Order;
 use App\Models\Product;
@@ -1005,5 +1006,114 @@ class OdersController extends Controller
             'message' => 'Commande rejetée avec succès',
             'data' => $order->fresh()
         ], 200);
+    }
+
+    public function getDashboardData(): JsonResponse
+    {
+        try {
+
+            $distributor = Auth::guard('distributor')->user();
+
+            if (! $distributor) {
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Non authentifié'
+                ], 401);
+            }
+
+            $ordersQuery = Order::where(
+                'distributor_id',
+                $distributor->id
+            );
+
+            $totalOrders = (clone $ordersQuery)->count();
+
+            $pendingOrders = (clone $ordersQuery)
+                ->where('status', 'pending')
+                ->count();
+
+            $approvedOrders = (clone $ordersQuery)
+                ->where('status', 'approved')
+                ->count();
+
+            $rejectedOrders = (clone $ordersQuery)
+                ->where('status', 'rejected')
+                ->count();
+
+            $totalDebt = DebtDistributor::where(
+                'distributor_id',
+                $distributor->id
+            )
+                ->whereIn('status', [
+                    'pending',
+                    'partial'
+                ])
+                ->sum(DB::raw('loan_amount - paid_amount'));
+
+            $availableCredit =
+                ($distributor->credit_limit ?? 0) - $totalDebt;
+
+            $monthlyOrdersAmount = Order::where(
+                'distributor_id',
+                $distributor->id
+            )
+                ->whereMonth(
+                    'order_date',
+                    now()->month
+                )
+                ->whereYear(
+                    'order_date',
+                    now()->year
+                )
+                ->sum('amount');
+
+            $recentOrders = Order::where(
+                'distributor_id',
+                $distributor->id
+            )
+                ->latest()
+                ->take(5)
+                ->get([
+                    'id',
+                    'reference',
+                    'amount',
+                    'status',
+                    'order_date as date'
+                ]);
+
+            return response()->json([
+
+                'success' => true,
+                'status' => 200,
+                'message' => 'Données du tableau de bord récupérées avec succès',
+
+                'data' => [
+
+                    'totalOrders' => $totalOrders,
+
+                    'pendingOrders' => $pendingOrders,
+
+                    'approvedOrders' => $approvedOrders,
+
+                    'rejectedOrders' => $rejectedOrders,
+
+                    'totalDebt' => (float) $totalDebt,
+
+                    'availableCredit' => (float) $availableCredit,
+
+                    'monthlyOrdersAmount' => (float) $monthlyOrdersAmount,
+
+                    'recentOrders' => $recentOrders
+                ]
+            ]);
+        } catch (\Throwable $e) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur serveur',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
