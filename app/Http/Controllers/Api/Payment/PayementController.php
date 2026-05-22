@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Payment;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SendDistributorSmsJob;
 use App\Models\About;
 use App\Models\CashTransaction;
 use App\Models\Currency;
@@ -126,6 +127,15 @@ class PayementController extends Controller
                 $label = 'Distributeur #' . $request->distributor_id;
 
                 $buyerName = Distributor::find($request->distributor_id)?->name;
+                $distributor = Distributor::find($request->distributor_id);
+
+                if ($distributor && $distributor->phone) {
+
+                    SendDistributorSmsJob::dispatch(
+                        $distributor->id,
+                        'payment'
+                    )->onQueue('sms');
+                }
             } else {
 
                 $debts = CustomerDebt::where('customer_id', $request->customer_id)

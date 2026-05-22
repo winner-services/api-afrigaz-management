@@ -47,7 +47,7 @@ class SendDistributorSmsJob implements ShouldQueue
 
             'payment' =>
 
-            "Bonjour {$distributor->name}, votre paiement a été reçu avec succès. Merci pour votre confiance.",
+            "Bonjour {$distributor->name}, votre paiement a été reçu avec succès. AFRIGAZ EXPRESS vous remercie pour votre confiance.",
 
             'order_confirmed' =>
 
@@ -59,11 +59,34 @@ class SendDistributorSmsJob implements ShouldQueue
         };
 
         $emess->sendSingle(
-            $distributor->phone,
+            $this->formatPhone($distributor->phone),
             $message
         );
+        // $emess->sendSingle(
+        //     $distributor->phone,
+        //     $message
+        // );
+    }
+    private function formatPhone($phone): string
+    {
+        $phone = preg_replace('/\s+/', '', $phone);
+
+        if (str_starts_with($phone, '+243')) {
+            return $phone;
+        }
+
+        if (str_starts_with($phone, '243')) {
+            return '+' . $phone;
+        }
+
+        if (str_starts_with($phone, '0')) {
+            return '+243' . substr($phone, 1);
+        }
+
+        return $phone;
     }
 }
+
 // namespace App\Jobs;
 
 // use App\Models\CategoryDistributor;
