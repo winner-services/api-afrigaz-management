@@ -444,6 +444,15 @@ class AuthDistribController extends Controller
     public function myPayments(): JsonResponse
     {
         try {
+            $startDate = request('start_date')
+                ? Carbon::parse(request('start_date'))->startOfDay()
+                : now()->startOfMonth();
+
+            $endDate = request('end_date')
+                ? Carbon::parse(request('end_date'))->endOfDay()
+                : now();
+
+            $reference = request('q', '');
 
             $distributor = Distributor::find(
                 Auth::guard('distributor')->user()->id
@@ -469,15 +478,20 @@ class AuthDistribController extends Controller
                         $distributor->id
                     );
                 })
+                ->whereBetween('operation_date', [
+                    $startDate,
+                    $endDate
+                ])
                 ->latest()
                 ->get();
 
             $payments->transform(function ($item) {
 
-                $debt = $item->debtDistributor;
+                $debt = $item->debt;
 
-                $item->remaining_amount =
-                    $debt->loan_amount - $debt->paid_amount;
+                $item->remaining_amount = $debt
+                    ? ($debt->loan_amount - $debt->paid_amount)
+                    : 0;
 
                 return $item;
             });
@@ -508,4 +522,71 @@ class AuthDistribController extends Controller
             ], 500);
         }
     }
+    // public function myPayments(): JsonResponse
+    // {
+    //     try {
+
+    //         $distributor = Distributor::find(
+    //             Auth::guard('distributor')->user()->id
+    //         );
+
+    //         if (! $distributor) {
+
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Distributeur introuvable'
+    //             ], 404);
+    //         }
+
+    //         $payments = PaymentDistributor::with([
+    //             'debt.sale',
+    //             'cashAccount',
+    //             'user'
+    //         ])
+    //             ->whereHas('debt', function ($query) use ($distributor) {
+
+    //                 $query->where(
+    //                     'distributor_id',
+    //                     $distributor->id
+    //                 );
+    //             })
+    //             ->latest()
+    //             ->get();
+
+    //         $payments->transform(function ($item) {
+
+    //             $debt = $item->debtDistributor;
+
+    //             $item->remaining_amount =
+    //                 $debt->loan_amount - $debt->paid_amount;
+
+    //             return $item;
+    //         });
+
+    //         $total_paid = $payments->sum('paid_amount');
+
+    //         $total_remaining = $payments->sum('remaining_amount');
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'status' => 200,
+
+    //             'summary' => [
+    //                 'total_payments' => $payments->count(),
+    //                 'total_paid_amount' => $total_paid,
+    //                 'total_remaining_amount' => $total_remaining,
+    //             ],
+
+    //             'data' => $payments
+
+    //         ]);
+    //     } catch (\Throwable $e) {
+
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Erreur serveur',
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 }
