@@ -192,6 +192,7 @@ class PaymentDristributorController extends Controller
                     'addedBy' => Auth::id(),
 
                     'operation_date' => $operationDate,
+                    'reference' => ('DETTE-' . $debt->id)
                 ]);
 
                 $debt->paid_amount += $payAmount;
