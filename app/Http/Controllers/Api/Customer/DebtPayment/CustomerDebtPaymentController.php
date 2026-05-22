@@ -153,7 +153,6 @@ class CustomerDebtPaymentController extends Controller
                 $customerId = $request->customer_id;
 
                 $distributorId = null;
-
             }
 
             if ($debts->isEmpty()) {
@@ -195,6 +194,7 @@ class CustomerDebtPaymentController extends Controller
                     'addedBy' => Auth::id(),
 
                     'operation_date' => $operationDate,
+                    'reference' => ('DETTE-' . $debt->id)
                 ]);
 
                 $debt->paid_amount += $payAmount;

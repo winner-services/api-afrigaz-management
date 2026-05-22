@@ -13,6 +13,7 @@ use App\Models\CustomerDebtPayment;
 use App\Models\DebtDistributor;
 use App\Models\Distributor;
 use App\Models\PaymentDistributor;
+use App\Models\PaymentHistorie;
 use App\Models\Sale;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
@@ -125,9 +126,11 @@ class PayementController extends Controller
                 $foreignKey = 'debt_distributor_id';
                 $cashCategory = 5;
                 $label = 'Distributeur #' . $request->distributor_id;
-
+                $paymentType = 'distributor_debt';
                 $buyerName = Distributor::find($request->distributor_id)?->name;
                 $distributor = Distributor::find($request->distributor_id);
+                $distributorId = $request->distributor_id;
+                $operationDate = $request->transaction_date ?? now();
 
                 if ($distributor && $distributor->phone) {
 
@@ -148,6 +151,9 @@ class PayementController extends Controller
                 $foreignKey = 'customer_debt_id';
                 $cashCategory = 4;
                 $label = 'Client #' . $request->customer_id;
+                $paymentType = 'customer_debt';
+                $customerId = $request->customer_id;
+                $operationDate = $request->transaction_date ?? now();
 
                 $buyerName = Customer::find($request->customer_id)?->name;
             }
@@ -177,7 +183,7 @@ class PayementController extends Controller
                     'cash_account_id' => $request->account_id,
                     'addedBy' => Auth::id(),
                     'operation_date' => $request->transaction_date ?? now(),
-                    // 'reference' => $reference,
+                    'reference' => $reference,
                 ]);
 
                 $debt->paid_amount += $payAmount;
@@ -207,6 +213,37 @@ class PayementController extends Controller
                     'cash_account_id' => $request->account_id,
                     'cash_categorie_id' => $cashCategory,
                     'addedBy' => Auth::id()
+                ]);
+
+                PaymentHistorie::create([
+
+                    'payment_type' => $paymentType,
+
+                    // 'reference_id' => $paymentModel->id,
+
+                    'reference' => $reference,
+
+                    'customer_id' => $customerId,
+
+                    'distributor_id' => $distributorId,
+
+                    'cash_account_id' => $request->account_id,
+
+                    'paid_amount' => $payAmount,
+
+                    'payment_method' =>
+                    $request->payment_method ?? 'cash',
+
+                    'payment_date' => $operationDate,
+
+                    'addedBy' => Auth::id(),
+
+                    'status' => 'paid',
+
+                    'description' =>
+                    $label .
+                        ' - Dette #' .
+                        $debt->id
                 ]);
 
                 $remainingAmount -= $payAmount;
