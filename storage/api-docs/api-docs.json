@@ -3523,12 +3523,12 @@
             }
         },
         "/api/v1/orderUpdate/{id}": {
-            "post": {
+            "put": {
                 "tags": [
                     "Distributor Orders"
                 ],
                 "summary": "Modifier une commande distributeur",
-                "operationId": "c0f4279d01e6bb5c0d282adc46b68358",
+                "operationId": "ccdeb9ee408b72a52146f60a57afcdb3",
                 "parameters": [
                     {
                         "name": "id",

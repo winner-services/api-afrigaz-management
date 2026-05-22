@@ -281,7 +281,7 @@ class OdersController extends Controller
             ], 500);
         }
     }
-    #[OA\Post(
+    #[OA\Put(
         path: "/api/v1/orderUpdate/{id}",
         summary: "Modifier une commande distributeur",
         tags: ["Distributor Orders"],
