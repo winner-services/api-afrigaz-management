@@ -9,6 +9,7 @@ use App\Models\Distributor;
 use App\Models\PaymentDistributor;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -283,6 +284,16 @@ class AuthDistribController extends Controller
     {
         try {
 
+            $startDate = request('start_date')
+                ? Carbon::parse(request('start_date'))->startOfDay()
+                : now()->startOfMonth();
+
+            $endDate = request('end_date')
+                ? Carbon::parse(request('end_date'))->endOfDay()
+                : now();
+
+            $reference = request('reference');
+
             $distributor = Distributor::find(
                 Auth::guard('distributor')->user()->id
             );
@@ -301,10 +312,34 @@ class AuthDistribController extends Controller
                 'user'
             ])
                 ->where('distributor_id', $distributor->id)
+
+                ->whereBetween('transaction_date', [
+                    $startDate,
+                    $endDate
+                ])
+
                 ->whereIn('status', [
                     'pending',
                     'partial'
                 ])
+
+                ->when($reference, function ($query) use ($reference) {
+
+                    $query->where(function ($q) use ($reference) {
+
+                        $q->where('reference', 'LIKE', "%{$reference}%")
+
+                            ->orWhereHas('sale', function ($sale) use ($reference) {
+
+                                $sale->where(
+                                    'reference',
+                                    'LIKE',
+                                    "%{$reference}%"
+                                );
+                            });
+                    });
+                })
+
                 ->latest()
                 ->get();
 
@@ -338,6 +373,74 @@ class AuthDistribController extends Controller
             ], 500);
         }
     }
+    // public function myDebts(): JsonResponse
+    // {
+    //     try {
+    //         $startDate = request('start_date')
+    //             ? Carbon::parse(request('start_date'))->startOfDay()
+    //             : now()->startOfMonth();
+
+    //         $endDate = request('end_date')
+    //             ? Carbon::parse(request('end_date'))->endOfDay()
+    //             : now();
+
+
+    //         $distributor = Distributor::find(
+    //             Auth::guard('distributor')->user()->id
+    //         );
+
+    //         if (! $distributor) {
+
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Distributeur introuvable'
+    //             ], 404);
+    //         }
+
+    //         $debts = DebtDistributor::with([
+    //             'sale',
+    //             'distributor',
+    //             'user'
+    //         ])
+    //             ->where('distributor_id', $distributor->id)
+    //             ->whereBetween('transaction_date', [$startDate, $endDate])
+    //             ->whereIn('status', [
+    //                 'pending',
+    //                 'partial'
+    //             ])
+    //             ->latest()
+    //             ->get();
+
+    //         $debts->transform(function ($item) {
+
+    //             $item->remaining_amount =
+    //                 $item->loan_amount - $item->paid_amount;
+
+    //             return $item;
+    //         });
+
+    //         $total_remaining = $debts->sum('remaining_amount');
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'status' => 200,
+
+    //             'summary' => [
+    //                 'total_debts' => $debts->count(),
+    //                 'total_remaining' => $total_remaining,
+    //             ],
+
+    //             'data' => $debts
+    //         ]);
+    //     } catch (\Throwable $e) {
+
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Erreur serveur',
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
     #[OA\Get(
         path: "/api/v1/auth/getmyPayments",
