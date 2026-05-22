@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -648,6 +649,16 @@ class OdersController extends Controller
     {
         try {
 
+            $startDate = request('start_date')
+                ? Carbon::parse(request('start_date'))->startOfDay()
+                : now()->startOfMonth();
+
+            $endDate = request('end_date')
+                ? Carbon::parse(request('end_date'))->endOfDay()
+                : now();
+
+            $reference = request('q', '');
+
             $distributor = Auth::guard('distributor')->user();
 
             if (! $distributor) {
@@ -669,27 +680,47 @@ class OdersController extends Controller
                 'confirmedBy',
                 'rejectedBy'
             ])
+
                 ->where(
                     'distributor_id',
                     $distributor->id
                 )
+
+                ->whereBetween('order_date', [
+                    $startDate,
+                    $endDate
+                ])
+
+                ->when($reference, function ($query) use ($reference) {
+
+                    $query->where(function ($q) use ($reference) {
+
+                        $q->where(
+                            'reference',
+                            'LIKE',
+                            "%{$reference}%"
+                        )
+
+                            ->orWhere(
+                                'delivery_address',
+                                'LIKE',
+                                "%{$reference}%"
+                            );
+                    });
+                })
+
+                ->when(
+                    $request->filled('status'),
+                    function ($query) use ($request) {
+
+                        $query->where(
+                            'status',
+                            $request->status
+                        );
+                    }
+                )
+
                 ->latest();
-
-            if ($request->filled('status')) {
-
-                $query->where(
-                    'status',
-                    $request->status
-                );
-            }
-            if ($request->filled('search')) {
-
-                $query->where(
-                    'reference',
-                    'LIKE',
-                    '%' . $request->search . '%'
-                );
-            }
 
             $orders = $query->paginate(
                 $request->per_page ?? 10
@@ -723,6 +754,108 @@ class OdersController extends Controller
             ], 500);
         }
     }
+    // public function ordersGetAllData(Request $request): JsonResponse
+    // {
+    //     try {
+    //         $startDate = request('start_date')
+    //             ? Carbon::parse(request('start_date'))->startOfDay()
+    //             : now()->startOfMonth();
+
+    //         $endDate = request('end_date')
+    //             ? Carbon::parse(request('end_date'))->endOfDay()
+    //             : now();
+    //         $reference = request('q', '');
+
+    //         $distributor = Auth::guard('distributor')->user();
+
+    //         if (! $distributor) {
+
+    //             return response()->json([
+
+    //                 'success' => false,
+
+    //                 'status' => 401,
+
+    //                 'message' => 'Non authentifié'
+
+    //             ], 401);
+    //         }
+
+    //         $query = Order::with([
+    //             'items.product',
+    //             'distributor',
+    //             'confirmedBy',
+    //             'rejectedBy'
+    //         ])
+    //             ->where(
+    //                 'distributor_id',
+    //                 $distributor->id
+    //             )
+    //             ->whereBetween('order_date', [
+    //                 $startDate,
+    //                 $endDate
+    //             ])
+    //             ->when($reference, function ($query) use ($reference) {
+
+    //                 $query->where(function ($q) use ($reference) {
+
+    //                     $q->where(
+    //                         'reference',
+    //                         'LIKE',
+    //                         "%{$reference}%"
+    //                     )
+
+    //                         ->orWhere(
+    //                             'delivery_address',
+    //                             'LIKE',
+    //                             "%{$reference}%"
+    //                         );
+    //                 });
+    //             })
+    //             ->latest()->get();
+
+    //         if (
+    //             $request->filled('status')
+    //         ) {
+
+    //             $query->where(
+    //                 'status',
+    //                 $request->status
+    //             );
+    //         }
+
+    //         $orders = $query->paginate(
+    //             $request->per_page ?? 10
+    //         );
+
+    //         return response()->json([
+
+    //             'success' => true,
+
+    //             'status' => 200,
+
+    //             'message' => 'Liste des commandes récupérée avec succès',
+
+    //             'data' => $orders
+
+    //         ], 200);
+    //     } catch (\Throwable $e) {
+
+    //         return response()->json([
+
+    //             'success' => false,
+
+    //             'status' => 500,
+
+    //             'message' => 'Erreur lors de la récupération des commandes',
+
+    //             'error' => config('app.debug')
+    //                 ? $e->getMessage()
+    //                 : 'Erreur interne du serveur'
+
+    //         ], 500);
+    //     }
+    // }
 
     #[OA\Put(
         path: "/api/v1/validateOder/{id}",
