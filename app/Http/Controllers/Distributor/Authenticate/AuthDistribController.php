@@ -292,7 +292,7 @@ class AuthDistribController extends Controller
                 ? Carbon::parse(request('end_date'))->endOfDay()
                 : now();
 
-            $reference = request('reference');
+            $reference = request('q', '');
 
             $distributor = Distributor::find(
                 Auth::guard('distributor')->user()->id
@@ -325,21 +325,12 @@ class AuthDistribController extends Controller
 
                 ->when($reference, function ($query) use ($reference) {
 
-                    $query->where(function ($q) use ($reference) {
-
-                        $q->where('reference', 'LIKE', "%{$reference}%")
-
-                            ->orWhereHas('sale', function ($sale) use ($reference) {
-
-                                $sale->where(
-                                    'reference',
-                                    'LIKE',
-                                    "%{$reference}%"
-                                );
-                            });
-                    });
+                    $query->where(
+                        'reference',
+                        'LIKE',
+                        "%{$reference}%"
+                    );
                 })
-
                 ->latest()
                 ->get();
 
