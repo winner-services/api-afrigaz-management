@@ -1052,7 +1052,7 @@ class OdersController extends Controller
                 ->sum(DB::raw('loan_amount - paid_amount'));
 
             $availableCredit =
-                ($distributor->credit_limit ?? 0) - $totalDebt;
+                $totalDebt - ($distributor->credit_limit ?? 0);
 
             $monthlyOrdersAmount = Order::where(
                 'distributor_id',
@@ -1066,7 +1066,7 @@ class OdersController extends Controller
                     'order_date',
                     now()->year
                 )
-                ->sum('amount');
+                ->sum('total');
 
             $recentOrders = Order::where(
                 'distributor_id',
@@ -1077,7 +1077,7 @@ class OdersController extends Controller
                 ->get([
                     'id',
                     'reference',
-                    'amount',
+                    'total',
                     'status',
                     'order_date as date'
                 ]);
