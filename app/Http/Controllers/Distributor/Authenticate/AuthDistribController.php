@@ -553,45 +553,45 @@ class AuthDistribController extends Controller
 
     public function updateProfilePassword(Request $request): JsonResponse
     {
-        $distributor = Distributor::find(
-            Auth::guard('distributor')->user()->id
-        );
+        $distributor = Auth::guard('distributor')->user();
 
         if (! $distributor) {
-
             return response()->json([
                 'status' => 404,
+                'success' => false,
                 'message' => 'Distributeur introuvable'
             ], 404);
         }
 
         $validator = Validator::make($request->all(), [
-            'password' => 'nullable|string|max:100'
+            'password' => 'required|string|max:100|confirmed'
         ]);
-        $password =  bcrypt($request->input('password'));
 
         if ($validator->fails()) {
             return response()->json([
                 'status' => 422,
+                'success' => false,
                 'message' => 'Les données envoyées ne sont pas valides.',
                 'errors' => $validator->errors()
             ], 422);
         }
 
         try {
-            $distributor->update(
-                ['password' => $password]
-            );
+
+            $distributor->update([
+                'password' => bcrypt($request->password)
+            ]);
 
             return response()->json([
                 'status' => 200,
                 'success' => true,
-                'message' => 'Mot de passe mis à jour avec succès.',
-                'data' => $distributor
+                'message' => 'Mot de passe mis à jour avec succès.'
             ], 200);
         } catch (\Throwable $e) {
+
             return response()->json([
                 'status' => 500,
+                'success' => false,
                 'message' => 'Erreur lors de la mise à jour du mot de passe.',
                 'error' => config('app.debug') ? $e->getMessage() : null
             ], 500);
