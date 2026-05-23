@@ -462,4 +462,133 @@ class AuthDistribController extends Controller
             ], 500);
         }
     }
+
+    public function updateProfileInfo(Request $request): JsonResponse
+    {
+        $distributor = Distributor::find(
+            Auth::guard('distributor')->user()->id
+        );
+
+        if (! $distributor) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Distributeur introuvable'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'type' => 'nullable|in:physical,company',
+
+            'name' => 'nullable|string|max:255|unique:distributors,name,' . $distributor->id,
+
+            'gender' => 'nullable|string|max:20',
+
+            'rccm' => 'nullable|string|max:255',
+            'idnat' => 'nullable|string|max:255',
+            'tax_number' => 'nullable|string|max:255',
+            'manager_name' => 'nullable|string|max:255',
+
+            'identity_type' => 'nullable|string|max:100',
+            'identity_number' => 'nullable|string|max:100',
+
+            'identity_document' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
+
+            'phone' => 'nullable|string|max:20|unique:distributors,phone,' . $distributor->id,
+            'email' => 'nullable|email|unique:distributors,email,' . $distributor->id,
+            'password' => 'nullable|string|max:100',
+
+            'country' => 'nullable|string|max:100',
+            'city' => 'nullable|string|max:100',
+            'commune' => 'nullable|string|max:100',
+            'quartier' => 'nullable|string|max:100',
+            'avenue' => 'nullable|string|max:100',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Les données envoyées ne sont pas valides.',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $distributor->update($request->only(
+                'name',
+                'phone',
+                'email',
+                'country',
+                'city',
+                'commune',
+                'quartier',
+                'avenue',
+                'identity_type',
+                'identity_number',
+                'rccm',
+                'idnat',
+                'tax_number',
+                'manager_name',
+                'type',
+                'gender'
+            ));
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Profil mis à jour avec succès.',
+                'data' => $distributor
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Erreur lors de la mise à jour du profil.',
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
+    }
+
+    public function updateProfilePassword(Request $request): JsonResponse
+    {
+        $distributor = Distributor::find(
+            Auth::guard('distributor')->user()->id
+        );
+
+        if (! $distributor) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Distributeur introuvable'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'password' => 'nullable|string|max:100'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Les données envoyées ne sont pas valides.',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $distributor->update($request->only(
+                'password'
+            ));
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Mot de passe mis à jour avec succès.',
+                'data' => $distributor
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Erreur lors de la mise à jour du mot de passe.',
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
+    }
 }

@@ -61,6 +61,8 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::middleware('auth:distributor')->group(function () {
             Route::controller(AuthDistribController::class)->group(function () {
                 Route::get('/distributorProfil', 'profile');
+                Route::get('/distributor/profile/update-info', 'updateProfileInfo');
+                Route::get('/distributor/profile/update-password', 'updateProfilePassword');
                 Route::get('/getMyDebts', 'myDebts');
                 Route::get('/getmyPayments', 'myPayments');
             });
