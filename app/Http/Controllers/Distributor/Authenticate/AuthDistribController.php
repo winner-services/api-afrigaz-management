@@ -507,7 +507,7 @@ class AuthDistribController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'status' => false,
+                'status' => 422,
                 'message' => 'Les données envoyées ne sont pas valides.',
                 'errors' => $validator->errors()
             ], 422);
@@ -534,13 +534,13 @@ class AuthDistribController extends Controller
             ));
 
             return response()->json([
-                'status' => true,
+                'status' => 200,
                 'message' => 'Profil mis à jour avec succès.',
                 'data' => $distributor
             ], 200);
         } catch (\Throwable $e) {
             return response()->json([
-                'status' => false,
+                'status' => 500,
                 'message' => 'Erreur lors de la mise à jour du profil.',
                 'error' => config('app.debug') ? $e->getMessage() : null
             ], 500);
@@ -556,7 +556,7 @@ class AuthDistribController extends Controller
         if (! $distributor) {
 
             return response()->json([
-                'success' => false,
+                'status' => 404,
                 'message' => 'Distributeur introuvable'
             ], 404);
         }
@@ -567,7 +567,7 @@ class AuthDistribController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'status' => false,
+                'status' => 422,
                 'message' => 'Les données envoyées ne sont pas valides.',
                 'errors' => $validator->errors()
             ], 422);
@@ -579,13 +579,13 @@ class AuthDistribController extends Controller
             ));
 
             return response()->json([
-                'status' => true,
+                'status' => 200,
                 'message' => 'Mot de passe mis à jour avec succès.',
                 'data' => $distributor
             ], 200);
         } catch (\Throwable $e) {
             return response()->json([
-                'status' => false,
+                'status' => 500,
                 'message' => 'Erreur lors de la mise à jour du mot de passe.',
                 'error' => config('app.debug') ? $e->getMessage() : null
             ], 500);
