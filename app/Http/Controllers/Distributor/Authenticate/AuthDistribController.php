@@ -564,7 +564,7 @@ class AuthDistribController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'new_password' => 'required|string|max:100|confirmed'
+            'new_password' => 'required|string|max:100'
         ]);
 
         if ($validator->fails()) {
