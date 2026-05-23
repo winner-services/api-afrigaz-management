@@ -568,6 +568,7 @@ class AuthDistribController extends Controller
         $validator = Validator::make($request->all(), [
             'password' => 'nullable|string|max:100'
         ]);
+        $password =  bcrypt($request->input('password'));
 
         if ($validator->fails()) {
             return response()->json([
@@ -578,9 +579,9 @@ class AuthDistribController extends Controller
         }
 
         try {
-            $distributor->update($request->only(
-                'password'
-            ));
+            $distributor->update(
+                ['password' => $password]
+            );
 
             return response()->json([
                 'status' => 200,
