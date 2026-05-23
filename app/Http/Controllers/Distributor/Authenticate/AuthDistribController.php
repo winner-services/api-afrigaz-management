@@ -265,6 +265,7 @@ class AuthDistribController extends Controller
                 'rccm' => $distributor->rccm,
                 'idnat' => $distributor->idnat,
                 'tax_number' => $distributor->tax_number,
+                'plot_number' => $distributor->plot_number,
 
                 'status' => $distributor->status,
                 'category_distributor' => $category,
