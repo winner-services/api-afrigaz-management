@@ -535,6 +535,7 @@ class AuthDistribController extends Controller
 
             return response()->json([
                 'status' => 200,
+                'success' => true,
                 'message' => 'Profil mis à jour avec succès.',
                 'data' => $distributor
             ], 200);
@@ -557,6 +558,7 @@ class AuthDistribController extends Controller
 
             return response()->json([
                 'status' => 404,
+                'success' => true,
                 'message' => 'Distributeur introuvable'
             ], 404);
         }
