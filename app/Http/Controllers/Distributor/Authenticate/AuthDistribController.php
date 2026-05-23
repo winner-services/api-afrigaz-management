@@ -564,7 +564,7 @@ class AuthDistribController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'password' => 'required|string|max:100|confirmed'
+            'newPassword' => 'required|string|max:100|confirmed'
         ]);
 
         if ($validator->fails()) {
@@ -579,7 +579,7 @@ class AuthDistribController extends Controller
         try {
 
             $distributor->update([
-                'password' => bcrypt($request->password)
+                'password' => bcrypt($request->newPassword)
             ]);
 
             return response()->json([
