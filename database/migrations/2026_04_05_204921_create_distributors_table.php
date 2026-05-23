@@ -38,6 +38,7 @@ return new class extends Migration
             $table->string('commune')->nullable();
             $table->string('quartier')->nullable();
             $table->string('avenue')->nullable();
+            $table->string('plot_number')->nullable();
 
             $table->string('status')->default('actif');
             $table->boolean('is_deleted')->default(false);

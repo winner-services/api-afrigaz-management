@@ -8,7 +8,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-#[Fillable(['type', 'name', 'gender', 'reference', 'rccm', 'idnat', 'manager_name', 'tax_number', 'identity_type', 'password', 'identity_number', 'identity_document', 'phone', 'status', 'email', 'country', 'city', 'commune', 'quartier', 'avenue', 'is_deleted', 'addedBy', 'category_distributor_id'])]
+#[Fillable(['type', 'name', 'gender', 'reference', 'rccm', 'idnat', 'manager_name', 'tax_number', 'identity_type', 'password', 'identity_number', 'identity_document', 'phone', 'status', 'email', 'country', 'city', 'commune', 'quartier', 'avenue', 'is_deleted', 'addedBy', 'category_distributor_id', 'plot_number'])]
 // class Distributor extends Model
 class Distributor extends Authenticatable
 {

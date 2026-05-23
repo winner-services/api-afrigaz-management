@@ -318,6 +318,7 @@ class DistributorController extends Controller
                 'commune' => 'nullable|string|max:100',
                 'quartier' => 'nullable|string|max:100',
                 'avenue' => 'nullable|string|max:100',
+                'plot_number' => 'nullable|string|max:100',
 
                 'category_distributor_id' => 'nullable|integer|exists:category_distributors,id',
             ]);
@@ -432,6 +433,7 @@ class DistributorController extends Controller
 
                         new OA\Property(property: "identity_type", type: "string", example: "Carte d'électeur"),
                         new OA\Property(property: "identity_number", type: "string", example: "123456789"),
+                        new OA\Property(property: "plot_number", type: "string", example: "12"),
 
                         new OA\Property(
                             property: "identity_document",
@@ -448,6 +450,7 @@ class DistributorController extends Controller
                         new OA\Property(property: "commune", type: "string", example: "Gombe"),
                         new OA\Property(property: "quartier", type: "string", example: "Centre"),
                         new OA\Property(property: "avenue", type: "string", example: "Av. Fikin"),
+                        new OA\Property(property: "plot_number", type: "string", example: "123"),
 
                         new OA\Property(property: "category_distributor_id", type: "integer", example: 1),
                     ]
@@ -507,6 +510,7 @@ class DistributorController extends Controller
                 'commune' => 'nullable|string|max:100',
                 'quartier' => 'nullable|string|max:100',
                 'avenue' => 'nullable|string|max:100',
+                'plot_number' => 'nullable|string|max:100',
 
                 'category_distributor_id' => 'nullable|integer|exists:category_distributors,id',
             ]);

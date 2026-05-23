@@ -503,6 +503,7 @@ class AuthDistribController extends Controller
             'commune' => 'nullable|string|max:100',
             'quartier' => 'nullable|string|max:100',
             'avenue' => 'nullable|string|max:100',
+            'plot_number' => 'nullable|string|max:100',
         ]);
 
         if ($validator->fails()) {
@@ -530,7 +531,8 @@ class AuthDistribController extends Controller
                 'tax_number',
                 'manager_name',
                 'type',
-                'gender'
+                'gender',
+                'plot_number'
             ));
 
             return response()->json([
