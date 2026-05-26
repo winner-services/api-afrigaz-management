@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Repport;
 use App\Http\Controllers\Controller;
 use App\Models\About;
 use App\Models\Branche;
+use App\Models\CashTransaction;
 use App\Models\Customer;
 use App\Models\Distributor;
 use App\Models\Filling;
@@ -951,6 +952,85 @@ class RepportController extends Controller
                     ? $e->getMessage()
                     : 'Erreur interne du serveur'
 
+            ], 500);
+        }
+    }
+
+    public function transactionReport()
+    {
+        try {
+
+            $startDate = request('date_start')
+                ? Carbon::parse(request('date_start'))->startOfDay()
+                : now()->startOfMonth();
+
+            $endDate = request('date_end')
+                ? Carbon::parse(request('date_end'))->endOfDay()
+                : now()->endOfDay();
+
+            $about = About::first();
+
+            if ($about) {
+                $this->imageService->transform($about, ['logo', 'logo2']);
+            }
+
+            $brancheId = request('branche_id');
+            $accountId = request('account_id');
+
+            $sortField = request('sort_field', 'id');
+            $sortDirection = request('sort_direction', 'desc');
+
+            $allowedSortFields = [
+                'id',
+                'amount',
+                'transaction_date',
+                'type'
+            ];
+
+            if (!in_array($sortField, $allowedSortFields)) {
+                $sortField = 'id';
+            }
+
+            if (!in_array(strtolower($sortDirection), ['asc', 'desc'])) {
+                $sortDirection = 'desc';
+            }
+
+            $query = CashTransaction::with([
+                'account:id,designation,branche_id',
+                'addedBy:id,name'
+            ])
+                ->whereBetween('transaction_date', [$startDate, $endDate]);
+
+            if (!empty($brancheId)) {
+
+                $query->whereHas('account', function ($q) use ($brancheId) {
+                    $q->where('branche_id', $brancheId);
+                });
+            }
+
+            if (!empty($accountId)) {
+
+                $query->where('cash_account_id', $accountId);
+            }
+
+            $transactions = $query
+                ->orderBy($sortField, $sortDirection)
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'info_company' => $about,
+                'date_start' => $startDate,
+                'date_end' => $endDate,
+                'data' => $transactions,
+            ]);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des transactions',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
