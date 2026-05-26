@@ -387,5 +387,10 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/salesReport', 'salesReport');
             Route::post('/productStockReport', 'productStockCard');
         });
+        Route::controller(OdersController::class)->group(function () {
+            Route::get('/ordersGetData', 'ordersGetData');
+            Route::put('/validateOder/{id}', 'validateOrders');
+            Route::put('/rejectOder/{id}', 'rejectOrders');
+        });
     });
 });

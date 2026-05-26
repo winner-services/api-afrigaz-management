@@ -24,15 +24,13 @@ return new class extends Migration
             $table->text('email')->nullable();
             $table->text('logo')->nullable();
             $table->text('logo2')->nullable();
-            $table->time('opening_time');
-            $table->time('closing_time');
+            $table->time('opening_time')->nullable();
+            $table->time('closing_time')->nullable();
             $table->integer('grace_minutes')
                 ->default(15);
             $table->json('working_days')
                 ->nullable();
-            $table->timestamps();
-            $table->time('opening_time')->nullable();
-            $table->time('closing_time')->nullable();
+            $table->timestamps();            
         });
     }
 

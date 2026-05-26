@@ -755,108 +755,93 @@ class OdersController extends Controller
             ], 500);
         }
     }
-    // public function ordersGetAllData(Request $request): JsonResponse
-    // {
-    //     try {
-    //         $startDate = request('start_date')
-    //             ? Carbon::parse(request('start_date'))->startOfDay()
-    //             : now()->startOfMonth();
 
-    //         $endDate = request('end_date')
-    //             ? Carbon::parse(request('end_date'))->endOfDay()
-    //             : now();
-    //         $reference = request('q', '');
+    public function ordersGetData(Request $request): JsonResponse
+    {
+        try {
 
-    //         $distributor = Auth::guard('distributor')->user();
+            $startDate = request('start_date')
+                ? Carbon::parse(request('start_date'))->startOfDay()
+                : now()->startOfMonth();
 
-    //         if (! $distributor) {
+            $endDate = request('end_date')
+                ? Carbon::parse(request('end_date'))->endOfDay()
+                : now();
 
-    //             return response()->json([
+            $reference = request('q', '');
 
-    //                 'success' => false,
+            $query = Order::with([
+                'items.product',
+                'distributor',
+                'confirmedBy',
+                'rejectedBy'
+            ])->whereBetween('order_date', [
+                $startDate,
+                $endDate
+            ])
 
-    //                 'status' => 401,
+                ->when($reference, function ($query) use ($reference) {
 
-    //                 'message' => 'Non authentifié'
+                    $query->where(function ($q) use ($reference) {
 
-    //             ], 401);
-    //         }
+                        $q->where(
+                            'reference',
+                            'LIKE',
+                            "%{$reference}%"
+                        )
 
-    //         $query = Order::with([
-    //             'items.product',
-    //             'distributor',
-    //             'confirmedBy',
-    //             'rejectedBy'
-    //         ])
-    //             ->where(
-    //                 'distributor_id',
-    //                 $distributor->id
-    //             )
-    //             ->whereBetween('order_date', [
-    //                 $startDate,
-    //                 $endDate
-    //             ])
-    //             ->when($reference, function ($query) use ($reference) {
+                            ->orWhere(
+                                'delivery_address',
+                                'LIKE',
+                                "%{$reference}%"
+                            );
+                    });
+                })
 
-    //                 $query->where(function ($q) use ($reference) {
+                ->when(
+                    $request->filled('status'),
+                    function ($query) use ($request) {
 
-    //                     $q->where(
-    //                         'reference',
-    //                         'LIKE',
-    //                         "%{$reference}%"
-    //                     )
+                        $query->where(
+                            'status',
+                            $request->status
+                        );
+                    }
+                )
+                ->latest();
 
-    //                         ->orWhere(
-    //                             'delivery_address',
-    //                             'LIKE',
-    //                             "%{$reference}%"
-    //                         );
-    //                 });
-    //             })
-    //             ->latest()->get();
+            $orders = $query->paginate(
+                $request->per_page ?? 10
+            );
 
-    //         if (
-    //             $request->filled('status')
-    //         ) {
+            return response()->json([
 
-    //             $query->where(
-    //                 'status',
-    //                 $request->status
-    //             );
-    //         }
+                'success' => true,
 
-    //         $orders = $query->paginate(
-    //             $request->per_page ?? 10
-    //         );
+                'status' => 200,
 
-    //         return response()->json([
+                'message' => 'Liste des commandes récupérée avec succès',
 
-    //             'success' => true,
+                'data' => $orders
 
-    //             'status' => 200,
+            ], 200);
+        } catch (\Throwable $e) {
 
-    //             'message' => 'Liste des commandes récupérée avec succès',
+            return response()->json([
 
-    //             'data' => $orders
+                'success' => false,
 
-    //         ], 200);
-    //     } catch (\Throwable $e) {
+                'status' => 500,
 
-    //         return response()->json([
+                'message' => 'Erreur lors de la récupération des commandes',
 
-    //             'success' => false,
+                'error' => config('app.debug')
+                    ? $e->getMessage()
+                    : 'Erreur interne du serveur'
 
-    //             'status' => 500,
-
-    //             'message' => 'Erreur lors de la récupération des commandes',
-
-    //             'error' => config('app.debug')
-    //                 ? $e->getMessage()
-    //                 : 'Erreur interne du serveur'
-
-    //         ], 500);
-    //     }
-    // }
+            ], 500);
+        }
+    }
 
     #[OA\Put(
         path: "/api/v1/validateOder/{id}",
