@@ -917,7 +917,6 @@ class RepportController extends Controller
                 ? Carbon::parse(request('date_end'))->endOfDay()
                 : now();
             $data = Order::with([
-                'items.product',
                 'distributor',
                 'confirmedBy',
                 'rejectedBy'
@@ -925,7 +924,7 @@ class RepportController extends Controller
                 $startDate,
                 $endDate
             ])
-                ->latest();
+                ->latest()->get();
             return response()->json([
 
                 'success' => true,
