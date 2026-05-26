@@ -20,6 +20,7 @@ use App\Models\TankMovement;
 use App\Models\Transfer;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use OpenApi\Attributes as OA;
 
 class RepportController extends Controller
@@ -184,18 +185,19 @@ class RepportController extends Controller
         ]
     )]
 
-    public function tankMovements(Request $request)
+    public function tankMovements()
     {
         $about = About::first();
         if ($about) {
             $this->imageService->transform($about, ['logo', 'logo2']);
         }
-        $validated = validator($request->all(), [
-            'start_date' => ['nullable', 'date'],
-            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-        ])->validate();
-        $startDate = $validated['start_date'] ?? now()->startOfMonth();
-        $endDate = $validated['end_date'] ?? now();
+        $startDate = request('date_start')
+            ? Carbon::parse(request('date_start'))->startOfDay()
+            : now()->startOfMonth();
+
+        $endDate = request('date_end')
+            ? Carbon::parse(request('date_end'))->endOfDay()
+            : now();
 
         $data = TankMovement::with('tank:id,name', 'user')
             ->whereBetween('operation_date', [$startDate, $endDate])
