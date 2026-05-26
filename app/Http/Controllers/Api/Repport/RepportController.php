@@ -200,7 +200,7 @@ class RepportController extends Controller
             : now();
 
         $data = TankMovement::with('tank:id,name', 'user')
-            ->whereBetween('transaction_date', [$startDate, $endDate])
+            ->whereBetween('operation_date', [$startDate, $endDate])
             ->latest()
             ->get();
 
