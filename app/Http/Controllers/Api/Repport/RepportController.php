@@ -253,18 +253,19 @@ class RepportController extends Controller
             )
         ]
     )]
-    public function purchasesReport(Request $request)
+    public function purchasesReport()
     {
         $about = About::first();
         if ($about) {
             $this->imageService->transform($about, ['logo', 'logo2']);
         }
-        $validated = validator($request->all(), [
-            'start_date' => ['nullable', 'date'],
-            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-        ])->validate();
-        $startDate = $validated['start_date'] ?? now()->startOfMonth();
-        $endDate = $validated['end_date'] ?? now();
+        $startDate = request('date_start')
+            ? Carbon::parse(request('date_start'))->startOfDay()
+            : now()->startOfMonth();
+
+        $endDate = request('date_end')
+            ? Carbon::parse(request('date_end'))->endOfDay()
+            : now();
 
         $data = StockEntry::with('supplier', 'user', 'items.product:id,name')
             ->whereBetween('transaction_date', [$startDate, $endDate])
