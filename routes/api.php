@@ -391,6 +391,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::get('/distributorReport', 'distributorReport');
             Route::get('/customerReport', 'customerReport');
             Route::get('/supplierReport', 'supplierReport');
+            Route::post('/ordersReport', 'ordersReport');
         });
         Route::controller(OdersController::class)->group(function () {
             Route::get('/ordersGetData', 'ordersGetData');

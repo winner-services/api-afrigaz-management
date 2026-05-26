@@ -8,6 +8,7 @@ use App\Models\Branche;
 use App\Models\Customer;
 use App\Models\Distributor;
 use App\Models\Filling;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductLedger;
 use App\Models\Sale;
@@ -847,6 +848,11 @@ class RepportController extends Controller
 
     public function stockByBrancheReport()
     {
+        $about = About::first();
+
+        if ($about) {
+            $this->imageService->transform($about, ['logo', 'logo2']);
+        }
         $branches = Branche::latest()->get();
 
         $brancheId = (int) request('branche_id', 1);
@@ -890,7 +896,63 @@ class RepportController extends Controller
             'success' => true,
             'status' => 200,
             'branches' => $branches,
+            'info_company' => $about,
             'data' => $stocks
         ]);
+    }
+
+    public function ordersReport()
+    {
+        try {
+            $about = About::first();
+
+            if ($about) {
+                $this->imageService->transform($about, ['logo', 'logo2']);
+            }
+            $startDate = request('date_start')
+                ? Carbon::parse(request('date_start'))->startOfDay()
+                : now()->startOfMonth();
+
+            $endDate = request('date_end')
+                ? Carbon::parse(request('date_end'))->endOfDay()
+                : now();
+            $data = Order::with([
+                'items.product',
+                'distributor',
+                'confirmedBy',
+                'rejectedBy'
+            ])->whereBetween('order_date', [
+                $startDate,
+                $endDate
+            ])
+                ->latest();
+            return response()->json([
+
+                'success' => true,
+
+                'status' => 200,
+
+                'message' => 'Liste des commandes récupérée avec succès',
+                'info_company' => $about,
+
+                'data' => $data
+
+            ], 200);
+        } catch (\Throwable $e) {
+
+            return response()->json([
+
+                'success' => false,
+
+                'status' => 500,
+
+                'message' => 'Erreur lors de la récupération des commandes',
+
+                'error' => config('app.debug')
+                    ? $e->getMessage()
+                    : 'Erreur interne du serveur'
+
+            ], 500);
+        }
     }
 }
