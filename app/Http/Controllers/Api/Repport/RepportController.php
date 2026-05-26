@@ -200,7 +200,7 @@ class RepportController extends Controller
             : now();
 
         $data = TankMovement::with('tank:id,name', 'user')
-            ->whereBetween('operation_date', [$startDate, $endDate])
+            ->whereBetween('transaction_date', [$startDate, $endDate])
             ->latest()
             ->get();
 
@@ -238,7 +238,7 @@ class RepportController extends Controller
                             items: new OA\Items(
                                 properties: [
                                     new OA\Property(property: "id", type: "integer", example: 1),
-                                    new OA\Property(property: "operation_date", type: "string", example: "2026-04-20"),
+                                    new OA\Property(property: "transaction_date", type: "string", example: "2026-04-20"),
                                     new OA\Property(property: "tank_id", type: "integer", example: 2),
                                     new OA\Property(property: "user_id", type: "integer", example: 5),
                                 ]
