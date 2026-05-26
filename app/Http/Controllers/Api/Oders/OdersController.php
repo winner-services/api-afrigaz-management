@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Oders;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\SendDistributorSmsJob;
+use App\Models\Currency;
 use App\Models\DebtDistributor;
 use App\Models\Distributor;
 use App\Models\Order;
@@ -759,6 +760,10 @@ class OdersController extends Controller
     public function ordersGetData(Request $request): JsonResponse
     {
         try {
+            $devise = Currency::where('status', 'created')
+                ->orderByRaw("currency_type = 'devise_principale' DESC")
+                ->latest()
+                ->get();
 
             $startDate = request('start_date')
                 ? Carbon::parse(request('start_date'))->startOfDay()
@@ -821,7 +826,7 @@ class OdersController extends Controller
                 'status' => 200,
 
                 'message' => 'Liste des commandes récupérée avec succès',
-
+                'devise' => $devise,
                 'data' => $orders
 
             ], 200);
