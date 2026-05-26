@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Repport;
 
 use App\Http\Controllers\Controller;
 use App\Models\About;
+use App\Models\Branche;
 use App\Models\Customer;
 use App\Models\Distributor;
 use App\Models\Filling;
@@ -11,8 +12,10 @@ use App\Models\Product;
 use App\Models\ProductLedger;
 use App\Models\Sale;
 use App\Models\Shipping;
+use App\Models\StockByBranch;
 use App\Models\StockEntry;
 use App\Models\StockMovement;
+use App\Models\Supplier;
 use App\Models\TankMovement;
 use App\Models\Transfer;
 use App\Services\ImageService;
@@ -763,6 +766,120 @@ class RepportController extends Controller
                 'total_out' => abs($lines->where('quantity', '<', 0)->sum('quantity')),
                 'balance' => $lines->sum('quantity'),
             ]
+        ]);
+    }
+
+    public function supplierReport()
+    {
+        $about = About::first();
+        if ($about) {
+            $this->imageService->transform($about, ['logo', 'logo2']);
+        }
+        $data = Supplier::query()
+            ->leftJoin('users', 'suppliers.addedBy', '=', 'users.id')
+            ->select(
+                'suppliers.*',
+                'users.name as addedBy'
+            )
+            ->where('suppliers.status', 'created')
+            ->orderBy('id', 'desc')
+            ->get();
+        return response()->json([
+            'status' => 200,
+            'success' => true,
+            'message' => 'succès',
+            'info_company' => $about,
+            'data' => $data
+        ]);
+    }
+
+    public function customerReport()
+    {
+        $about = About::first();
+        if ($about) {
+            $this->imageService->transform($about, ['logo', 'logo2']);
+        }
+        $data = Customer::with(['user:id,name'])
+            ->where('status', 'created')
+            ->orderBy('id', 'desc')
+            ->get();
+        return response()->json([
+            'status' => 200,
+            'success' => true,
+            'message' => 'succès',
+            'info_company' => $about,
+            'data' => $data
+        ]);
+    }
+
+    public function distributorReport()
+    {
+        $about = About::first();
+
+        if ($about) {
+            $this->imageService->transform($about, ['logo', 'logo2']);
+        }
+
+        $category_id = request()->input('id_category');
+
+        $data = Distributor::with([
+            'addedBy:id,name',
+            'categoryDistributor:id,designation'
+        ])
+            ->where('is_deleted', false)
+            ->when($category_id, function ($query) use ($category_id) {
+                $query->where('category_distributor_id', $category_id);
+            })
+            ->orderByDesc('id')
+            ->get();
+
+        return response()->json([
+            'status' => 200,
+            'success' => true,
+            'message' => 'succès',
+            'info_company' => $about,
+            'data' => $data
+        ]);
+    }
+
+    public function stockByBrancheReport()
+    {
+        $branches = Branche::latest()->get();
+        $brancheId = (int) request('branche_id', 1);
+
+        if ($brancheId <= 0) {
+            $brancheId = 1;
+        }
+
+        $stocks = StockByBranch::with(['product.category', 'product.unit', 'product.addedBy'])
+            ->where('branche_id', $brancheId)
+            ->orderByDesc('id')->get();
+
+        $stocks->getCollection()->transform(function ($stock) {
+
+            $product = $stock->product;
+
+            if (!$product) return $stock;
+
+            if ((int) $stock->categorie_id === 2) {
+
+                $etat = ((bool) $stock->is_empty) ? 'vide' : 'pleine';
+
+                $stock->product_name =
+                    $product->name . ' - ' . $etat . ' - ' . $stock->condition_state;
+            } else {
+
+                $stock->product_name = $product->name;
+            }
+
+            return $stock;
+        });
+
+        return response()->json([
+            'success' => true,
+            'status' => 200,
+            'branches' => $branches,
+            'data' => $stocks
         ]);
     }
 }

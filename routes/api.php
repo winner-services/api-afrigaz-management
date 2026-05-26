@@ -386,6 +386,11 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/deliveriesReport', 'deliveriesReport');
             Route::post('/salesReport', 'salesReport');
             Route::post('/productStockReport', 'productStockCard');
+
+            Route::post('/stockByBrancheReport', 'stockByBrancheReport');
+            Route::get('/distributorReport', 'distributorReport');
+            Route::get('/customerReport', 'customerReport');
+            Route::get('/supplierReport', 'supplierReport');
         });
         Route::controller(OdersController::class)->group(function () {
             Route::get('/ordersGetData', 'ordersGetData');
