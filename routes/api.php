@@ -379,7 +379,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::get('/stockReport', 'stockReport');
             Route::get('/distributorsList', 'distributorsList');
             Route::get('/customersList', 'customersList');
-            Route::post('/tankMovements', 'tankMovements');
+            Route::get('/tankMovements', 'tankMovements');
             Route::post('/purchasesReport', 'purchasesReport');
             Route::post('/fillingsReport', 'fillingsReport');
             Route::post('/transfersReport', 'transfersReport');
