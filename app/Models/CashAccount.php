@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['designation', 'nature', 'reference', 'branche_id', 'addedBy', 'status'])]
+#[Fillable(['designation', 'nature', 'reference', 'branche_id', 'addedBy', 'status', 'account_number'])]
 class CashAccount extends Model
 {
     public function branch()

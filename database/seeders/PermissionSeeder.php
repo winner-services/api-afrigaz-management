@@ -27,6 +27,7 @@ class PermissionSeeder extends Seeder
             'recharge-bouteille',
             'transfert-stock',
             'retour-cylindre',
+            'commande-distributeur',
             'livraison-distributeur',
             'vente',
             'finance',

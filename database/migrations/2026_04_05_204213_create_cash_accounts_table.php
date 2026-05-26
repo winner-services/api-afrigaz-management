@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string("designation");
             $table->string("nature");
             $table->string("reference")->nullable();
+            $table->string("account_number")->nullable();
             $table->foreignId('branche_id')->nullable()->constrained('branches')->nullOnDelete();
             $table->foreignId('addedBy')->nullable()->constrained('users')->nullOnDelete();
             $table->string('status')->default('created');

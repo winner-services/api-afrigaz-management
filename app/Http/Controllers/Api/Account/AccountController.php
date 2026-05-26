@@ -30,7 +30,7 @@ class AccountController extends Controller
         $sort_direction = request('sort_direction', 'desc');
         $sort_field = request('sort_field', 'id');
 
-        $allowedSortFields = ['id', 'designation', 'nature', 'reference', 'created_at'];
+        $allowedSortFields = ['id', 'designation', 'nature', 'reference', 'account_number', 'created_at'];
 
         if (!in_array($sort_field, $allowedSortFields)) {
             $sort_field = 'id';
@@ -93,7 +93,8 @@ class AccountController extends Controller
                 properties: [
                     new OA\Property(property: "designation", type: "string", example: "John Doe"),
                     new OA\Property(property: "branche_id", type: "integer", example: 1),
-                    new OA\Property(property: "nature", type: "string", example: "Nature du compte")
+                    new OA\Property(property: "nature", type: "string", example: "Nature du compte"),
+                    new OA\Property(property: "account_number", type: "string", example: "12345")
                 ]
             )
         ),
@@ -117,6 +118,7 @@ class AccountController extends Controller
         $rules = [
             'designation' => ['nullable', 'string', 'max:255'],
             'nature' => ['nullable', 'string', 'max:255'],
+            'account_number' => ['nullable', 'string', 'max:255', 'unique:cash_accounts,account_number'],
             'branche_id' => ['required', 'integer', 'exists:branches,id'],
         ];
 
@@ -124,6 +126,7 @@ class AccountController extends Controller
             'branche_id.required' => 'La branche est obligatoire.',
             'branche_id.exists' => 'La branche sélectionnée n\'existe pas.',
             'designation.unique' => 'Cette désignation existe déjà.',
+            'account_number.unique' => 'Ce numéro de compte existe déjà.',
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
@@ -145,6 +148,7 @@ class AccountController extends Controller
                 'designation' => $request->designation,
                 'nature' => $request->nature,
                 'branche_id' => $request->branche_id,
+                'account_number' => $request->account_number,
                 'reference' => fake()->unique()->numerify('AC-#####'),
                 'addedBy' => $authId
             ]);
@@ -180,7 +184,8 @@ class AccountController extends Controller
                 properties: [
                     new OA\Property(property: "designation", type: "string", example: "John Doe"),
                     new OA\Property(property: "branche_id", type: "integer", example: 1),
-                    new OA\Property(property: "nature", type: "string", example: "Nature du compte")
+                    new OA\Property(property: "nature", type: "string", example: "Nature du compte"),
+                    new OA\Property(property: "account_number", type: "string", example: "12345")
                 ]
             )
         ),
@@ -204,12 +209,14 @@ class AccountController extends Controller
         $rules = [
             'designation' => ['nullable', 'string', 'max:255', 'unique:cash_accounts,designation,' . $account->id],
             'nature' => ['nullable', 'string', 'max:255'],
+            'account_number' => ['nullable', 'string', 'max:255', 'unique:cash_accounts,account_number,' . $account->id],
             'branche_id' => ['nullable', 'integer', 'exists:branches,id'],
         ];
 
         $messages = [
             'branche_id.exists' => 'La branche sélectionnée n\'existe pas.',
             'designation.unique' => 'Cette désignation existe déjà.',
+            'account_number.unique' => 'Ce numéro de compte existe déjà.',
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
@@ -226,6 +233,7 @@ class AccountController extends Controller
             'designation' => $request->designation,
             'nature' => $request->nature,
             'branche_id' => $request->branche_id,
+            'account_number' => $request->account_number
         ]);
 
         return response()->json([
