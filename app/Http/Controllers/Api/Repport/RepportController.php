@@ -845,25 +845,33 @@ class RepportController extends Controller
     public function stockByBrancheReport()
     {
         $branches = Branche::latest()->get();
+
         $brancheId = (int) request('branche_id', 1);
 
         if ($brancheId <= 0) {
             $brancheId = 1;
         }
 
-        $stocks = StockByBranch::with(['product.category', 'product.unit', 'product.addedBy'])
+        $stocks = StockByBranch::with([
+            'product.category',
+            'product.unit',
+            'product.addedBy'
+        ])
             ->where('branche_id', $brancheId)
-            ->orderByDesc('id')->get();
+            ->orderByDesc('id')
+            ->get();
 
-        $stocks->getCollection()->transform(function ($stock) {
+        $stocks->transform(function ($stock) {
 
             $product = $stock->product;
 
-            if (!$product) return $stock;
+            if (!$product) {
+                return $stock;
+            }
 
             if ((int) $stock->categorie_id === 2) {
 
-                $etat = ((bool) $stock->is_empty) ? 'vide' : 'pleine';
+                $etat = $stock->is_empty ? 'vide' : 'pleine';
 
                 $stock->product_name =
                     $product->name . ' - ' . $etat . ' - ' . $stock->condition_state;
