@@ -310,7 +310,7 @@ class TransactionController extends Controller
             }
 
             $query = CashTransaction::query()
-                ->with(['account:id,designation,branche_id']);
+                ->with(['account:id,designation,branche_id', 'addedBy:id,name']);
 
             if ($brancheId) {
                 $query->whereHas('account', function ($q) use ($brancheId) {
