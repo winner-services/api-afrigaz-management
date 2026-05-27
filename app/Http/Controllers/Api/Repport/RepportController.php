@@ -335,7 +335,7 @@ class RepportController extends Controller
         ])->validate();
         $startDate = $validated['start_date'] ?? now()->startOfMonth();
         $endDate = $validated['end_date'] ?? now();
-        $data =  Filling::with('tank', 'items.product:id,name')
+        $data =  Filling::with('tank', 'addedBy:id,name', 'items.product:id,name')
             ->whereBetween('operation_date', [$startDate, $endDate])
             ->latest()
             ->get();
