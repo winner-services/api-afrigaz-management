@@ -400,18 +400,11 @@ class AuthDistribController extends Controller
             }
 
             $payments = PaymentDistributor::with([
-                'debt.sale',
+                // 'debt.sale',
                 'cashAccount',
-                'user',
+                'user:id,name',
                 'distributor'
             ])
-                // ->whereHas('debt', function ($query) use ($distributor) {
-
-                //     $query->where(
-                //         'distributor_id',
-                //         $distributor->id
-                //     );
-                // })
                 ->where(
                     'distributor_id',
                     $distributor->id
@@ -431,20 +424,20 @@ class AuthDistribController extends Controller
                 ->latest()
                 ->get();
 
-            $payments->transform(function ($item) {
+            // $payments->transform(function ($item) {
 
-                $debt = $item->debt;
+            //     $debt = $item->debt;
 
-                $item->remaining_amount = $debt
-                    ? ($debt->loan_amount - $debt->paid_amount)
-                    : 0;
+            //     $item->remaining_amount = $debt
+            //         ? ($debt->loan_amount - $debt->paid_amount)
+            //         : 0;
 
-                return $item;
-            });
+            //     return $item;
+            // });
 
             $total_paid = $payments->sum('paid_amount');
 
-            $total_remaining = $payments->sum('remaining_amount');
+            // $total_remaining = $payments->sum('remaining_amount');
 
             return response()->json([
                 'success' => true,
@@ -453,7 +446,7 @@ class AuthDistribController extends Controller
                 'summary' => [
                     'total_payments' => $payments->count(),
                     'total_paid_amount' => $total_paid,
-                    'total_remaining_amount' => $total_remaining,
+                    // 'total_remaining_amount' => $total_remaining,
                 ],
 
                 'data' => $payments
