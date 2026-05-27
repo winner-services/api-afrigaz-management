@@ -1082,7 +1082,7 @@ class OdersController extends Controller
 
                     'totalOrders' => $totalOrders,
 
-                    'pendingOrders' => $pendingOrders ?? 0,
+                    'pendingOrders' => $pendingOrders,
 
                     'approvedOrders' => $approvedOrders,
 
