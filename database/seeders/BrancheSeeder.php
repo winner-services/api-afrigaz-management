@@ -21,7 +21,7 @@ class BrancheSeeder extends Seeder
             'quartier' => 'Beu',
             'avenue' => 'Boulevard Nyamwisi',
             'email' => 'comtact@gmail.com',
-            'reference' => fake()->unique()->numerify('PT-AFGZ-#####'),
+            'reference' => fake()->unique()->numerify('GTS-#####'),
             'addedBy' => 1
         ]);
     }

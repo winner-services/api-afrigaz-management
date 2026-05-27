@@ -350,7 +350,7 @@ class DistributorController extends Controller
             $result = DB::transaction(function () use ($data) {
 
                 $data['addedBy'] = Auth::id();
-                $data['reference'] = 'DB-' . random_int(10000, 99999);
+                $data['reference'] = fake()->unique()->numerify('DTB-#####');
 
                 $item = Distributor::create($data);
 

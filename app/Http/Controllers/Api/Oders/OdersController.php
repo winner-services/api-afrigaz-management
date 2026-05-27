@@ -186,7 +186,7 @@ class OdersController extends Controller
 
                 'distributor_id' => $distributor->id,
 
-                'reference' => 'ORD-' . strtoupper(uniqid()),
+                'reference' => fake()->unique()->numerify('ORD-#####'),
 
                 'status' => 'pending',
 

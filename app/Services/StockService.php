@@ -18,43 +18,6 @@ use function Symfony\Component\Clock\now;
 
 class StockService
 {
-    /**
-     * Ajouter du stock (entrée)
-     */
-    // public static function addStock($branchId, $productId, $quantity, $description = null, $reference = null)
-    // {
-    //     return DB::transaction(function () use ($branchId, $productId, $quantity, $description, $reference) {
-
-    //         $stock = StockByBranch::firstOrCreate([
-    //             'branche_id' => $branchId,
-    //             'product_id' => $productId,
-    //             'is_empty' => true,
-    //             'condition_state' => 'good'
-    //         ]);
-
-    //         $before = $stock->stock_quantity;
-    //         $after = $before + $quantity;
-
-    //         $stock->update([
-    //             'stock_quantity' => $after
-    //         ]);
-
-    //         StockMovement::create([
-    //             'branche_id' => $branchId,
-    //             'product_id' => $productId,
-    //             'type' => 'in',
-    //             'quantity' => $quantity,
-    //             'stock_before' => $before,
-    //             'stock_after' => $after,
-    //             'description' => $description,
-    //             'reference_id' => $reference['id'] ?? null,
-    //             'reference' => $reference['type'] ?? null,
-    //             'addedBy' => Auth::id(),
-    //         ]);
-
-    //         return $stock;
-    //     });
-    // }
 
     public static function addStock($branchId, $productId, $quantity, $description = null, $reference = null)
     {
@@ -354,70 +317,6 @@ class StockService
         });
     }
 
-    // public static function transferMultipleProductsWithRecord($fromBranch, $driver, $charoit, $productsQuantities, $transfer_date, $userId)
-    // {
-    //     return DB::transaction(function () use ($fromBranch, $driver, $charoit, $productsQuantities, $transfer_date, $userId) {
-
-    //         $productsQuantities = $productsQuantities ?? [];
-
-    //         if (!is_array($productsQuantities) || count($productsQuantities) === 0) {
-    //             throw new \Exception("Liste des produits invalide ou vide");
-    //         }
-    //         foreach ($productsQuantities as $item) {
-
-    //             $stock = StockByBranch::where([
-    //                 'branche_id' => $fromBranch,
-    //                 'product_id' => $item['product_id']
-    //             ])->first();
-
-    //             if (!$stock || $stock->stock_quantity < $item['quantity']) {
-    //                 $errors[] = "Produit ID {$item['product_id']} insuffisant";
-    //             }
-    //         }
-
-    //         if (!empty($errors)) {
-    //             throw new \Exception(json_encode($errors));
-    //         }
-
-    //         $reference = 'TRF-' . date('YmdHis');
-
-    //         $transfer = Transfer::create([
-    //             'from_branch_id' => $fromBranch,
-    //             'driver' => $driver,
-    //             'charoit' => $charoit,
-    //             'addedBy' => $userId,
-    //             'reference' => $reference,
-    //             'transfer_date' => $transfer_date,
-    //             'status' => 'created'
-    //         ]);
-
-    //         foreach ($productsQuantities as $item) {
-    //             if (!isset($item['product_id'], $item['quantity'])) {
-    //                 throw new \Exception("Format produit invalide");
-    //             }
-
-    //             $productId = $item['product_id'];
-    //             $quantity  = $item['quantity'];
-    //             $toBranch = $item['to_branch_id'] ?? null;
-
-    //             $transfer->items()->create([
-    //                 'product_id' => $productId,
-    //                 'to_branch_id' => $toBranch,
-    //                 'quantity' => $quantity,
-    //                 'transfer_id' => $transfer->id
-    //             ]);
-
-    //             self::removeStock($fromBranch, $productId, $quantity, "Transfert sortant vers la branche $toBranch", [
-    //                 'type' => 'transfer',
-    //                 'reference_id' => $transfer->id,
-    //                 'addedBy' => $userId
-    //             ]);
-    //         }
-
-    //         return $transfer;
-    //     });
-    // }
-
     public static function removeStockTransfert(
         int $branchId,
         int $productId,
@@ -512,7 +411,7 @@ class StockService
                 throw new \Exception("Liste des produits invalide ou vide");
             }
 
-            $reference = 'TRF-' . now()->format('YmdHis');
+            $reference = fake()->unique()->numerify('TRF-#####');
 
             $transfer = Transfer::create([
                 'from_branch_id' => $fromBranch,

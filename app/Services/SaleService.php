@@ -40,7 +40,7 @@ class SaleService
                 throw new StockException($errors);
             }
 
-            $reference = 'SALE-' . date('YmdHis');
+            $reference = fake()->unique()->numerify('SALE-#####');
 
             $sale = Sale::create([
                 'reference' => $reference,

@@ -97,7 +97,7 @@ class ShippingControlle extends Controller
 
             $caussion = Caussion::with('items')->findOrFail($request->caussion_id);
 
-            $reference = 'SHIP-' . strtoupper(uniqid());
+            $reference = fake()->unique()->numerify('SHIP-#####');
             $branch_id = $request->branch_id ?? 1;
 
             $shipping = Shipping::create([

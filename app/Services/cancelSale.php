@@ -167,7 +167,7 @@ class cancelSale
                     'amount' => $totalRefund,
                     'transaction_date' => now(),
                     'solde' => $solde - $totalRefund ?? -$totalRefund,
-                    'reference' => 'SALE_RETURN',
+                    'reference' => $sale->reference,
                     'reference_id' => $saleReturn->id,
                     'status' => 'created',
                     'addedBy' => $userId,

@@ -122,7 +122,7 @@ class TransactionController extends Controller
                 'type' => $request->type,
                 'solde' => $newSolde,
                 'cash_categorie_id' => $request->cash_categorie_id,
-                'reference' => 'TRANS-' . strtoupper(uniqid()),
+                'reference' => fake()->unique()->numerify('TRANS-#####'),
                 'addedBy' => $user->id,
                 'reason' => $request->reason ?? '-',
             ]);
@@ -430,7 +430,7 @@ class TransactionController extends Controller
             }
 
             $date = $request->transaction_date ?? now();
-            $reference = 'TRANS-' . strtoupper(uniqid());
+            $reference = fake()->unique()->numerify('TRANS-#####');
 
             $history = TransactionHistory::create([
                 'from_account_id' => $request->from_account_id,
@@ -501,14 +501,6 @@ class TransactionController extends Controller
                     'history' => $history
                 ]
             ], 201);
-
-            // return response()->json([
-            //     'message' => 'Transfert effectué avec succès.',
-            //     'success' => true,
-            //     'reference' => $reference,
-            //     'devise' => $devise,
-            //     'info_company' => $about
-            // ], 201);
         } catch (\Exception $e) {
 
             DB::rollBack();

@@ -187,7 +187,7 @@ class PaymentDristributorController extends Controller
 
                     'operation_date' => $operationDate,
 
-                    'reference' => 'DETTE-' . $debt->id . '-' . time()
+                    'reference' => fake()->unique()->numerify('DET-#####')
                 ]);
 
                 $debt->paid_amount += $payAmount;
@@ -210,7 +210,7 @@ class PaymentDristributorController extends Controller
 
                 $currentSolde += $payAmount;
 
-                $reference = 'PAY-' . strtoupper(uniqid());
+                $reference = fake()->unique()->numerify('PAY-#####');
 
                 CashTransaction::create([
 

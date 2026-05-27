@@ -51,7 +51,7 @@ class SaleController extends Controller
                 'commentaire' => 'nullable|string',
                 'sale_category' => 'nullable|string',
             ]);
-            $reference1 = 'SALE-' . date('YmdHis');
+            $reference1 = fake()->unique()->numerify('SALE-#####');
             if ('sale_type' === 'Proforma') {
                 $sale = Sale::create([
                     'reference' => $reference1,
@@ -623,7 +623,7 @@ class SaleController extends Controller
 
                         'reference_id' => $sale->id,
 
-                        'reference' => 'SALE-' . $sale->reference,
+                        'reference' => $sale->reference,
 
                         'customer_id' => $customerId,
 
@@ -653,7 +653,7 @@ class SaleController extends Controller
                             'paid_amount' => $paidAmount,
                             'cash_account_id' => $data['account_id'],
                             'operation_date' => now(),
-                            'reference' => 'SALE-' . $sale->reference,
+                            'reference' => $sale->reference,
                             'addedBy' => Auth::id()
                         ]);
                     }
