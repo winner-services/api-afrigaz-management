@@ -402,15 +402,20 @@ class AuthDistribController extends Controller
             $payments = PaymentDistributor::with([
                 'debt.sale',
                 'cashAccount',
-                'user'
+                'user',
+                'distributor'
             ])
-                ->whereHas('debt', function ($query) use ($distributor) {
+                // ->whereHas('debt', function ($query) use ($distributor) {
 
-                    $query->where(
-                        'distributor_id',
-                        $distributor->id
-                    );
-                })
+                //     $query->where(
+                //         'distributor_id',
+                //         $distributor->id
+                //     );
+                // })
+                ->where(
+                    'distributor_id',
+                    $distributor->id
+                )
                 ->whereBetween('operation_date', [
                     $startDate,
                     $endDate

@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('payment_distributors', function (Blueprint $table) {
             $table->id();
             $table->foreignId('debt_distributor_id')->nullable()->constrained('debt_distributors')->nullOnDelete();
+            $table->foreignId('distributor_id')->nullable()->constrained('distributors')->nullOnDelete();
             $table->decimal('paid_amount', 10, 2);
             $table->foreignId('cash_account_id')->nullable()->constrained('cash_accounts')->nullOnDelete();
             $table->foreignId('addedBy')->nullable()->constrained('users')->nullOnDelete();

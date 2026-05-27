@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['debt_distributor_id', 'paid_amount', 'cash_account_id', 'addedBy', 'status', 'operation_date', 'reference'])]
+#[Fillable(['debt_distributor_id', 'distributor_id', 'paid_amount', 'cash_account_id', 'addedBy', 'status', 'operation_date', 'reference'])]
 class PaymentDistributor extends Model
 {
     public function debt()
@@ -18,6 +18,10 @@ class PaymentDistributor extends Model
         return $this->belongsTo(CashAccount::class);
     }
 
+    public function distributor()
+    {
+        return $this->belongsTo(Distributor::class, 'distributor_id');
+    }
     public function user()
     {
         return $this->belongsTo(User::class, 'addedBy');

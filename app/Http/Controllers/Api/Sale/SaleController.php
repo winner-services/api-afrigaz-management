@@ -10,6 +10,7 @@ use App\Models\Currency;
 use App\Models\CustomerDebt;
 use App\Models\DebtDistributor;
 use App\Models\ItemSale;
+use App\Models\PaymentDistributor;
 use App\Models\PaymentHistorie;
 use App\Models\Product;
 use App\Models\Sale;
@@ -645,6 +646,17 @@ class SaleController extends Controller
                             ' - Dette #' .
                             $sale->id
                     ]);
+
+                    if ($distributorId) {
+                        PaymentDistributor::create([
+                            'distributor_id' => $distributorId,
+                            'paid_amount' => $paidAmount,
+                            'cash_account_id' => $data['account_id'],
+                            'operation_date' => now(),
+                            'reference' => 'SALE-' . $sale->reference,
+                            'addedBy' => Auth::id()
+                        ]);
+                    }
                 }
 
                 foreach ($items as $item) {
