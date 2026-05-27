@@ -14,7 +14,9 @@ use Illuminate\Database\Eloquent\Model;
     'motif',
     'status',
     'user_id',
-    'reference'
+    'reference',
+    'date_echeance',
+    'remaining_amount',
 ])]
 class DebtDistributor extends Model
 {

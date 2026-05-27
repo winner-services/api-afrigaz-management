@@ -5,7 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['customer_id', 'sale_id','loan_amount', 'paid_amount', 'transaction_date', 'motif', 'status', 'user_id'])]
+#[Fillable([
+    'customer_id',
+    'sale_id',
+    'loan_amount',
+    'paid_amount',
+    'transaction_date',
+    'motif',
+    'status',
+    'user_id',
+    'reference',
+    'date_echeance',
+    'remaining_amount',
+])]
 class CustomerDebt extends Model
 {
     public function customer()

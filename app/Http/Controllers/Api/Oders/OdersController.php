@@ -1039,7 +1039,7 @@ class OdersController extends Controller
                     'pending',
                     'partial'
                 ])
-                ->sum(DB::raw('loan_amount - paid_amount'));
+                ->sum(DB::raw('remaining_amount'));
 
             $availableCredit =
                 $totalDebt - ($distributor->credit_limit ?? 0);

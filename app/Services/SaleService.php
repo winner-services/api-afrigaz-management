@@ -3,16 +3,13 @@
 namespace App\Services;
 
 use App\Models\CashTransaction;
-use App\Models\Customer;
 use App\Models\CustomerDebt;
 use App\Models\DebtDistributor;
-use App\Models\Distributor;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\Shipping;
 use App\Models\ShippingItem;
 use App\Models\StockByBranch;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class SaleService
@@ -133,7 +130,9 @@ class SaleService
                     'sale_id' => $sale->id,
                     'loan_amount' => $total,
                     'paid_amount' => $paidAmount,
+                    'remaining_amount' => $remaining,
                     'transaction_date' => now(),
+                    'date_echeance' => now()->addDays(7),
                     'motif' => 'Vente à crédit',
                     'status' => 'pending',
                     'user_id' => $userId,
@@ -145,7 +144,9 @@ class SaleService
                     'sale_id' => $sale->id,
                     'loan_amount' => $total,
                     'paid_amount' => $paidAmount,
+                    'remaining_amount' => $remaining,
                     'transaction_date' => now(),
+                    'date_echeance' => now()->addDays(7),
                     'motif' => 'Vente à crédit',
                     'status' => 'pending',
                     'user_id' => $userId,

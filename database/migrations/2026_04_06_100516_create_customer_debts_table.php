@@ -17,6 +17,8 @@ return new class extends Migration
             $table->foreignId('sale_id')->nullable()->constrained('sales')->cascadeOnDelete();
             $table->decimal('loan_amount', 10, 2);
             $table->decimal('paid_amount', 10, 2);
+            $table->decimal('remaining_amount', 10, 2);
+            $table->string('reference')->nullable();
             $table->date('transaction_date');
             $table->string('motif')->nullable();
             $table->date('date_echeance')->nullable();

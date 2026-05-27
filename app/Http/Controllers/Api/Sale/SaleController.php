@@ -548,14 +548,15 @@ class SaleController extends Controller
                             ],
                             [
                                 'distributor_id' => $distributorId,
-                                'loan_amount' => $remaining,
+                                'loan_amount' => $totalAmount,
+                                'remaining_amount' => $remaining,
+                                'paid_amount' => $paidAmount,
                                 'motif' => 'Dette Vente #' . $sale->id,
                                 'reference' => $sale->reference,
-                                'paid_amount' => $paidAmount,
                                 'transaction_date' => now(),
                                 'status' => $sale->status,
-                                'user_id' => Auth::id(),
                                 'date_echeance' => $data['date_echeance'] ?? null,
+                                'user_id' => Auth::id(),
                             ]
                         );
                     }
@@ -567,13 +568,14 @@ class SaleController extends Controller
                             ],
                             [
                                 'customer_id' => $customerId,
-                                'loan_amount' => $remaining,
+                                'loan_amount' => $totalAmount,
+                                'remaining_amount' => $remaining,
                                 'paid_amount' => $paidAmount,
                                 'transaction_date' => now(),
                                 'motif' => 'Dette Vente #' . $sale->id,
                                 'status' => $sale->status,
-                                'user_id' => Auth::id(),
                                 'date_echeance' => $data['date_echeance'] ?? null,
+                                'user_id' => Auth::id(),
                             ]
                         );
                     }
@@ -716,7 +718,6 @@ class SaleController extends Controller
                             $data['date_vente']
                         );
                     }
-                    // dd($lineTotal);
                     ItemSale::create([
                         'sale_id' => $sale->id,
                         'product_id' => $product->id,
@@ -745,7 +746,6 @@ class SaleController extends Controller
                     'total_amount' => $total
                 ]);
 
-                // return $sale->load('items.product');
                 return $sale->load([
                     'items.product',
                     'customer:id,name',

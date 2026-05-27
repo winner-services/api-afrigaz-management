@@ -404,13 +404,14 @@ class RepportController extends Controller
         $branche_id = request('branche_id', 1);
         $data = Transfer::join('items_transfers', 'transfers.id', '=', 'items_transfers.transfer_id')
             ->join('branches as from_branch', 'transfers.from_branch_id', '=', 'from_branch.id')
-            ->join('branches as to_branch', 'items_transfers.to_branch_id', '=', 'to_branch.id')
+            ->join('branches as to_branch', 'transfers.to_branch_id', '=', 'to_branch.id')
             ->join('products', 'items_transfers.product_id', '=', 'products.id')
             ->select(
                 'items_transfers.id',
                 'transfers.transfer_date',
                 'transfers.reference',
                 'from_branch.name as from_branch_name',
+                'to_branch.name as to_branch_name',
                 'products.name as product_name',
                 'items_transfers.quantity as sent_quantity',
                 'items_transfers.received_quantity as received_quantity',
