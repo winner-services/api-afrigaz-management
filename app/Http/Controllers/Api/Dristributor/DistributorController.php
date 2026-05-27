@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Api\Dristributor;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\SendDistributorSmsJob;
+use App\Models\About;
 use App\Models\Caussion;
 use App\Models\Currency;
 use App\Models\DebtDistributor;
 use App\Models\Distributor;
 use App\Models\StockByBranch;
+use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +20,12 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 class DistributorController extends Controller
 {
+    protected $imageService;
+
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
     #[OA\Get(
         path: "/api/v1/distributorGetAllData",
         summary: "Liste des Distributeurs",
@@ -79,6 +87,10 @@ class DistributorController extends Controller
     )]
     public function distributorGetWithDebt(Request $request): JsonResponse
     {
+        $about = About::first();
+        if ($about) {
+            $this->imageService->transform($about, ['logo', 'logo2']);
+        }
         $devise = Currency::where('status', 'created')
             ->orderByRaw("currency_type = 'devise_principale' DESC")
             ->latest()
@@ -110,7 +122,8 @@ class DistributorController extends Controller
             'message' => 'success',
             'status' => 200,
             'devise' => $devise,
-            'data' => $items
+            'data' => $items,
+            'info_company' => $about
         ]);
     }
     #[OA\Get(
