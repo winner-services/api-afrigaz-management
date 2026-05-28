@@ -4,8 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\ProductLedger;
 
 #[Fillable([
     'name',
@@ -150,5 +150,9 @@ class Product extends Model
             }
             ProductLedger::insert($ledgerData);
         });
+    }
+    public function productLedgers()
+    {
+        return $this->hasMany(ProductLedger::class, 'product_id');
     }
 }
