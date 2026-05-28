@@ -16,14 +16,10 @@ use OpenApi\Attributes as OA;
 
 class ReturnBootleController extends Controller
 {
-    protected $imageService;
-
     public function __construct(
         protected StockService $stockService,
-        ImageService $imageService
-    ) {
-        $this->imageService = $imageService;
-    }
+        protected ImageService $imageService
+    ) {}
 
     #[OA\Post(
         path: "/api/bottleReturnStore",
