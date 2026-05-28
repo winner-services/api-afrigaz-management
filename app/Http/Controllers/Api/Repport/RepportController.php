@@ -860,7 +860,7 @@ class RepportController extends Controller
         }
         $branches = Branche::latest()->get();
 
-        $brancheId = (int) request('branche_id', 1);
+        $brancheId = (int) request('branch_id', 1);
 
         if ($brancheId <= 0) {
             $brancheId = 1;
