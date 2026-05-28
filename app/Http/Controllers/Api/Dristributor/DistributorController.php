@@ -101,26 +101,20 @@ class DistributorController extends Controller
         $items = Distributor::with([
             'addedBy:id,name',
             'categoryDistributor:id,designation',
-            'debts'
+            'debts' => function ($query) {
+                $query->whereIn('status', ['pending', 'partial']);
+            }
         ])
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($subQuery) use ($search) {
                     $subQuery->where('name', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%")
-                        ->orWhere('phone', 'like', "%{$search}%")
-                        ->orWhereHas('addedBy', function ($q) use ($search) {
-                            $q->where('name', 'like', "%{$search}%");
-                        })
-                        ->orWhereHas('categoryDistributor', function ($q) use ($search) {
-                            $q->where('designation', 'like', "%{$search}%");
-                        });
+                        ->orWhere('phone', 'like', "%{$search}%");
                 });
             })
+            
             ->whereHas('debts', function ($query) {
-                $query->where(function ($q) {
-                    $q->where('status', 'pending')
-                        ->orWhere('status', 'partial');
-                });
+                $query->whereIn('status', ['pending', 'partial']);
             })
             ->where('is_deleted', 0)
             ->orderByDesc('id')
