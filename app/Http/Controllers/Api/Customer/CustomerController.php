@@ -78,7 +78,6 @@ class CustomerController extends Controller
             new OA\Response(response: 200, description: "Liste")
         ]
     )]
-
     public function customerGetWithDebt(): JsonResponse
     {
         try {
@@ -112,16 +111,26 @@ class CustomerController extends Controller
                 $sortDirection = 'desc';
             }
 
-            $data = Customer::with([
-                'user:id,name',
-                'debts' => function ($query) {
+            $data = Customer::query()
 
+                ->with([
+                    'user:id,name',
+
+                    'debts' => function ($query) {
+                        $query->whereIn('status', [
+                            'pending',
+                            'partial'
+                        ]);
+                    }
+                ])
+
+                ->whereHas('debts', function ($query) {
                     $query->whereIn('status', [
                         'pending',
                         'partial'
                     ]);
-                }
-            ])
+                })
+
                 ->when(!empty($search), function ($query) use ($search) {
 
                     $query->where(function ($subQuery) use ($search) {
@@ -131,18 +140,9 @@ class CustomerController extends Controller
                             ->orWhere('address', 'LIKE', "%{$search}%")
 
                             ->orWhereHas('user', function ($q) use ($search) {
-
                                 $q->where('name', 'LIKE', "%{$search}%");
                             });
                     });
-                })
-
-                ->whereHas('debts', function ($query) {
-
-                    $query->whereIn('status', [
-                        'pending',
-                        'partial'
-                    ]);
                 })
 
                 ->orderBy($sortField, $sortDirection)
@@ -164,60 +164,90 @@ class CustomerController extends Controller
             ], 500);
         }
     }
-
     // public function customerGetWithDebt(): JsonResponse
     // {
-    //     $devise = Currency::where('status', 'created')
-    //         ->orderByRaw("currency_type = 'devise_principale' DESC")
-    //         ->latest()
-    //         ->get();
-    //     $page = request('paginate', 10);
-    //     $q = request('q', '');
-    //     $sort_direction = request('sort_direction', 'desc');
-    //     $sort_field = request('sort_field', 'id');
+    //     try {
 
-    //     $allowedSortFields = ['id', 'name', 'phone', 'address', 'created_at'];
+    //         $devise = Currency::where('status', 'created')
+    //             ->orderByRaw("currency_type = 'devise_principale' DESC")
+    //             ->latest()
+    //             ->get();
 
-    //     if (!in_array($sort_field, $allowedSortFields)) {
-    //         $sort_field = 'id';
-    //     }
+    //         $page = (int) request('paginate', 10);
 
-    //     if (!in_array(strtolower($sort_direction), ['asc', 'desc'])) {
-    //         $sort_direction = 'desc';
-    //     }
+    //         $search = request('q', '');
 
-    //     $data = Customer::with([
-    //         'user:id,name',
-    //         'debts' => function ($q) {
-    //             $q->whereIn('status', ['pending', 'partial']);
+    //         $sortDirection = strtolower(request('sort_direction', 'desc'));
+
+    //         $sortField = request('sort_field', 'id');
+
+    //         $allowedSortFields = [
+    //             'id',
+    //             'name',
+    //             'phone',
+    //             'address',
+    //             'created_at'
+    //         ];
+
+    //         if (!in_array($sortField, $allowedSortFields)) {
+    //             $sortField = 'id';
     //         }
-    //     ])
-    //         ->where('status', 'created')
 
-    //         ->when($q, function ($query) use ($q) {
-    //             $query->where(function ($sub) use ($q) {
-    //                 $sub->where('name', 'LIKE', "%{$q}%")
-    //                     ->orWhere('phone', 'LIKE', "%{$q}%")
-    //                     ->orWhere('address', 'LIKE', "%{$q}%")
-    //                     ->orWhereHas('user', function ($q2) use ($q) {
-    //                         $q2->where('name', 'LIKE', "%{$q}%");
-    //                     });
-    //             });
-    //         })
+    //         if (!in_array($sortDirection, ['asc', 'desc'])) {
+    //             $sortDirection = 'desc';
+    //         }
 
-    //         ->whereHas('debts', function ($q) {
-    //             $q->whereIn('status', ['pending', 'partial']);
-    //         })
+    //         $data = Customer::with([
+    //             'user:id,name',
+    //             'debts' => function ($query) {
 
-    //         ->orderBy($sort_field, $sort_direction)
-    //         ->paginate($page);
+    //                 $query->whereIn('status', [
+    //                     'pending',
+    //                     'partial'
+    //                 ]);
+    //             }
+    //         ])
+    //             ->when(!empty($search), function ($query) use ($search) {
 
-    //     return response()->json([
-    //         'status' => true,
-    //         'message' => 'succès',
-    //         'devise' => $devise,
-    //         'data' => $data
-    //     ]);
+    //                 $query->where(function ($subQuery) use ($search) {
+
+    //                     $subQuery->where('name', 'LIKE', "%{$search}%")
+    //                         ->orWhere('phone', 'LIKE', "%{$search}%")
+    //                         ->orWhere('address', 'LIKE', "%{$search}%")
+
+    //                         ->orWhereHas('user', function ($q) use ($search) {
+
+    //                             $q->where('name', 'LIKE', "%{$search}%");
+    //                         });
+    //                 });
+    //             })
+
+    //             ->whereHas('debts', function ($query) {
+
+    //                 $query->whereIn('status', [
+    //                     'pending',
+    //                     'partial'
+    //                 ]);
+    //             })
+
+    //             ->orderBy($sortField, $sortDirection)
+
+    //             ->paginate($page);
+
+    //         return response()->json([
+    //             'status' => true,
+    //             'message' => 'succès',
+    //             'devise' => $devise,
+    //             'data' => $data
+    //         ]);
+    //     } catch (\Exception $e) {
+
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Erreur lors de la récupération des clients',
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
     // }
 
     #[OA\Get(
