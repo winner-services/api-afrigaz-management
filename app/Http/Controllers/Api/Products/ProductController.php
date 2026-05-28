@@ -64,6 +64,16 @@ class ProductController extends Controller
         ]);
     }
 
+    public function getBottleCategories()
+    {
+        $data = Product::where('category_id', 2)->latest()->get();
+
+        return response()->json([
+            'status' => true,
+            'data' => $data
+        ]);
+    }
+
     #[OA\Get(
         path: "/api/v1/getEmptyProductOptions",
         summary: "Lister",
