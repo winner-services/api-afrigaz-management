@@ -388,7 +388,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/salesReport', 'salesReport');
             Route::post('/productStockReport', 'productStockCard');
 
-            Route::post('/stockByBrancheReport', 'stockByBrancheReport');
+            Route::get('/stockByBrancheReport', 'stockByBrancheReport');
             Route::get('/distributorReport', 'distributorReport');
             Route::get('/customerReport', 'customerReport');
             Route::get('/supplierReport', 'supplierReport');
