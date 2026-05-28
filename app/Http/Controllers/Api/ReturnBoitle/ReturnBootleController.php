@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api\ReturnBoitle;
 
 use App\Exceptions\StockException;
 use App\Http\Controllers\Controller;
+use App\Models\About;
 use App\Models\BottleReturn;
+use App\Services\ImageService;
 use App\Services\StockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,9 +16,14 @@ use OpenApi\Attributes as OA;
 
 class ReturnBootleController extends Controller
 {
+    protected $imageService;
+
     public function __construct(
-        protected StockService $stockService
-    ) {}
+        protected StockService $stockService,
+        ImageService $imageService
+    ) {
+        $this->imageService = $imageService;
+    }
 
     #[OA\Post(
         path: "/api/bottleReturnStore",
@@ -131,6 +138,10 @@ class ReturnBootleController extends Controller
     public function getData(Request $request)
     {
         try {
+            $about = About::first();
+            if ($about) {
+                $this->imageService->transform($about, ['logo', 'logo2']);
+            }
 
             $user = Auth::user();
             $branchId = $user->branch_id;
@@ -170,7 +181,10 @@ class ReturnBootleController extends Controller
 
             return response()->json([
                 'message' => 'Liste des retours',
-                'data' => $query
+                'success' => true,
+                'status' => 200,
+                'data' => $query,
+                'info_company' => $about
             ]);
         } catch (\Exception $e) {
 

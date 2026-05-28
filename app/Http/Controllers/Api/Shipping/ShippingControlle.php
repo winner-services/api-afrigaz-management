@@ -649,6 +649,10 @@ class ShippingControlle extends Controller
     )]
     public function indexByBranche(Request $request)
     {
+        $about = About::first();
+        if ($about) {
+            $this->imageService->transform($about, ['logo', 'logo2']);
+        }
         $branches = Branche::latest()->get();
         $user = Auth::user();
         $branche = Branche::where('user_id', Auth::id())->first();
@@ -685,6 +689,7 @@ class ShippingControlle extends Controller
         return response()->json([
             'status' => 200,
             'branches' => $branches,
+            'info_company' => $about,
             'data' => $sales
         ]);
     }

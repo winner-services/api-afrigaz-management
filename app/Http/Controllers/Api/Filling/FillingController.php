@@ -3,17 +3,23 @@
 namespace App\Http\Controllers\Api\Filling;
 
 use App\Http\Controllers\Controller;
+use App\Models\About;
 use App\Models\Filling;
 use App\Services\FillingService;
+use App\Services\ImageService;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 class FillingController extends Controller
 {
+    protected $imageService;
     public function __construct(
-        protected FillingService $fillingService
-    ) {}
+        protected FillingService $fillingService,
+        ImageService $imageService
+    ) {
+        $this->imageService = $imageService;
+    }
 
     #[OA\Post(
         path: "/api/tanks/fillingStoreData",
@@ -128,6 +134,10 @@ class FillingController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        $about = About::first();
+        if ($about) {
+            $this->imageService->transform($about, ['logo', 'logo2']);
+        }
         $perPage = $request->query('paginate', 10);
         $branchId = 1;
         $search = $request->query('q', '');
@@ -161,6 +171,7 @@ class FillingController extends Controller
         return response()->json([
             'success' => true,
             'status' => 200,
+            'info_company' => $about,
             'data' => $fillings
         ]);
     }
