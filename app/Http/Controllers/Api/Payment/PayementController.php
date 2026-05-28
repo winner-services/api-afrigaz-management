@@ -301,7 +301,7 @@ class PayementController extends Controller
 
                         $sale->status =
                             $saleRemaining <= 0
-                            ? 'paid'
+                            ? 'completed'
                             : 'partial';
 
                         $sale->save();
