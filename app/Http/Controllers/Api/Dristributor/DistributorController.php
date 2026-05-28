@@ -98,24 +98,31 @@ class DistributorController extends Controller
         $perPage = $request->query('paginate', 10);
         $search = $request->query('q', '');
 
-        $items = Distributor::with('addedBy:id,name', 'categoryDistributor:id,designation', 'debts')
-            ->when($search, function ($q) use ($search) {
-                $q->where(function ($q2) use ($search) {
-                    $q2->where('name', 'like', "%$search%")
-                        ->orWhere('email', 'like', "%$search%")
-                        ->orWhere('phone', 'like', "%$search%")
-                        ->orWhereHas('addedBy', function ($q3) use ($search) {
-                            $q3->where('name', 'like', "%$search%");
+        $items = Distributor::with([
+            'addedBy:id,name',
+            'categoryDistributor:id,designation',
+            'debts'
+        ])
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%")
+                        ->orWhereHas('addedBy', function ($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%");
                         })
-                        ->orWhereHas('categoryDistributor', function ($q4) use ($search) {
-                            $q4->where('name', 'like', "%$search%");
+                        ->orWhereHas('categoryDistributor', function ($q) use ($search) {
+                            $q->where('designation', 'like', "%{$search}%");
                         });
                 });
             })
-            ->whereHas('debts', function ($q) {
-                $q->whereIn('status', ['pending', 'partial']);
+            ->whereHas('debts', function ($query) {
+                $query->where(function ($q) {
+                    $q->where('status', 'pending')
+                        ->orWhere('status', 'partial');
+                });
             })
-            ->where('is_deleted', false)
+            ->where('is_deleted', 0)
             ->orderByDesc('id')
             ->paginate($perPage);
         return response()->json([
