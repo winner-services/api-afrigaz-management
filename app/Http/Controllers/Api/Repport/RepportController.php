@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Repport;
 
 use App\Http\Controllers\Controller;
 use App\Models\About;
+use App\Models\BottleReturn;
 use App\Models\Branche;
 use App\Models\CashTransaction;
 use App\Models\Customer;
@@ -21,8 +22,10 @@ use App\Models\Supplier;
 use App\Models\TankMovement;
 use App\Models\Transfer;
 use App\Services\ImageService;
+use Illuminate\Container\Attributes\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use OpenApi\Attributes as OA;
 
 class RepportController extends Controller
@@ -1032,6 +1035,39 @@ class RepportController extends Controller
                 'success' => false,
                 'message' => 'Erreur lors de la récupération des transactions',
                 'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function bottleReturnsReport()
+    {
+        try {
+            $about = About::first();
+            if ($about) {
+                $this->imageService->transform($about, ['logo', 'logo2']);
+            }
+
+            $user = Auth::user();
+
+            $query = BottleReturn::with([
+                'agent:id,name',
+                'branch:id,name',
+                'items.product:id,name',
+                'user:id,name'
+            ])
+                ->orderBy('id', 'desc')->get();
+
+            return response()->json([
+                'message' => 'Liste des retours',
+                'success' => true,
+                'status' => 200,
+                'info_company' => $about,
+                'data' => $query
+            ]);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'message' => 'Erreur lors de la récupération des données'
             ], 500);
         }
     }
