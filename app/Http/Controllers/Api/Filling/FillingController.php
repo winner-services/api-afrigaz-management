@@ -13,13 +13,10 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 class FillingController extends Controller
 {
-    protected $imageService;
     public function __construct(
         protected FillingService $fillingService,
-        ImageService $imageService
-    ) {
-        $this->imageService = $imageService;
-    }
+        protected ImageService $imageService
+    ) {}
 
     #[OA\Post(
         path: "/api/tanks/fillingStoreData",
