@@ -395,6 +395,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/ordersReport', 'ordersReport');
             Route::post('/transactionReport', 'transactionReport');
             Route::post('/bottleReturnsReport', 'bottleReturnsReport');
+            Route::get('/stockCardByBranch', 'stockCardByBranch');
         });
         Route::controller(OdersController::class)->group(function () {
             Route::get('/ordersGetData', 'ordersGetData');

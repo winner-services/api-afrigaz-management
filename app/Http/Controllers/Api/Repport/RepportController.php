@@ -778,6 +778,130 @@ class RepportController extends Controller
         ]);
     }
 
+    public function stockCardByBranch(Request $request)
+    {
+        try {
+            $about = About::first();
+            if ($about) {
+                $this->imageService->transform($about, ['logo', 'logo2']);
+            }
+
+            $branchId = $request->branch_id ? (int) $request->branch_id : 1;
+
+            $branch = Branche::find($branchId);
+
+            if (!$branch) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Branche introuvable'
+                ], 404);
+            }
+
+            $startDate = $request->date_start
+                ? Carbon::parse($request->date_start)->startOfDay()
+                : null;
+
+            $endDate = $request->date_end
+                ? Carbon::parse($request->date_end)->endOfDay()
+                : null;
+
+            $products = Product::with('unit:id,abreviation')
+
+                ->whereHas('productLedgers', function ($query) use ($branch) {
+                    $query->where('branch_id', $branch->id);
+                })
+
+                ->get();
+
+            $data = $products->map(function ($product) use (
+                $branch,
+                $startDate,
+                $endDate
+            ) {
+
+                $stockInitial = ProductLedger::where('product_id', $product->id)
+                    ->where('branch_id', $branch->id)
+
+                    ->when($startDate, function ($query) use ($startDate) {
+                        $query->whereDate('operation_date', '<', $startDate);
+                    })
+
+                    ->selectRaw("
+                    SUM(
+                        CASE
+                            WHEN movement = 'in' THEN quantity
+                            ELSE -quantity
+                        END
+                    ) as stock
+                ")
+
+                    ->value('stock') ?? 0;
+
+                $currentStock = $stockInitial;
+
+                $transactions = ProductLedger::where('product_id', $product->id)
+
+                    ->where('branch_id', $branch->id)
+
+                    ->when($startDate, function ($query) use ($startDate) {
+                        $query->whereDate('operation_date', '>=', $startDate);
+                    })
+
+                    ->when($endDate, function ($query) use ($endDate) {
+                        $query->whereDate('operation_date', '<=', $endDate);
+                    })
+
+                    ->orderBy('operation_date')
+                    ->orderBy('id')
+
+                    ->get()
+
+                    ->map(function ($item) use (&$currentStock) {
+
+                        $entry = $item->movement === 'in'
+                            ? (float) $item->quantity
+                            : 0;
+
+                        $exit = $item->movement === 'out'
+                            ? (float) $item->quantity
+                            : 0;
+
+                        $currentStock += $entry;
+                        $currentStock -= $exit;
+
+                        return [
+                            'date' => $item->operation_date,
+                            'type' => $item->type,
+                            'entry' => $entry,
+                            'exit' => $exit,
+                            'stock_remaining' => $currentStock,
+                        ];
+                    });
+
+                return [
+                    'branch' => $branch->name,
+                    'product_name' => $product->name,
+                    'unit' => $product->unit?->abreviation,
+                    'stock_initial' => $stockInitial,
+                    'transactions' => $transactions,
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'info_company' => $about,
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function supplierReport()
     {
         $about = About::first();
