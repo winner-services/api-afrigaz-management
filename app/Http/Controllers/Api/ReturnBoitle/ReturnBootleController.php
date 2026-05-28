@@ -106,6 +106,7 @@ class ReturnBootleController extends Controller
 
             return response()->json([
                 'success' => true,
+                'status' => 201,
                 'message' => 'Retour des bouteilles enregistré avec succès',
                 'data' => $result
             ], 201);
@@ -179,8 +180,8 @@ class ReturnBootleController extends Controller
                 'message' => 'Liste des retours',
                 'success' => true,
                 'status' => 200,
-                'data' => $query,
-                'info_company' => $about
+                'info_company' => $about,
+                'data' => $query
             ]);
         } catch (\Exception $e) {
 
