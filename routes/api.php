@@ -42,6 +42,7 @@ use App\Http\Controllers\Distributor\Authenticate\AuthDistribController;
 use App\Http\Controllers\Mobile\Auth\AuthenticateController;
 use App\Http\Controllers\Mobile\Products\ProductsController;
 use App\Http\Controllers\Mobile\Sales\SalesController;
+use App\Http\Controllers\Mobile\Shippings\ShippController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
@@ -429,6 +430,10 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
         Route::controller(SalesController::class)->group(function () {
             Route::get('/salesGetByBrancheMobile', 'salesGetByBranche');
+        });
+
+        Route::controller(ShippController::class)->group(function () {
+            Route::get('/shippingByBranchGetMobile', 'shippingByBranchGetMobile');
         });
     });
 });
