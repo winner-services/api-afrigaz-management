@@ -37,7 +37,7 @@ class AuthenticateController extends Controller
                 'message' => 'Email / téléphone ou mot de passe incorrect.'
             ], 401);
         }
-dd($user->role);
+        dd($user->role->name);
         if (!$user->role || mb_strtolower(trim($user->role->name)) !== 'vendeur') {
             return response()->json([
                 'status'  => false,
