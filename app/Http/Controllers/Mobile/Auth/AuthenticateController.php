@@ -38,8 +38,7 @@ class AuthenticateController extends Controller
             ], 401);
         }
         dd([
-            'role_id' => $user->role_id,
-            'role' => $user->role,
+            $user
         ]);
         if (!$user->role || mb_strtolower(trim($user->role->name)) !== 'vendeur') {
             return response()->json([
