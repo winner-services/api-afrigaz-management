@@ -37,7 +37,10 @@ class AuthenticateController extends Controller
                 'message' => 'Email / téléphone ou mot de passe incorrect.'
             ], 401);
         }
-
+        dd([
+            'role_id' => $user->role_id,
+            'role' => $user->role,
+        ]);
         if (!$user->role || mb_strtolower(trim($user->role->name)) !== 'vendeur') {
             return response()->json([
                 'status'  => false,
@@ -51,10 +54,6 @@ class AuthenticateController extends Controller
                 'message' => 'Votre compte est désactivé.'
             ], 403);
         }
-        dd([
-    'role_id' => $user->role_id,
-    'role' => $user->role,
-]);
 
         try {
             $branche = Branche::where('user_id', $user->id)->first();
