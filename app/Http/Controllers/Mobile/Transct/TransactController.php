@@ -25,7 +25,6 @@ class TransactController extends Controller
         try {
 
             $branche = Branche::where('user_id', Auth::id())->first();
-            dd($branche->id);
 
             $devise = Currency::where('status', 'created')
                 ->orderByRaw("currency_type = 'devise_principale' DESC")
