@@ -40,6 +40,7 @@ use App\Http\Controllers\Api\Transfer\TransefrController;
 use App\Http\Controllers\Api\Users\UserController;
 use App\Http\Controllers\Distributor\Authenticate\AuthDistribController;
 use App\Http\Controllers\Mobile\Auth\AuthenticateController;
+use App\Http\Controllers\Mobile\Products\ProductsController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
@@ -413,6 +414,14 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::get('/ordersGetData', 'ordersGetData');
             Route::put('/validateOder/{id}', 'validateOrders');
             Route::put('/rejectOder/{id}', 'rejectOrders');
+        });
+
+
+        // ===================================================
+        // Mobile Routes
+
+        Route::controller(ProductsController::class)->group(function () {
+            Route::get('/getStockByBrancheMobile', 'getStockByBrancheMobile');
         });
     });
 });
