@@ -37,15 +37,13 @@ class AuthenticateController extends Controller
                 'message' => 'Email / téléphone ou mot de passe incorrect.'
             ], 401);
         }
-        dd([
-            $user
-        ]);
-        if (!$user->role || mb_strtolower(trim($user->role->name)) !== 'vendeur') {
-            return response()->json([
-                'status'  => false,
-                'message' => 'Accès refusé'
-            ], 403);
-        }
+        
+        // if (!$user->role || mb_strtolower(trim($user->role->name)) !== 'vendeur') {
+        //     return response()->json([
+        //         'status'  => false,
+        //         'message' => 'Accès refusé'
+        //     ], 403);
+        // }
 
         if (!$user->active) {
             return response()->json([
@@ -86,6 +84,11 @@ class AuthenticateController extends Controller
 
             $device_name = $request->userAgent() ?? 'unknown_device';
             $token = $user->createToken($device_name, ['*'])->plainTextToken;
+
+            dd([
+            'role_id' => $user->role_id,
+            'role' => $user->role,
+        ]);
 
             return response()->json([
                 'status'  => true,
