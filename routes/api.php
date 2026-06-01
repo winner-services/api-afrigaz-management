@@ -427,7 +427,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         });
 
         Route::controller(SalesController::class)->group(function () {
-            Route::get('/salesGetByBranche', 'salesGetByBranche');
+            Route::get('/salesGetByBrancheMobile', 'salesGetByBranche');
         });
     });
 });
