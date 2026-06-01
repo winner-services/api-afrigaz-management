@@ -119,6 +119,13 @@ class AuthenticationController extends Controller
             ], 401);
         }
 
+        if ($user->role && mb_strtolower(trim($user->role->name)) === 'vendeur') {
+            return response()->json([
+                'status'  => false,
+                'message' => 'utilise l’application mobile'
+            ], 403);
+        }
+
         if (!$user->active) {
             return response()->json([
                 'status'  => false,

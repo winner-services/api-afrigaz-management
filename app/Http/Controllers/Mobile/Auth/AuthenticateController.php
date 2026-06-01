@@ -41,7 +41,7 @@ class AuthenticateController extends Controller
         if (!$user->role || mb_strtolower(trim($user->role->name)) !== 'vendeur') {
             return response()->json([
                 'status'  => false,
-                'message' => 'Accès refusé'
+                'message' => 'Accès réservé aux vendeurs'
             ], 403);
         }
 
