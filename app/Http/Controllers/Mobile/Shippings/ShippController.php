@@ -25,7 +25,7 @@ class ShippController extends Controller
             $this->imageService->transform($about, ['logo', 'logo2']);
         }
         $branches = Branche::latest()->get();
-        $user = Auth::user();
+
         $branche = Branche::where('user_id', Auth::id())->first();
 
         $brancheId = $branche->id;
