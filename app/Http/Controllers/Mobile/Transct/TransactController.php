@@ -20,7 +20,7 @@ class TransactController extends Controller
     {
         $this->imageService = $imageService;
     }
-    public function accountGetOptionsDataMobile()
+    public function transactionsByBrancheMobile()
     {
         try {
 
@@ -40,10 +40,6 @@ class TransactController extends Controller
 
             $accountId = CashAccount::where('branche_id', $brancheId)->value('id');
 
-            dd(
-                CashTransaction::where('cash_account_id', $accountId)->count()
-            );
-
             $perPage = request('per_page', 10);
             $search = request('q', '');
             $sortField = request('sort_field', 'id');
@@ -57,7 +53,6 @@ class TransactController extends Controller
             $query = CashTransaction::query()
                 ->with(['account:id,designation,branche_id', 'addedBy:id,name'])
                 ->where('cash_account_id', $accountId);
-
             if ($brancheId) {
                 $query->whereHas('account', function ($q) use ($brancheId) {
                     $q->where('branche_id', $brancheId);
