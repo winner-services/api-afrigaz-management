@@ -52,16 +52,13 @@ class TransactController extends Controller
             }
 
             $query = CashTransaction::query()
-                ->with(['account:id,designation,branche_id', 'addedBy:id,name']);
+                ->with(['account:id,designation,branche_id', 'addedBy:id,name'])
+                ->where('cash_account_id', $accountId);
 
             if ($brancheId) {
                 $query->whereHas('account', function ($q) use ($brancheId) {
                     $q->where('branche_id', $brancheId);
                 });
-            }
-
-            if ($accountId) {
-                $query->where('cash_account_id', $accountId);
             }
 
             if (!empty($search)) {
