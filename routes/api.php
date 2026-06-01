@@ -39,6 +39,7 @@ use App\Http\Controllers\Api\Transaction\TransactionController;
 use App\Http\Controllers\Api\Transfer\TransefrController;
 use App\Http\Controllers\Api\Users\UserController;
 use App\Http\Controllers\Distributor\Authenticate\AuthDistribController;
+use App\Http\Controllers\Mobile\Auth\AuthenticateController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
@@ -56,6 +57,10 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
         Route::controller(AuthDistribController::class)->group(function () {
             Route::post('/loginDistributor', 'loginDistrib');
+        });
+
+        Route::controller(AuthenticateController::class)->group(function () {
+            Route::post('/loginMobile', 'mobileLogin');
         });
 
         Route::middleware('auth:distributor')->group(function () {

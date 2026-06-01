@@ -39,6 +39,7 @@ return new class extends Migration
                 ->nullable()
                 ->constrained('cash_accounts')
                 ->nullOnDelete();
+            $table->string('ref_bank')->nullable();
             $table->foreignId('branch_id')
                 ->nullable()
                 ->constrained('branches')

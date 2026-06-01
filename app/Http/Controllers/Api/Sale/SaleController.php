@@ -487,6 +487,7 @@ class SaleController extends Controller
                 'distributor_id' => 'nullable|exists:distributors,id|required_without:customer_id|prohibits:customer_id',
                 'date_vente' => 'required|date',
                 'date_echeance' => 'nullable|date',
+                'reference_paiement' => 'nullable|string|max:255',
                 'branch_id' => 'nullable|exists:branches,id',
                 'type' => 'required|in:exchange,kit,refill,accessory',
                 'tank_id' => 'nullable|exists:tanks,id',
@@ -603,6 +604,7 @@ class SaleController extends Controller
                         'reference' => 'SALE-' . $sale->reference,
                         'reference_id' => $sale->id,
                         'cash_account_id' => $data['account_id'],
+                        'reference_paiement' => $data['reference_paiement'],
                         'cash_categorie_id' => 4,
                         'addedBy' => Auth::id()
                     ]);
@@ -636,6 +638,8 @@ class SaleController extends Controller
                         'payment_method' => $paymentMethod,
 
                         'payment_date' => $data['date_echeance'] ?? null,
+
+                        'ref_bank' => $data['reference_paiement'],
 
                         'addedBy' => Auth::id(),
 

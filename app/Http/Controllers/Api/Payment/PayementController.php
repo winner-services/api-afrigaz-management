@@ -72,6 +72,7 @@ class PayementController extends Controller
             'account_id'       => 'required|exists:cash_accounts,id',
             'transaction_date' => 'nullable|date',
             'payment_method'   => 'nullable|string',
+            'reference_paiement' => 'nullable|string|max:255',
         ]);
 
         if (!$request->distributor_id && !$request->customer_id) {
@@ -328,6 +329,8 @@ class PayementController extends Controller
 
                     'cash_account_id' => $request->account_id,
 
+                    'reference_paiement' => $request->reference_paiement,
+
                     'cash_categorie_id' => $cashCategory,
 
                     'addedBy' => Auth::id()
@@ -342,6 +345,8 @@ class PayementController extends Controller
                     'reference' => $reference,
 
                     'customer_id' => $customerId,
+
+                    'ref_bank' => $request->reference_paiement,
 
                     'distributor_id' => $distributorId,
 

@@ -48,7 +48,13 @@ class RoleSeeder extends Seeder
                 'point-de-vente',
                 'charroi-automobile',
                 'demande-heure-supplem'
-            ]
+            ],
+            'vendeur' => [
+                'partennaires',
+                'distributeur',
+                'client',
+                'vente',
+            ],
         ];
 
         foreach ($rolesPermissions as $roleName => $permissions) {
