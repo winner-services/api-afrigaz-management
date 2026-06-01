@@ -164,4 +164,44 @@ class ProductsController extends Controller
             'status' => 200
         ]);
     }
+
+    public function getTransfertProductOptionsMObile()
+    {
+        $user = Auth::user();
+        $branche = Branche::where('user_id', $user->id)->first();
+
+        $brancheId = $branche ? $branche->id : null;
+
+        $gasPrice = Product::where('category_id', 1)
+            ->value('wholesale_price') ?? 0;
+
+        $data = Product::join('units', 'products.unit_id', '=', 'units.id')
+            ->leftJoin('stock_by_branches', function ($join) use ($brancheId) {
+                $join->on('products.id', '=', 'stock_by_branches.product_id')
+                    ->where('stock_by_branches.branche_id', '=', $brancheId);
+            })
+            ->where('products.status', 'created')
+            ->whereIn('products.category_id', [2, 3])
+            ->where('stock_by_branches.is_empty', 0)
+            ->where('stock_by_branches.condition_state', 'good')
+            ->select(
+                'products.*',
+                'units.abreviation',
+                'stock_by_branches.stock_quantity'
+            )
+            ->selectRaw(
+                'CASE 
+                WHEN products.category_id = 2 THEN ?
+                ELSE NULL
+            END AS gas_price',
+                [$gasPrice]
+            )
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'status' => 200,
+            'data' => $data
+        ]);
+    }
 }
