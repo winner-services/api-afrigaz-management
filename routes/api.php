@@ -422,6 +422,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
         Route::controller(ProductsController::class)->group(function () {
             Route::get('/getStockByBrancheMobile', 'getStockByBrancheMobile');
+            Route::get('/getProductOptionsSaleMobile', 'getProductOptionsSaleMobile');
         });
     });
 });
