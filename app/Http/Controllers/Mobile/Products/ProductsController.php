@@ -165,7 +165,7 @@ class ProductsController extends Controller
         ]);
     }
 
-    public function getTransfertProductOptionsMObile()
+    public function getTransfertProductOptionsMobile()
     {
         $user = Auth::user();
         $branche = Branche::where('user_id', $user->id)->first();
