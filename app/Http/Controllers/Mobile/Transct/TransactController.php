@@ -40,6 +40,8 @@ class TransactController extends Controller
 
             $accountId = CashAccount::where('branche_id', $brancheId)->value('id');
 
+            dd($brancheId, $accountId);
+
             $perPage = request('per_page', 10);
             $search = request('q', '');
             $sortField = request('sort_field', 'id');
