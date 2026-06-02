@@ -420,6 +420,7 @@ class TransefrController extends Controller
             'fromBranch:id,name',
             'toBranch:id,name',
             'driver:id,name',
+            'confirmDriver:id,name',
             'charoit',
             'user:id,name'
         ]);
@@ -618,80 +619,4 @@ class TransefrController extends Controller
             ], 422);
         }
     }
-    // public function receiveTransfer(Request $request): JsonResponse
-    // {
-    //     try {
-    //         $data = $request->validate([
-    //             'received_quantity' => 'required|integer|min:1',
-    //             'id' => 'required|integer|exists:items_transfers,id'
-    //         ]);
-    //         $itemId = $data['id'];
-
-    //         return DB::transaction(function () use ($data, $itemId) {
-
-    //             $item = ItemsTransfer::where('id', $itemId)
-    //                 ->lockForUpdate()
-    //                 ->firstOrFail();
-
-    //             if ($item->status === 'completed') {
-    //                 throw new \Exception("Réception déjà terminée");
-    //             }
-
-    //             $remaining = $item->quantity - $item->received_quantity;
-
-    //             if ($data['received_quantity'] > $remaining) {
-    //                 throw new \Exception("Quantité dépasse le restant à recevoir");
-    //             }
-
-    //             $item->received_quantity += $data['received_quantity'];
-
-    //             $item->status = $item->received_quantity == $item->quantity
-    //                 ? 'completed'
-    //                 : 'partial';
-
-    //             $item->save();
-
-    //             app(StockService::class)->increaseStock(
-    //                 $item->to_branch_id,
-    //                 $item->product_id,
-    //                 $data['received_quantity'],
-    //                 0,
-    //                 'good'
-    //             );
-    //             $transfer = $item->transfer;
-    //             if (
-    //                 $transfer && $transfer->items()
-    //                 ->where('status', '!=', 'completed')
-    //                 ->count() === 0
-    //             ) {
-
-    //                 $transfer->update(['status' => 'completed']);
-    //             }
-
-    //             return response()->json([
-    //                 'message' => 'Réception validée avec succès',
-    //                 'status' => 200,
-    //                 'data' => $item
-    //             ]);
-    //         });
-    //     } catch (\Illuminate\Validation\ValidationException $e) {
-
-    //         return response()->json([
-    //             'message' => 'Erreur de validation',
-    //             'errors' => $e->errors(),
-    //             'status' => 422
-    //         ], 422);
-    //     } catch (\Throwable $e) {
-
-    //         Log::error('Reception error', [
-    //             'error' => $e->getMessage()
-    //         ]);
-
-    //         return response()->json([
-    //             'message' => 'Impossible de valider la réception',
-    //             'errors' => [$e->getMessage()],
-    //             'status' => 422
-    //         ], 422);
-    //     }
-    // }
 }
