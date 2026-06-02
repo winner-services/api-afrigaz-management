@@ -346,7 +346,7 @@ class PayementController extends Controller
 
                     'customer_id' => $customerId,
 
-                    'ref_bank' => $request->reference_paiement,
+                    'reference_paiement' => $request->reference_paiement,
 
                     'distributor_id' => $distributorId,
 

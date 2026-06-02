@@ -8,7 +8,6 @@ use App\Models\Branche;
 use App\Models\Currency;
 use App\Models\Sale;
 use App\Services\ImageService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class SalesController extends Controller

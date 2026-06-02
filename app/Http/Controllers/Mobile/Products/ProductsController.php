@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\Mobile\Products;
 
 use App\Http\Controllers\Controller;
+use App\Models\About;
 use App\Models\Branche;
 use App\Models\Currency;
 use App\Models\ItemsTransfer;
 use App\Models\Product;
 use App\Models\StockByBranch;
-use App\Models\Transfer;
 use App\Models\User;
+use App\Services\ImageService;
 use App\Services\StockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,6 +20,12 @@ use Illuminate\Support\Facades\Log;
 
 class ProductsController extends Controller
 {
+    protected $imageService;
+
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
     public function getStockByBrancheMobile()
     {
         $user = Auth::user();
@@ -223,6 +230,10 @@ class ProductsController extends Controller
             ]);
 
             return DB::transaction(function () use ($data) {
+                $about = About::first();
+                if ($about) {
+                    $this->imageService->transform($about, ['logo', 'logo2']);
+                }
 
                 $updatedItems = [];
 
@@ -316,6 +327,7 @@ class ProductsController extends Controller
                 return response()->json([
                     'message' => 'Réception validée avec succès',
                     'status' => 200,
+                    'info_company' => $about,
                     'data' => $updatedItems
                 ]);
             });

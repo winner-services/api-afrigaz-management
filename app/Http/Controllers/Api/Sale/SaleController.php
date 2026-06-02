@@ -647,7 +647,7 @@ class SaleController extends Controller
 
                         'payment_date' => $data['date_echeance'] ?? null,
 
-                        'ref_bank' => $data['reference_paiement'],
+                        'reference_paiement' => $data['reference_paiement'],
 
                         'addedBy' => Auth::id(),
 
