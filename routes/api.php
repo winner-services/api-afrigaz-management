@@ -40,6 +40,7 @@ use App\Http\Controllers\Api\Transfer\TransefrController;
 use App\Http\Controllers\Api\Users\UserController;
 use App\Http\Controllers\Distributor\Authenticate\AuthDistribController;
 use App\Http\Controllers\Mobile\Auth\AuthenticateController;
+use App\Http\Controllers\Mobile\DashBoardMobile\DashBoarController;
 use App\Http\Controllers\Mobile\Products\ProductsController;
 use App\Http\Controllers\Mobile\Sales\SalesController;
 use App\Http\Controllers\Mobile\Shippings\ShippController;
@@ -441,6 +442,10 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::controller(TransactController::class)->group(function () {
             Route::get('/transactionsByBrancheMobile', 'transactionsByBrancheMobile');
             Route::get('/accountGetOptionsDataMobile', 'accountGetOptionsDataMobile');
+        });
+
+        Route::controller(DashBoarController::class)->group(function () {
+            Route::get('/stockDashboard', 'stockDashboard');
         });
     });
 });
