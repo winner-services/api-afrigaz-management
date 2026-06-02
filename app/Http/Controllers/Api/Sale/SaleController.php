@@ -501,7 +501,15 @@ class SaleController extends Controller
 
                 $customerId = $data['customer_id'] ?? null;
                 $distributorId = $data['distributor_id'] ?? null;
-                $branchId = $data['branch_id'] ?? 1;
+
+                $user1 = Auth::user();
+                $branche = Branche::where('user_id', $user1->id)->first();
+
+                // $branchId = $data['branch_id'] ?? 1;
+
+                // $branchId = $branche ? $branche->id : 1;
+                $branchId = $branche?->id ?? 1;
+
                 $type = $data['type'];
                 $items = $data['items'];
                 $tankId = $data['tank_id'] ?? null;
