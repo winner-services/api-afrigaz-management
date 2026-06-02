@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\Api\Transfer;
 
 use App\Http\Controllers\Controller;
+use App\Models\About;
 use App\Models\Branche;
 use App\Models\ItemsTransfer;
 use App\Models\Transfer;
+use App\Services\ImageService;
 use App\Services\StockService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -17,6 +18,12 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 class TransefrController extends Controller
 {
+     protected $imageService;
+
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
     #[OA\Get(
         path: "/api/v1/transfersGetAllData",
         summary: "Historique des transferts entre branches",
@@ -189,6 +196,11 @@ class TransefrController extends Controller
     public function transferBatch(Request $request)
     {
         try {
+            $about = About::first();
+
+            if ($about) {
+                $this->imageService->transform($about, ['logo', 'logo2']);
+            }
 
             $request->validate([
                 'from_branch' => 'required|integer|exists:branches,id',
@@ -216,6 +228,7 @@ class TransefrController extends Controller
                 'status' => 201,
                 'transfer_id' => $transfer->id,
                 'reference' => $transfer->reference,
+                'info_company' => $about,
                 'items' => $transfer->items()->with('product:id,name')->get()
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
