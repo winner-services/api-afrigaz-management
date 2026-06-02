@@ -46,6 +46,7 @@ return new class extends Migration
                 ->nullOnDelete();
             $table->decimal('paid_amount', 10, 2);
             $table->string('payment_method')->nullable();
+            $table->string('reference_paiement')->nullable();
             $table->date('payment_date');
             $table->foreignId('addedBy')
                 ->nullable()
