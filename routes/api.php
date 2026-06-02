@@ -424,6 +424,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         // Mobile Routes
 
         Route::controller(ProductsController::class)->group(function () {
+            Route::post('/submitDeliveryConfirmation', 'submitDeliveryConfirmation');
             Route::get('/getStockByBrancheMobile', 'getStockByBrancheMobile');
             Route::get('/getProductOptionsSaleMobile', 'getProductOptionsSaleMobile');
             Route::get('/getTransfertProductOptionsMobile', 'getTransfertProductOptionsMobile');
@@ -439,6 +440,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
         Route::controller(TransactController::class)->group(function () {
             Route::get('/transactionsByBrancheMobile', 'transactionsByBrancheMobile');
+            Route::get('/accountGetOptionsDataMobile', 'accountGetOptionsDataMobile');
         });
     });
 });

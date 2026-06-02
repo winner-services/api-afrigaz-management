@@ -84,4 +84,20 @@ class TransactController extends Controller
             ], 500);
         }
     }
+
+    public function accountGetOptionsDataMobile()
+    {
+        $branche = Branche::where('user_id', Auth::id())->first();
+        $brancheId = $branche->id;
+
+        $data = CashAccount::where('status', 'created')
+            ->where('branche_id', $brancheId)
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'status' => true,
+            'data' => $data
+        ]);
+    }
 }

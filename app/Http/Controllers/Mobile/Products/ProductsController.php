@@ -5,11 +5,17 @@ namespace App\Http\Controllers\Mobile\Products;
 use App\Http\Controllers\Controller;
 use App\Models\Branche;
 use App\Models\Currency;
+use App\Models\ItemsTransfer;
 use App\Models\Product;
 use App\Models\StockByBranch;
+use App\Models\Transfer;
+use App\Models\User;
+use App\Services\StockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class ProductsController extends Controller
 {
@@ -203,5 +209,134 @@ class ProductsController extends Controller
             'status' => 200,
             'data' => $data
         ]);
+    }
+
+    public function submitDeliveryConfirmation(Request $request)
+    {
+        try {
+
+            $data = $request->validate([
+                'driver_password' => 'required|string',
+                'items' => 'required|array|min:1',
+                'items.*.id' => 'required|integer|exists:items_transfers,id',
+                'items.*.received_quantity' => 'required|integer|min:1'
+            ]);
+
+            return DB::transaction(function () use ($data) {
+
+                $updatedItems = [];
+
+                $firstItem = ItemsTransfer::with('transfer')
+                    ->lockForUpdate()
+                    ->findOrFail($data['items'][0]['id']);
+
+                $transfer = $firstItem->transfer;
+
+                if (!$transfer) {
+                    throw new \Exception('Transfert introuvable');
+                }
+
+                $driver = User::find($transfer->driver);
+
+                if (!$driver) {
+                    throw new \Exception('Chauffeur introuvable');
+                }
+
+                if (!Hash::check($data['driver_password'], $driver->password)) {
+                    throw new \Exception('Mot de passe du chauffeur incorrect');
+                }
+                $transfer->confirm_driver_id = $driver->id;
+                $transfer->save();
+
+                foreach ($data['items'] as $row) {
+
+                    $item = ItemsTransfer::where('id', $row['id'])
+                        ->lockForUpdate()
+                        ->firstOrFail();
+
+                    if ($item->transfer_id != $transfer->id) {
+                        throw new \Exception(
+                            "L'item {$item->id} n'appartient pas au transfert sélectionné."
+                        );
+                    }
+
+                    if ($item->status === 'completed') {
+                        throw new \Exception(
+                            "Réception déjà terminée pour le produit ID {$item->product_id}"
+                        );
+                    }
+
+                    $remaining = $item->quantity - $item->received_quantity;
+
+                    if ($row['received_quantity'] > $remaining) {
+                        throw new \Exception(
+                            "La quantité reçue dépasse le restant à recevoir pour l'item {$item->id}"
+                        );
+                    }
+
+                    $item->received_quantity += $row['received_quantity'];
+
+                    $item->status = $item->received_quantity >= $item->quantity
+                        ? 'completed'
+                        : 'partial';
+
+                    $item->save();
+
+                    app(StockService::class)->increaseStock(
+                        $transfer->to_branch_id,
+                        $item->product_id,
+                        $row['received_quantity'],
+                        0,
+                        'good'
+                    );
+
+                    $updatedItems[] = $item->fresh();
+                }
+
+                $hasIncompleteItems = $transfer->items()
+                    ->where('status', '!=', 'completed')
+                    ->exists();
+
+                $hasReceivedItems = $transfer->items()
+                    ->whereIn('status', ['partial', 'completed'])
+                    ->exists();
+
+                if (!$hasIncompleteItems) {
+
+                    $transfer->update([
+                        'status' => 'completed'
+                    ]);
+                } elseif ($hasReceivedItems) {
+
+                    $transfer->update([
+                        'status' => 'partial'
+                    ]);
+                }
+
+                return response()->json([
+                    'message' => 'Réception validée avec succès',
+                    'status' => 200,
+                    'data' => $updatedItems
+                ]);
+            });
+        } catch (\Illuminate\Validation\ValidationException $e) {
+
+            return response()->json([
+                'message' => 'Erreur de validation',
+                'errors' => $e->errors(),
+                'status' => 422
+            ], 422);
+        } catch (\Throwable $e) {
+
+            Log::error('Reception error', [
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'message' => 'Impossible de valider la réception',
+                'errors' => [$e->getMessage()],
+                'status' => 422
+            ], 422);
+        }
     }
 }

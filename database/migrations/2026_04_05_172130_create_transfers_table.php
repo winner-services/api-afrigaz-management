@@ -17,8 +17,9 @@ return new class extends Migration
             $table->foreignId('to_branch_id')->nullable()->constrained('branches')->nullOnDelete();
             $table->foreignId('driver')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('charoit')->nullable()->constrained('charoits')->nullOnDelete();
+            $table->foreignId('confirm_driver_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('addedBy')->nullable()->constrained('users')->nullOnDelete();
-            $table->string('status')->default('created');
+            $table->string('status')->nullable();
             $table->string('reference')->nullable();
             $table->date('transfer_date')->nullable();
             $table->timestamps();
