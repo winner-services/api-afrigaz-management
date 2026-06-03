@@ -21,12 +21,12 @@ class LoginTimeMiddleware
         // if (! $request->is('api/v1/auth/login')) {
         //     return $next($request);
         // }
-        if (
-    ! $request->is('api/v1/auth/login')
-    && ! $request->is('api/v1/auth/loginMobile')
-) {
-    return $next($request);
-}
+//         if (
+//     ! $request->is('api/v1/auth/login')
+//     && ! $request->is('api/v1/auth/loginMobile')
+// ) {
+//     return $next($request);
+// }
 
         $user = User::where('email', $request->email)
             ->orWhere('phone', $request->email)
