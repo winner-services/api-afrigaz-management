@@ -103,29 +103,26 @@ class DashBoarController extends Controller
                 ], 404);
             }
 
-            // Ventes du mois courant par jour de la semaine
             $weeklyData = Sale::select(
                 DB::raw('WEEKDAY(transaction_date) as day'),
                 DB::raw('SUM(total_amount) as total')
-                // DB::raw('COUNT(*) as total')
             )
                 ->where('branch_id', $branche->id)
                 ->where('status', 'completed')
                 ->whereMonth('transaction_date', now()->month)
                 ->whereYear('transaction_date', now()->year)
-                ->groupBy('day')
-                ->orderBy('day')
-                ->pluck('total', 'day');
+                ->groupBy(DB::raw('WEEKDAY(transaction_date)'))
+                ->orderBy(DB::raw('WEEKDAY(transaction_date)'))
+                ->get();
 
             $labels = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
-            $datasets = [];
+            $datasets = array_fill(0, 7, 0);
 
-            for ($day = 0; $day <= 6; $day++) {
-                $datasets[] = (int) ($weeklyData[$day] ?? 0);
+            foreach ($weeklyData as $item) {
+                $datasets[(int)$item->day] = (float)$item->total;
             }
 
-            // Solde total des caisses
             $cashAccountIds = CashAccount::where('branche_id', $branche->id)
                 ->pluck('id');
 
@@ -138,12 +135,12 @@ class DashBoarController extends Controller
                 ->sum('solde');
 
             // Statistiques
-            $totalProducts = Product::where('branch_id', $branche->id)->count();
+            $totalProducts = Product::count();
 
-            $totalClients = Customer::where('branch_id', $branche->id)->count();
+            $totalClients = Customer::count();
 
             $totalSales = Sale::where('branch_id', $branche->id)
-                ->where('status', 'completed')
+                // ->where('status', 'completed')
                 ->count();
 
             return response()->json([
