@@ -13,6 +13,11 @@ class LoginTimeMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
+        dd(
+    $request->path(),
+    $request->route()?->getName(),
+    $request->fullUrl()
+);
         // if (! $request->is('api/v1/auth/login')) {
         //     return $next($request);
         // }
