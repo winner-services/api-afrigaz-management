@@ -33,7 +33,6 @@ class DashBoarController extends Controller
                 DB::raw('COUNT(*) as total')
             )
                 ->where('branch_id', $branche->id)
-                ->where('status', 'completed')
                 ->whereYear('transaction_date', now()->year)
                 ->groupBy('month')
                 ->orderBy('month')
