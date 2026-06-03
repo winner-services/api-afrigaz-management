@@ -30,7 +30,7 @@ class DashBoarController extends Controller
 
             $monthlyData = Sale::select(
                 DB::raw('MONTH(transaction_date) as month'),
-                DB::raw('SUM(id) as total')
+                DB::raw('COUNT(*) as total')
             )
                 ->where('branch_id', $branche->id)
                 ->where('status', 'completed')
