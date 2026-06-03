@@ -60,20 +60,20 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             ->name('login')
             ->middleware('login.time');
 
-        Route::post('/loginDistributor', [
-            AuthDistribController::class,
-            'loginDistrib'
+        Route::post('/loginMobile', [
+            AuthenticateController::class,
+            'mobileLogin'
         ])
-            ->name('loginDistributor')
+            ->name('loginMobile')
             ->middleware('login.time');
 
         // Route::controller(AuthDistribController::class)->group(function () {
         //     Route::post('/loginDistributor', 'loginDistrib');
         // });
 
-        Route::controller(AuthenticateController::class)->group(function () {
-            Route::post('/loginMobile', 'mobileLogin');
-        });
+        // Route::controller(AuthenticateController::class)->group(function () {
+        //     Route::post('/loginMobile', 'mobileLogin');
+        // });
 
         Route::middleware('auth:distributor')->group(function () {
             Route::controller(AuthDistribController::class)->group(function () {
