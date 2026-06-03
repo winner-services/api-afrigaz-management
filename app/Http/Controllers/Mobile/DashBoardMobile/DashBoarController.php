@@ -8,8 +8,7 @@ use App\Models\CashAccount;
 use App\Models\CashTransaction;
 use App\Models\Customer;
 use App\Models\Product;
-use App\Models\ProductLedger;
-use Illuminate\Http\Request;
+use App\Models\Sale;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -29,21 +28,13 @@ class DashBoarController extends Controller
                 ], 404);
             }
 
-            $monthlyData = ProductLedger::select(
-                DB::raw('MONTH(operation_date) as month'),
-                DB::raw("
-                    SUM(
-                        CASE
-                            WHEN movement = 'in' THEN quantity
-                            WHEN movement = 'out' THEN -quantity
-                            ELSE 0
-                        END
-                    ) as total
-                ")
+            $monthlyData = Sale::select(
+                DB::raw('MONTH(transaction_date) as month'),
+                DB::raw('SUM(total_amount) as total')
             )
                 ->where('branch_id', $branche->id)
-                ->where('status', 'posted')
-                ->whereYear('operation_date', now()->year)
+                ->where('status', 'completed')
+                ->whereYear('transaction_date', now()->year)
                 ->groupBy('month')
                 ->orderBy('month')
                 ->pluck('total', 'month');
@@ -71,11 +62,20 @@ class DashBoarController extends Controller
             $totalCashBalance = CashTransaction::whereIn('id', $lastTransactionIds)
                 ->sum('solde');
 
+            $totalProducts = Product::where('branch_id', $branche->id)->count();
+
+            $totalClients = Customer::where('branch_id', $branche->id)->count();
+
+            $totalSales = Sale::where('branch_id', $branche->id)
+                ->where('status', 'completed')
+                ->sum('total_amount');
+
             return response()->json([
-                'status' => 'success',
+                'success' => true,
                 'data' => [
-                    'total_products' => Product::count(),
-                    'total_clients' => Customer::count(),
+                    'total_products' => $totalProducts,
+                    'total_clients' => $totalClients,
+                    'total_sales' => number_format($totalSales, 2) . ' $',
                     'total_cash_balance' => number_format($totalCashBalance, 2) . ' $',
                     'chart_data' => [
                         'labels' => $labels,
