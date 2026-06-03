@@ -106,7 +106,8 @@ class DashBoarController extends Controller
             // Ventes du mois courant par jour de la semaine
             $weeklyData = Sale::select(
                 DB::raw('WEEKDAY(transaction_date) as day'),
-                DB::raw('COUNT(*) as total')
+                DB::raw('SUM(total_amount) as total')
+                // DB::raw('COUNT(*) as total')
             )
                 ->where('branch_id', $branche->id)
                 ->where('status', 'completed')
