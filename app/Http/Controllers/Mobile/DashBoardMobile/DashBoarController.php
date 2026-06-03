@@ -62,9 +62,9 @@ class DashBoarController extends Controller
             $totalCashBalance = CashTransaction::whereIn('id', $lastTransactionIds)
                 ->sum('solde');
 
-            $totalProducts = Product::where('branch_id', $branche->id)->count();
+            $totalProducts = Product::count();
 
-            $totalClients = Customer::where('branch_id', $branche->id)->count();
+            $totalClients = Customer::count();
 
             $totalSales = Sale::where('branch_id', $branche->id)
                 ->where('status', 'completed')
