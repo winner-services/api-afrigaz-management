@@ -37,7 +37,8 @@ class CheckWorkAccess
         if (!$settings) {
             return $this->deny($request, $user, 'Missing working configuration', 500);
         }
-        $now = now()->addHour();
+        // $now = now()->addHour();
+        $now = Carbon::now(date_default_timezone_get());
 
         $today = strtolower($now->format('l'));
 
@@ -56,7 +57,7 @@ class CheckWorkAccess
         if ($now->between($opening, $closing)) {
             return $next($request);
         }
-dd($now);
+        dd($now);
 
         if ($now->between($closing, $graceClosing)) {
 
