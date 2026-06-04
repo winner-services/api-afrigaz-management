@@ -138,21 +138,25 @@ class ProductsController extends Controller
                 'products.*',
                 'stock_by_branches.stock_quantity as stock_quantity',
                 'stock_by_branches.is_empty',
+
                 DB::raw("
-            CASE 
-                WHEN products.category_id = 2
-                THEN " . ($gasProduct->wholesale_price ?? 0) . "
-                ELSE 0
-            END AS gas_price
-        "),
+        CASE
+            WHEN products.category_id = 2
+            THEN " . ($gasProduct->wholesale_price ?? 0) . "
+            WHEN products.category_id >= 3
+            THEN products.retail_price
+            ELSE 0
+        END AS gas_price
+    "),
+
                 DB::raw("
-            CASE
-                WHEN products.category_id = 2 THEN 'echange'
-                ELSE 'accessoire'
-            END AS product_type
-        ")
-            )
-            ->get();
+        CASE
+            WHEN products.category_id >= 3
+            THEN 1
+            ELSE products.weight_kg
+        END AS weight_kg
+    ")
+            );
 
         // $accessoirs = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
         //     ->where('stock_by_branches.branche_id', $brancheId)
