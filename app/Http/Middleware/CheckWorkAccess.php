@@ -56,8 +56,9 @@ class CheckWorkAccess
         if ($now->between($opening, $closing)) {
             return $next($request);
         }
-        if ($now->between($closing, $graceClosing)) {
 dd($now);
+
+        if ($now->between($closing, $graceClosing)) {
 
             $allowedRoutes = [
                 'api.v1.overtime.request',
