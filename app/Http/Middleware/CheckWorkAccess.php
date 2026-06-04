@@ -37,7 +37,7 @@ class CheckWorkAccess
         if (!$settings) {
             return $this->deny($request, $user, 'Missing working configuration', 500);
         }
-        $now = now()->addHour();
+        $now = now();
 
         $today = strtolower($now->format('l'));
 
