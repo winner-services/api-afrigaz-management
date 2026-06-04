@@ -786,6 +786,7 @@ class SaleController extends Controller
                     'buyer_name' => $buyerName
                 ],
                 'info_company' => $about,
+                'point_vente' => $branche->name ?? null,
                 'devise' => $devise
             ], 201);
         } catch (\Throwable $e) {
