@@ -30,7 +30,6 @@ class DashBoarController extends Controller
                 ], 404);
             }
 
-            // Chiffre d'affaires mensuel
             $monthlyData = Sale::select(
                 DB::raw('MONTH(transaction_date) as month'),
                 DB::raw('SUM(total_amount) as total')
@@ -45,11 +44,21 @@ class DashBoarController extends Controller
             $labels = [];
             $datasets = [];
 
+            // for ($month = 1; $month <= 12; $month++) {
+            //     $labels[] = Carbon::create()
+            //         ->month($month)
+            //         ->locale('fr')
+            //         ->translatedFormat('M');
+
+            //     $datasets[] = (float) ($monthlyData[$month] ?? 0);
+            // }
             for ($month = 1; $month <= 12; $month++) {
-                $labels[] = Carbon::create()
+                $monthName = Carbon::create()
                     ->month($month)
                     ->locale('fr')
-                    ->translatedFormat('M');
+                    ->translatedFormat('F');
+
+                $labels[] = mb_strtolower(mb_substr($monthName, 0, 2));
 
                 $datasets[] = (float) ($monthlyData[$month] ?? 0);
             }
