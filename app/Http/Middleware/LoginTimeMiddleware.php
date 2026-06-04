@@ -13,12 +13,9 @@ class LoginTimeMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        // if (! $request->is('api/v1/auth/login')) {
-        //     return $next($request);
-        // }
-        // if (! in_array($request->route()->getName(), ['login', 'loginMobile'])) {
-        //     return $next($request);
-        // }
+        if (! $request->is('api/v1/auth/login')) {
+            return $next($request);
+        }
 
         $user = User::where('email', $request->email)
             ->orWhere('phone', $request->email)
@@ -60,7 +57,7 @@ class LoginTimeMiddleware
         $grace = $closing
             ->copy()
             ->addMinutes($settings->grace_minutes ?? 0);
-        // dd($now->toDateTimeString(), $opening->toDateTimeString(), $closing->toDateTimeString(), $grace->toDateTimeString());
+            // dd($now->toDateTimeString(), $opening->toDateTimeString(), $closing->toDateTimeString(), $grace->toDateTimeString());
 
         if (! $now->between($opening, $grace)) {
 
