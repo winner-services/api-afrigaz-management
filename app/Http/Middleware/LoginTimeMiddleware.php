@@ -46,7 +46,7 @@ class LoginTimeMiddleware
 
             return response()->json([
                 'success' => false,
-                'status' => 403,
+                'status' => 200,
                 'message' => 'Jour non ouvrable'
             ], 403);
         }
@@ -63,7 +63,7 @@ class LoginTimeMiddleware
 
             return response()->json([
                 'success' => false,
-                'status' => 403,
+                'status' => 200,
                 'message' => 'Connexion interdite en dehors des heures de service'
             ], 403);
         }

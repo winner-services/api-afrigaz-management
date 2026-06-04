@@ -107,7 +107,7 @@ class CheckWorkAccess
 
         return response()->json([
             'success' => false,
-            'status'  => $status,
+            'status'  => 200,
             'message' => $reason,
         ], $status);
     }
