@@ -8,9 +8,8 @@ use App\Models\CashAccount;
 use App\Models\CashTransaction;
 use App\Models\Customer;
 use App\Models\Product;
-use App\Models\ProductLedger;
 use App\Models\Sale;
-use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -53,15 +52,15 @@ class DashBoarController extends Controller
             //     $datasets[] = (float) ($monthlyData[$month] ?? 0);
             // }
             for ($month = 1; $month <= 12; $month++) {
-                $monthName = Carbon::create()
-                    ->month($month)
-                    ->locale('fr')
-                    ->translatedFormat('F');
+    $monthName = Carbon::create()
+        ->month($month)
+        ->locale('fr')
+        ->translatedFormat('F');
 
-                $labels[] = mb_strtolower(mb_substr($monthName, 0, 2));
+    $labels[] = strtolower(substr(Str::ascii($monthName), 0, 2));
 
-                $datasets[] = (float) ($monthlyData[$month] ?? 0);
-            }
+    $datasets[] = (float) ($monthlyData[$month] ?? 0);
+}
 
             $cashAccountIds = CashAccount::where('branche_id', $branche->id)
                 ->pluck('id');
