@@ -433,6 +433,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
         Route::controller(SalesController::class)->group(function () {
             Route::get('/salesGetByBrancheMobile', 'salesGetByBranche');
+            Route::post('/saleStoreMobile', 'processSaleMobile');
         });
 
         Route::controller(ShippController::class)->group(function () {
