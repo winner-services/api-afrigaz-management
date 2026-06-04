@@ -57,7 +57,7 @@ class CheckWorkAccess
         if ($now->between($opening, $closing)) {
             return $next($request);
         }
-        dd($now);
+        // dd($now);
 
         if ($now->between($closing, $graceClosing)) {
 
