@@ -103,50 +103,56 @@ class ProductsController extends Controller
 
         $gasProduct = Product::where('category_id', 1)->first();
 
-    //     $echange = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
-    //         ->where('stock_by_branches.branche_id', $brancheId)
-    //         ->where('products.status', 'created')
-    //         ->where('products.category_id', 2)
-    //         ->where('stock_by_branches.is_empty', 0)
-    //         ->where('stock_by_branches.condition_state', 'good')
+        //     $echange = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
+        //         ->where('stock_by_branches.branche_id', $brancheId)
+        //         ->where('products.status', 'created')
+        //         ->where('products.category_id', 2)
+        //         ->where('stock_by_branches.is_empty', 0)
+        //         ->where('stock_by_branches.condition_state', 'good')
 
-    //         ->select(
-    //             'products.*',
-    //             'stock_by_branches.stock_quantity as stock_quantity',
-    //             'stock_by_branches.is_empty',
+        //         ->select(
+        //             'products.*',
+        //             'stock_by_branches.stock_quantity as stock_quantity',
+        //             'stock_by_branches.is_empty',
 
-    //             DB::raw("
-    //         CASE 
-    //     WHEN products.category_id = 2 
-    //     THEN " . ($gasProduct->wholesale_price ?? 0) . "
-    //     ELSE 0
-    // END AS gas_price
-    //     ")
-    //         )
-    //         ->get();
-    $echange = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
-    ->where('stock_by_branches.branche_id', $brancheId)
-    ->where('products.status', 'created')
-    ->where(function ($query) {
-        $query->where(function ($q) {
-            $q->where('products.category_id', 2)
-                ->where('stock_by_branches.is_empty', 0)
-                ->where('stock_by_branches.condition_state', 'good');
-        })->orWhere('products.category_id', '>=', 3);
-    })
-    ->select(
-        'products.*',
-        'stock_by_branches.stock_quantity as stock_quantity',
-        'stock_by_branches.is_empty',
-        DB::raw("
+        //             DB::raw("
+        //         CASE 
+        //     WHEN products.category_id = 2 
+        //     THEN " . ($gasProduct->wholesale_price ?? 0) . "
+        //     ELSE 0
+        // END AS gas_price
+        //     ")
+        //         )
+        //         ->get();
+        $echange = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
+            ->where('stock_by_branches.branche_id', $brancheId)
+            ->where('products.status', 'created')
+            ->where(function ($query) {
+                $query->where(function ($q) {
+                    $q->where('products.category_id', 2)
+                        ->where('stock_by_branches.is_empty', 0)
+                        ->where('stock_by_branches.condition_state', 'good');
+                })->orWhere('products.category_id', '>=', 3);
+            })
+            ->select(
+                'products.*',
+                'stock_by_branches.stock_quantity as stock_quantity',
+                'stock_by_branches.is_empty',
+                DB::raw("
             CASE 
                 WHEN products.category_id = 2
                 THEN " . ($gasProduct->wholesale_price ?? 0) . "
                 ELSE 0
             END AS gas_price
+        "),
+                DB::raw("
+            CASE
+                WHEN products.category_id = 2 THEN 'echange'
+                ELSE 'accessoire'
+            END AS product_type
         ")
-    )
-    ->get();
+            )
+            ->get();
 
         // $accessoirs = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
         //     ->where('stock_by_branches.branche_id', $brancheId)
@@ -156,9 +162,10 @@ class ProductsController extends Controller
         //     ->get();
 
         return response()->json([
+            'status' => 200,
+            'success' => true,
             'devise' => $devise,
             'echange' => $echange,
-            'status' => 200
         ]);
     }
 
