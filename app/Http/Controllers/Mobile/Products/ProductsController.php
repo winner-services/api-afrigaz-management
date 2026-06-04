@@ -156,7 +156,8 @@ class ProductsController extends Controller
             ELSE products.weight_kg
         END AS weight_kg
     ")
-            );
+            )
+            ->get();
 
         // $accessoirs = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
         //     ->where('stock_by_branches.branche_id', $brancheId)
