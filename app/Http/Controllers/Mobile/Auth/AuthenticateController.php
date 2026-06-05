@@ -21,10 +21,11 @@ class AuthenticateController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'status'  => false,
+                'status'  => 200,
+                'success' => false,
                 'message' => 'Les données envoyées ne sont pas valides.',
                 'errors'  => $validator->errors()
-            ], 422);
+            ], 200);
         }
 
         $user = User::where('email', $request->email)
@@ -33,23 +34,26 @@ class AuthenticateController extends Controller
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
-                'status'  => false,
+                'status'  => 200,
+                'success' => false,
                 'message' => 'Email / téléphone ou mot de passe incorrect.'
-            ], 401);
+            ], 200);
         }
 
         if (!$user->role || mb_strtolower(trim($user->role->name)) !== 'vendeur') {
             return response()->json([
-                'status'  => false,
+                'status'  => 200,
+                'success' => false,
                 'message' => 'Accès réservé aux vendeurs'
-            ], 403);
+            ], 200);
         }
 
         if (!$user->active) {
             return response()->json([
-                'status'  => false,
+                'status'  => 200,
+                'success' => false,
                 'message' => 'Votre compte est désactivé.'
-            ], 403);
+            ], 200);
         }
 
         try {
@@ -86,7 +90,8 @@ class AuthenticateController extends Controller
             $token = $user->createToken($device_name, ['*'])->plainTextToken;
 
             return response()->json([
-                'status'  => true,
+                'status'  => 200,
+                'success' => true,
                 'message' => 'Connexion réussie.',
                 'data' => [
                     'token' => $token,
@@ -105,7 +110,8 @@ class AuthenticateController extends Controller
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
-                'status'  => false,
+                'status'  => 200,
+                'success' => false,
                 'message' => 'Erreur lors de la connexion.',
                 'error'   => config('app.debug') ? $e->getMessage() : null
             ], 500);
