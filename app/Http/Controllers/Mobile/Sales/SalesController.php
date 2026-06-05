@@ -15,12 +15,10 @@ use App\Models\PaymentHistorie;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Services\ImageService;
-use App\Services\ReferralService;
 use App\Services\StockService;
-use App\Services\TankService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Http\Request;
 
 class SalesController extends Controller
 {
