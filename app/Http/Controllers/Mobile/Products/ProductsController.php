@@ -9,6 +9,7 @@ use App\Models\Currency;
 use App\Models\ItemsTransfer;
 use App\Models\Product;
 use App\Models\StockByBranch;
+use App\Models\Transfer;
 use App\Models\User;
 use App\Services\ImageService;
 use App\Services\StockService;
@@ -319,5 +320,48 @@ class ProductsController extends Controller
                 'status' => 422
             ], 422);
         }
+    }
+
+    public function transfersGetMobile(Request $request)
+    {
+        $perPage = $request->query('per_page', 10);
+
+        $branchId = Branche::where('user_id', Auth::id())->value('id');
+
+        $query = Transfer::with([
+            'fromBranch',
+            'toBranch',
+            'charoit',
+            'driver',
+            'user',
+            'items.product'
+        ])
+            ->where(function ($q) use ($branchId) {
+                $q->where('from_branch_id', $branchId)
+                    ->orWhere('to_branch_id', $branchId);
+            })
+            ->orderBy('created_at', 'desc');
+
+        if ($request->filled('from_branch_id')) {
+            $query->where('from_branch_id', $request->from_branch_id);
+        }
+
+        if ($request->filled('from_date')) {
+            $query->whereDate('transfer_date', '>=', $request->from_date);
+        }
+
+        if ($request->filled('to_date')) {
+            $query->whereDate('transfer_date', '<=', $request->to_date);
+        }
+
+        $transfers = $query->paginate($perPage);
+
+        return response()->json([
+            'status' => 200,
+            'success' => true,
+            'point_vente' => Branche::where('user_id', Auth::id())->value('name'),
+            'message' => 'succès',
+            'data' => $transfers
+        ]);
     }
 }
