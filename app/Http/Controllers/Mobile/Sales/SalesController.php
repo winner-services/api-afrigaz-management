@@ -588,7 +588,7 @@ class SalesController extends Controller
 
                         'payment_method' => $paymentMethod,
 
-                        'payment_date' => $data['date_echeance'] ?? null,
+                        'payment_date' => $data['date_echeance'] ?? now(),
 
                         'reference_paiement' => $data['reference_paiement'],
 
