@@ -295,6 +295,7 @@ class ProductsController extends Controller
                 return response()->json([
                     'message' => 'Réception validée avec succès',
                     'status' => 200,
+                    'point_vente' => Branche::where('user_id', Auth::id())->value('name'),
                     'info_company' => $about,
                     'data' => $updatedItems
                 ]);
