@@ -300,7 +300,7 @@ class AccountController extends Controller
         $data = CashAccount::query()
             ->where('status', 'created')
             ->where('branche_id', $brancheId)
-            ->select('id', 'designation', 'reference')
+            ->select('id', 'designation', 'reference','branche_id')
             ->get();
 
         return response()->json([
