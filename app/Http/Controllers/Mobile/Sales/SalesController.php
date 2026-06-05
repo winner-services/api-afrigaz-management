@@ -399,6 +399,7 @@ class SalesController extends Controller
                     ...$sale->toArray(),
                     'buyer_name' => $buyerName
                 ],
+                'reference' => $sale->reference,
                 'info_company' => $about,
                 'point_vente' => Branche::where('user_id', Auth::id())->value('name'),
                 'devise' => $devise
