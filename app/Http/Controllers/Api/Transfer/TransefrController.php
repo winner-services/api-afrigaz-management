@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 class TransefrController extends Controller
 {
-     protected $imageService;
+    protected $imageService;
 
     public function __construct(ImageService $imageService)
     {
@@ -222,10 +222,12 @@ class TransefrController extends Controller
                 $request->transfer_date,
                 Auth::id()
             );
+            $branche = Branche::find($request->from_branch);
 
             return response()->json([
                 'message' => 'Transfert effectué avec succès',
                 'status' => 201,
+                'point_vente' => $branche ? $branche->name : null,
                 'transfer_id' => $transfer->id,
                 'reference' => $transfer->reference,
                 'info_company' => $about,
@@ -602,9 +604,11 @@ class TransefrController extends Controller
                     }
                 }
 
-                return response()->json([
 
+                return response()->json([
+                    'success' => true,
                     'message' => 'Réception validée avec succès',
+                    'point_vente' => Branche::where('user_id', Auth::id())->value('name'),
 
                     'status' => 200,
 

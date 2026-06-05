@@ -285,28 +285,42 @@ class AccountController extends Controller
     )]
     public function getAccountOptionsByBranch(Request $request)
     {
-        $user = Auth::user();
-
-        $userBranch = Branche::where('user_id', $user->id)->first();
-
-        $validated = $request->validate([
-            'branche_id' => ['nullable', 'integer', 'exists:branches,id'],
-        ]);
-
-        $brancheId = $validated['branche_id']
-            ?? $userBranch?->id
-            ?? 1;
-
         $data = CashAccount::query()
             ->where('status', 'created')
-            ->where('branche_id', $brancheId)
-            ->select('id', 'designation', 'reference','branche_id as branch_id')
+            ->select('id', 'designation', 'reference', 'branche_id as branch_id')
+            ->latest()
             ->get();
 
         return response()->json([
-            'status' => true,
-            'branch_id' => $brancheId,
+            'status' => 200,
+            'success' => true,
             'data' => $data
         ]);
     }
+    // public function getAccountOptionsByBranch(Request $request)
+    // {
+    //     $user = Auth::user();
+
+    //     $userBranch = Branche::where('user_id', $user->id)->first();
+
+    //     $validated = $request->validate([
+    //         'branche_id' => ['nullable', 'integer', 'exists:branches,id'],
+    //     ]);
+
+    //     $brancheId = $validated['branche_id']
+    //         ?? $userBranch?->id
+    //         ?? 1;
+
+    //     $data = CashAccount::query()
+    //         ->where('status', 'created')
+    //         ->where('branche_id', $brancheId)
+    //         ->select('id', 'designation', 'reference','branche_id as branch_id')
+    //         ->get();
+
+    //     return response()->json([
+    //         'status' => true,
+    //         'branch_id' => $brancheId,
+    //         'data' => $data
+    //     ]);
+    // }
 }
