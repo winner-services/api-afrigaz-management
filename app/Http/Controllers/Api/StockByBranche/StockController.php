@@ -161,7 +161,6 @@ class StockController extends Controller
             )
         ]
     )]
-
     public function getStockByBranche(): JsonResponse
     {
         $devise = Currency::where('status', 'created')
@@ -180,6 +179,7 @@ class StockController extends Controller
 
         $stocks = StockByBranch::with(['product.category', 'product.unit', 'product.addedBy'])
             ->where('branche_id', $brancheId)
+            ->where('categorie_id', '!=', 1)
             ->when($q, function ($query) use ($q) {
                 $query->where(function ($q2) use ($q) {
                     $q2->whereHas('product', function ($q3) use ($q) {
@@ -190,24 +190,18 @@ class StockController extends Controller
                         });
                 });
             })
-
             ->orderByDesc('id')
             ->paginate($perPage);
 
         $stocks->getCollection()->transform(function ($stock) {
-
             $product = $stock->product;
 
             if (!$product) return $stock;
 
             if ((int) $stock->categorie_id === 2) {
-
                 $etat = ((bool) $stock->is_empty) ? 'vide' : 'pleine';
-
-                $stock->product_name =
-                    $product->name . ' - ' . $etat . ' - ' . $stock->condition_state;
+                $stock->product_name = $product->name . ' - ' . $etat . ' - ' . $stock->condition_state;
             } else {
-
                 $stock->product_name = $product->name;
             }
 
@@ -225,4 +219,68 @@ class StockController extends Controller
             'data' => $stocks
         ]);
     }
+
+    // public function getStockByBranche(): JsonResponse
+    // {
+    //     $devise = Currency::where('status', 'created')
+    //         ->orderByRaw("currency_type = 'devise_principale' DESC")
+    //         ->latest()
+    //         ->get();
+
+    //     $branches = Branche::latest()->get();
+    //     $brancheId = (int) request('branche_id', 1);
+
+    //     if ($brancheId <= 0) {
+    //         $brancheId = 1;
+    //     }
+    //     $q = request('q', null);
+    //     $perPage = request('per_page', 10);
+
+    //     $stocks = StockByBranch::with(['product.category', 'product.unit', 'product.addedBy'])
+    //         ->where('branche_id', $brancheId)
+    //         ->when($q, function ($query) use ($q) {
+    //             $query->where(function ($q2) use ($q) {
+    //                 $q2->whereHas('product', function ($q3) use ($q) {
+    //                     $q3->where('name', 'like', "%$q%");
+    //                 })
+    //                     ->orWhereHas('product.category', function ($q3) use ($q) {
+    //                         $q3->where('designation', 'like', "%$q%");
+    //                     });
+    //             });
+    //         })
+
+    //         ->orderByDesc('id')
+    //         ->paginate($perPage);
+
+    //     $stocks->getCollection()->transform(function ($stock) {
+
+    //         $product = $stock->product;
+
+    //         if (!$product) return $stock;
+
+    //         if ((int) $stock->categorie_id === 2) {
+
+    //             $etat = ((bool) $stock->is_empty) ? 'vide' : 'pleine';
+
+    //             $stock->product_name =
+    //                 $product->name . ' - ' . $etat . ' - ' . $stock->condition_state;
+    //         } else {
+
+    //             $stock->product_name = $product->name;
+    //         }
+
+    //         return $stock;
+    //     });
+
+    //     return response()->json([
+    //         'devise' => $devise,
+    //         'branches' => $branches,
+    //         'filters' => [
+    //             'branche_id' => $brancheId,
+    //             'q' => $q,
+    //             'per_page' => $perPage,
+    //         ],
+    //         'data' => $stocks
+    //     ]);
+    // }
 }
