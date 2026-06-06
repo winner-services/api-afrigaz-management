@@ -177,6 +177,7 @@ class StockController extends Controller
         $q = request('q', null);
         $perPage = request('per_page', 10);
 
+        // 1. On récupère les stocks (sans le gaz qui est exclu via categorie_id != 1)
         $stocks = StockByBranch::with(['product.category', 'product.unit', 'product.addedBy'])
             ->where('branche_id', $brancheId)
             ->where('categorie_id', '!=', 1)
@@ -193,13 +194,31 @@ class StockController extends Controller
             ->orderByDesc('id')
             ->paginate($perPage);
 
-        $stocks->getCollection()->transform(function ($stock) {
+        // 2. AJOUT : On récupère le prix de gros du gaz (catégorie 1) pour cette branche spécifique
+        $gasStock = StockByBranch::where('branche_id', $brancheId)
+            ->where('categorie_id', 1)
+            ->first();
+
+        $gasWholesalePrice = $gasStock ? (float) $gasStock->wholesale_price : 0.0;
+
+        // 3. On applique la transformation
+        $stocks->getCollection()->transform(function ($stock) use ($gasWholesalePrice) {
             $product = $stock->product;
 
             if (!$product) return $stock;
 
             if ((int) $stock->categorie_id === 2) {
                 $etat = ((bool) $stock->is_empty) ? 'vide' : 'pleine';
+
+                // AJOUT : Calcul dynamique du prix de gros pour "pleine" et "good"
+                if ($etat === 'pleine' && $stock->condition_state === 'good') {
+                    // On récupère le poids (depuis le stock ou le produit selon votre structure)
+                    $weight = (float) ($stock->weight_kg ?? $product->weight_kg ?? 0);
+
+                    // Formule : wholesale_price = wholesale_price + (weight_kg * prix_du_gaz)
+                    $stock->wholesale_price = (float) $stock->wholesale_price + ($weight * $gasWholesalePrice);
+                }
+
                 $stock->product_name = $product->name . ' - ' . $etat . ' - ' . $stock->condition_state;
             } else {
                 $stock->product_name = $product->name;
@@ -219,6 +238,64 @@ class StockController extends Controller
             'data' => $stocks
         ]);
     }
+    // public function getStockByBranche(): JsonResponse
+    // {
+    //     $devise = Currency::where('status', 'created')
+    //         ->orderByRaw("currency_type = 'devise_principale' DESC")
+    //         ->latest()
+    //         ->get();
+
+    //     $branches = Branche::latest()->get();
+    //     $brancheId = (int) request('branche_id', 1);
+
+    //     if ($brancheId <= 0) {
+    //         $brancheId = 1;
+    //     }
+    //     $q = request('q', null);
+    //     $perPage = request('per_page', 10);
+
+    //     $stocks = StockByBranch::with(['product.category', 'product.unit', 'product.addedBy'])
+    //         ->where('branche_id', $brancheId)
+    //         ->where('categorie_id', '!=', 1)
+    //         ->when($q, function ($query) use ($q) {
+    //             $query->where(function ($q2) use ($q) {
+    //                 $q2->whereHas('product', function ($q3) use ($q) {
+    //                     $q3->where('name', 'like', "%$q%");
+    //                 })
+    //                     ->orWhereHas('product.category', function ($q3) use ($q) {
+    //                         $q3->where('designation', 'like', "%$q%");
+    //                     });
+    //             });
+    //         })
+    //         ->orderByDesc('id')
+    //         ->paginate($perPage);
+
+    //     $stocks->getCollection()->transform(function ($stock) {
+    //         $product = $stock->product;
+
+    //         if (!$product) return $stock;
+
+    //         if ((int) $stock->categorie_id === 2) {
+    //             $etat = ((bool) $stock->is_empty) ? 'vide' : 'pleine';
+    //             $stock->product_name = $product->name . ' - ' . $etat . ' - ' . $stock->condition_state;
+    //         } else {
+    //             $stock->product_name = $product->name;
+    //         }
+
+    //         return $stock;
+    //     });
+
+    //     return response()->json([
+    //         'devise' => $devise,
+    //         'branches' => $branches,
+    //         'filters' => [
+    //             'branche_id' => $brancheId,
+    //             'q' => $q,
+    //             'per_page' => $perPage,
+    //         ],
+    //         'data' => $stocks
+    //     ]);
+    // }
 
     // public function getStockByBranche(): JsonResponse
     // {
