@@ -945,7 +945,6 @@ class StockService
         });
     }
 
-
     public function storeReturn(array $data)
     {
         return DB::transaction(function () use ($data) {
@@ -969,7 +968,7 @@ class StockService
                 'branch_id' => $branchId,
                 'agent_id' => $agentId,
                 'total_items' => $totalItems,
-                'note' => 'Retour de bouteilles',
+                'note' => $data['note'] ?? 'Retour de cylindres',
                 'addedBy' => Auth::id(),
                 'return_date' => $return_date,
                 'reference' => fake()->unique()->numerify('RET-#####')
@@ -1002,15 +1001,82 @@ class StockService
                         true,
                         $condition
                     );
-
-                    $this->decreaseStockMultiple(
-                        $branchId,
-                        $products,
-                    );
                 }
             }
+
+            $this->decreaseStockMultiple(
+                $branchId,
+                $products
+            );
 
             return $return->load('items.product');
         });
     }
+    // public function storeReturn(array $data)
+    // {
+    //     return DB::transaction(function () use ($data) {
+
+    //         $branchId = $data['branch_id'];
+    //         $agentId = Branche::join('users', 'branches.user_id', '=', 'users.id')
+    //             ->where('branches.id', $branchId)
+    //             ->value('users.id');
+    //         $products = $data['products'];
+    //         $return_date = $data['date_operation'] ?? now();
+
+    //         $totalItems = 0;
+
+    //         foreach ($products as $product) {
+    //             foreach ($product['returns'] as $item) {
+    //                 $totalItems += $item['quantity'];
+    //             }
+    //         }
+
+    //         $return = BottleReturn::create([
+    //             'branch_id' => $branchId,
+    //             'agent_id' => $agentId,
+    //             'total_items' => $totalItems,
+    //             'note' => 'Retour de cylindres',
+    //             'addedBy' => Auth::id(),
+    //             'return_date' => $return_date,
+    //             'reference' => fake()->unique()->numerify('RET-#####')
+    //         ]);
+
+    //         foreach ($products as $product) {
+
+    //             $productId = $product['product_id'];
+
+    //             foreach ($product['returns'] as $item) {
+
+    //                 $condition = $item['condition'];
+    //                 $qty = $item['quantity'];
+
+    //                 if ($qty <= 0) {
+    //                     throw new \Exception("Quantité invalide");
+    //                 }
+
+    //                 BottleReturnItem::create([
+    //                     'bottle_return_id' => $return->id,
+    //                     'product_id' => $productId,
+    //                     'condition' => $condition,
+    //                     'quantity' => $qty,
+    //                 ]);
+
+    //                 $this->increaseStock(
+    //                     1,
+    //                     $productId,
+    //                     $qty,
+    //                     true,
+    //                     $condition
+    //                 );
+
+    //                 $this->decreaseStockMultiple(
+    //                     $branchId,
+    //                     $products,
+    //                 );
+    //             }
+    //         }
+
+    //         return $return->load('items.product');
+    //     });
+    // }
 }
