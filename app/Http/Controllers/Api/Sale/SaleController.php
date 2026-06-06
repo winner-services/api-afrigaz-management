@@ -222,7 +222,7 @@ class SaleController extends Controller
 
         $branches = Branche::latest()->get();
 
-        $brancheId = max((int) request('branche_id', 1), 1);
+        $brancheId = max((int) request('branch_id', 1), 1);
 
         $perPage = min((int) request('per_page', 10), 100);
         $search = request('q', '');
