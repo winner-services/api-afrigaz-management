@@ -20,7 +20,7 @@ class BrancheSeeder extends Seeder
             'commune' => 'Comm. Beu',
             'quartier' => 'Beu',
             'avenue' => 'Boulevard Nyamwisi',
-            'email' => 'comtact@gmail.com',
+            'email' => 'contact@gmail.com',
             'reference' => fake()->unique()->numerify('GTS-#####'),
             'addedBy' => 1
         ]);
