@@ -221,6 +221,8 @@ class SaleController extends Controller
 
         $branches = Branche::latest()->get();
 
+        $brancheId = $request->branch_id ?? 1;
+
         $perPage = $request->query('per_page', 10);
         $search = $request->query('q', '');
 
@@ -252,6 +254,7 @@ class SaleController extends Controller
                     $q->orWhereDate('transaction_date', $search);
                 });
             })
+            ->where('branch_id', $brancheId)
             ->orderBy('sales.id', 'desc')
             ->paginate($perPage);
 
