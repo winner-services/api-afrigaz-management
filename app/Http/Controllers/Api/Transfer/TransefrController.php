@@ -128,6 +128,10 @@ class TransefrController extends Controller
     )]
     public function index(Request $request)
     {
+        $about = About::first();
+        if ($about) {
+            $this->imageService->transform($about, ['logo', 'logo2']);
+        }
         $perPage = $request->query('per_page', 20);
 
         $query = Transfer::with([
@@ -155,7 +159,9 @@ class TransefrController extends Controller
 
         return response()->json([
             'status' => 200,
+            'success' => true,
             'message' => 'succès',
+            'info_company' => $about,
             'data' => $transfers
         ]);
     }
