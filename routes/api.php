@@ -403,7 +403,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/transfersReport', 'transfersReport');
             Route::post('/deliveriesReport', 'deliveriesReport');
             Route::post('/salesReport', 'salesReport');
-            Route::post('/productStockReport', 'productStockCard');
+            Route::post('/productStockReport', 'stockCardByBranch');
 
             Route::get('/stockByBrancheReport', 'stockByBrancheReport');
             Route::get('/distributorReport', 'distributorReport');
@@ -412,7 +412,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/ordersReport', 'ordersReport');
             Route::post('/transactionReport', 'transactionReport');
             Route::post('/bottleReturnsReport', 'bottleReturnsReport');
-            Route::post('/stockCardByBranch', 'stockCardByBranch');
+            // Route::post('/stockCardByBranch', 'stockCardByBranch');
         });
         Route::controller(OdersController::class)->group(function () {
             Route::get('/ordersGetData', 'ordersGetData');
