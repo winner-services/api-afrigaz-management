@@ -82,25 +82,24 @@ class CustomerController extends Controller
     {
         try {
 
-            $devise = Currency::where('status', 'created')
+            $devises = Currency::where('status', 'created')
                 ->orderByRaw("currency_type = 'devise_principale' DESC")
                 ->latest()
                 ->get();
 
-            $page = (int) request('paginate', 10);
+            $perPage = max((int) request('paginate', 10), 1);
 
-            $search = request('q', '');
-
-            $sortDirection = strtolower(request('sort_direction', 'desc'));
+            $search = trim(request('q', ''));
 
             $sortField = request('sort_field', 'id');
+            $sortDirection = strtolower(request('sort_direction', 'desc'));
 
             $allowedSortFields = [
                 'id',
                 'name',
                 'phone',
                 'address',
-                'created_at'
+                'created_at',
             ];
 
             if (!in_array($sortField, $allowedSortFields)) {
@@ -112,58 +111,129 @@ class CustomerController extends Controller
             }
 
             $data = Customer::query()
-
                 ->with([
                     'user:id,name',
-
                     'debts' => function ($query) {
-                        $query->whereIn('status', [
-                            'pending',
-                            'partial'
-                        ]);
+                        $query->whereIn('status', ['pending', 'partial']);
                     }
                 ])
-
                 ->whereHas('debts', function ($query) {
-                    $query->whereIn('status', [
-                        'pending',
-                        'partial'
-                    ]);
+                    $query->whereIn('status', ['pending', 'partial']);
                 })
-
-                ->when(!empty($search), function ($query) use ($search) {
-
+                ->when($search !== '', function ($query) use ($search) {
                     $query->where(function ($subQuery) use ($search) {
-
-                        $subQuery->where('name', 'LIKE', "%{$search}%")
-                            ->orWhere('phone', 'LIKE', "%{$search}%")
-                            ->orWhere('address', 'LIKE', "%{$search}%")
-
+                        $subQuery->where('name', 'like', "%{$search}%")
+                            ->orWhere('phone', 'like', "%{$search}%")
+                            ->orWhere('address', 'like', "%{$search}%")
                             ->orWhereHas('user', function ($q) use ($search) {
-                                $q->where('name', 'LIKE', "%{$search}%");
+                                $q->where('name', 'like', "%{$search}%");
                             });
                     });
                 })
-
                 ->orderBy($sortField, $sortDirection)
-
-                ->paginate($page);
+                ->paginate($perPage);
 
             return response()->json([
                 'status' => true,
-                'message' => 'succès',
-                'devise' => $devise,
-                'data' => $data
+                'message' => 'Succès',
+                'devise' => $devises,
+                'data' => $data,
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
 
             return response()->json([
                 'status' => false,
                 'message' => 'Erreur lors de la récupération des clients',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
+    // public function customerGetWithDebt(): JsonResponse
+    // {
+    //     try {
+
+    //         $devise = Currency::where('status', 'created')
+    //             ->orderByRaw("currency_type = 'devise_principale' DESC")
+    //             ->latest()
+    //             ->get();
+
+    //         $page = (int) request('paginate', 10);
+
+    //         $search = request('q', '');
+
+    //         $sortDirection = strtolower(request('sort_direction', 'desc'));
+
+    //         $sortField = request('sort_field', 'id');
+
+    //         $allowedSortFields = [
+    //             'id',
+    //             'name',
+    //             'phone',
+    //             'address',
+    //             'created_at'
+    //         ];
+
+    //         if (!in_array($sortField, $allowedSortFields)) {
+    //             $sortField = 'id';
+    //         }
+
+    //         if (!in_array($sortDirection, ['asc', 'desc'])) {
+    //             $sortDirection = 'desc';
+    //         }
+
+    //         $data = Customer::query()
+
+    //             ->with([
+    //                 'user:id,name',
+
+    //                 'debts' => function ($query) {
+    //                     $query->whereIn('status', [
+    //                         'pending',
+    //                         'partial'
+    //                     ]);
+    //                 }
+    //             ])
+
+    //             ->whereHas('debts', function ($query) {
+    //                 $query->whereIn('status', [
+    //                     'pending',
+    //                     'partial'
+    //                 ]);
+    //             })
+
+    //             ->when(!empty($search), function ($query) use ($search) {
+
+    //                 $query->where(function ($subQuery) use ($search) {
+
+    //                     $subQuery->where('name', 'LIKE', "%{$search}%")
+    //                         ->orWhere('phone', 'LIKE', "%{$search}%")
+    //                         ->orWhere('address', 'LIKE', "%{$search}%")
+
+    //                         ->orWhereHas('user', function ($q) use ($search) {
+    //                             $q->where('name', 'LIKE', "%{$search}%");
+    //                         });
+    //                 });
+    //             })
+
+    //             ->orderBy($sortField, $sortDirection)
+
+    //             ->paginate($page);
+
+    //         return response()->json([
+    //             'status' => true,
+    //             'message' => 'succès',
+    //             'devise' => $devise,
+    //             'data' => $data
+    //         ]);
+    //     } catch (\Exception $e) {
+
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Erreur lors de la récupération des clients',
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
     // public function customerGetWithDebt(): JsonResponse
     // {
     //     try {
