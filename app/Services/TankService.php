@@ -137,7 +137,7 @@ class TankService
             'operation_date' => $operation_date,
             'type' => 'sale',
             'movement' => 'out',
-            'quantity' => -$qty,
+            'quantity' => $qty,
             'stock_before' => $stockBefore,
             'stock_after' => $stockAfter,
             'reference_type' => $referenceType ?? 'tank_consumption',
@@ -218,7 +218,7 @@ class TankService
                 'type' => $ledgerType,
                 'movement' => $event,
 
-                'quantity' => $type === 'augmentation' ? $qty : -$qty,
+                'quantity' => $type === 'augmentation' ? $qty : $qty,
 
                 'stock_before' => $stockBefore,
                 'stock_after' => $stockAfter,

@@ -249,7 +249,7 @@ class StockService
                 'operation_date' => $reference['operation_date'] ?? now(),
                 'type' => 'sale',
 
-                'quantity' => -$quantity,
+                'quantity' => $quantity,
 
                 'stock_before' => $before,
                 'stock_after' => $after,
@@ -659,7 +659,7 @@ class StockService
                 'branch_id' => $branchId,
                 'operation_date' => $operation_date ?? now(),
                 'type' => 'sale',
-                'quantity' => -$qty,
+                'quantity' => $qty,
                 'stock_before' => $stockBefore,
                 'stock_after' => $stockAfter,
                 'movement' => 'out',
@@ -722,7 +722,7 @@ class StockService
                 'type' => 'sale',
                 'movement' => 'out',
 
-                'quantity' => -$qty,
+                'quantity' => $qty,
 
                 'stock_before' => $stockBefore,
                 'stock_after' => $stockAfter,
@@ -796,7 +796,7 @@ class StockService
                 'branch_id' => $branchId,
                 'operation_date' => $operation_date,
                 'type' => 'sale',
-                'quantity' => -$qty,
+                'quantity' => $qty,
                 'stock_before' => $before,
                 'movement' => 'out',
                 'stock_after' => $after,
@@ -922,7 +922,7 @@ class StockService
                     'operation_date' => $now,
                     'type' => 'return',
 
-                    'quantity' => -$item['quantity'],
+                    'quantity' => $item['quantity'],
                     'movement' => 'out',
 
                     'stock_before' => $before,
