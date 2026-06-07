@@ -158,7 +158,7 @@ class TankController extends Controller
             $data = $request->validate([
                 'name' => ['nullable', 'string', 'max:255', 'unique:tanks,name'],
                 'capacity' => 'required|numeric',
-                'current_level' => 'required|numeric|min:0|lte:capacity'
+                'current_level' => 'nullable|numeric'
             ]);
 
             $tank = $this->service->createTank($data);
@@ -637,22 +637,17 @@ class TankController extends Controller
 
             $data = $request->validate([
                 'name' => "nullable|string|max:255|unique:tanks,name,$id",
-                'capacity' => 'nullable|numeric|min:0',
+                // 'capacity' => 'nullable|numeric|min:0',
                 'current_level' => 'nullable|numeric|min:0',
             ]);
 
             $tank = Tank::findOrFail($id);
 
-            if (isset($data['current_level']) && isset($data['capacity'])) {
-                if ($data['current_level'] > $data['capacity']) {
+            if (isset($data['current_level'])) {
+                if ($data['current_level'] > $tank->capacity) {
                     throw new \Exception("Le niveau actuel ne peut pas dépasser la capacité");
                 }
             }
-
-            if (isset($data['capacity']) && $tank->current_level > $data['capacity']) {
-                throw new \Exception("La capacité ne peut pas être inférieure au niveau actuel");
-            }
-
             $tank->update($data);
 
             return response()->json([
