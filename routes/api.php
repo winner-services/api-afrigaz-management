@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\Account\AccountController;
+use App\Http\Controllers\Api\Agent\AgentController;
+use App\Http\Controllers\Api\Agent\Fonction\FonctionController;
 use App\Http\Controllers\Api\Auth\AuthenticationController;
 use App\Http\Controllers\Api\Auth\OverTime\OvertimeController;
 use App\Http\Controllers\Api\Branches\BrancheController;
@@ -22,6 +24,7 @@ use App\Http\Controllers\Api\Filling\FillingController;
 use App\Http\Controllers\Api\MovementStock\MovementController;
 use App\Http\Controllers\Api\Oders\OdersController;
 use App\Http\Controllers\Api\Payment\PayementController;
+use App\Http\Controllers\Api\PaymentAgent\Avance\AvanceController;
 use App\Http\Controllers\Api\Permission\PermissionController;
 use App\Http\Controllers\Api\Products\CategoryController;
 use App\Http\Controllers\Api\Products\ProductController;
@@ -46,6 +49,7 @@ use App\Http\Controllers\Mobile\Sales\SalesController;
 use App\Http\Controllers\Mobile\Shippings\ShippController;
 use App\Http\Controllers\Mobile\Transct\TransactController;
 use App\Http\Controllers\NotificationController;
+use App\Models\Fonction;
 use Illuminate\Support\Facades\Route;
 
 
@@ -70,10 +74,6 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::controller(AuthDistribController::class)->group(function () {
             Route::post('/loginDistributor', 'loginDistrib');
         });
-
-        // Route::controller(AuthenticateController::class)->group(function () {
-        //     Route::post('/loginMobile', 'mobileLogin');
-        // });
 
         Route::middleware('auth:distributor')->group(function () {
             Route::controller(AuthDistribController::class)->group(function () {
@@ -448,6 +448,34 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
         Route::controller(DashBoarController::class)->group(function () {
             Route::get('/stockDashboard', 'stockDashboard');
+        });
+
+        // ===================================================
+        // Gestion payement Agents
+        Route::controller(FonctionController::class)->group(function () {
+            Route::get('/getFonctionOptions', 'getDataOption');
+            Route::get('/getFonctionAllData', 'index');
+            Route::post('/createFonction', 'store');
+            Route::put('/updateFonction/{id}', 'update');
+            Route::put('/deleteFonction/{id}', 'destroy');
+        });
+
+        Route::controller(AgentController::class)->group(function () {
+            Route::get('/getAgentOptions', 'getOptionData');
+            Route::get('/getAgentAllData', 'index');
+            Route::post('/createAgent', 'store');
+            Route::put('/updateAgent/{id}', 'update');
+            Route::put('/deleteAgent/{id}', 'destroy');
+        });
+        Route::controller(AvanceController::class)->group(function () {
+            Route::post('/CreatepaieAvance', 'enregistrerAvance');
+            Route::get('/paieAvancesListe', 'listeAvances');
+        });
+        Route::controller(PayementController::class)->group(function () {
+            Route::post('/genererPayementMensuel', 'genererMasseSalariale');
+            Route::post('/validerPaiement', 'validerPaiementAgent');
+            Route::get('/getGenerateSalaireData', 'listerToutAvecDetails');
+            Route::get('/getListAgentApaye', 'listerDetailsAvancesAgentsEnAttente');
         });
     });
 });
