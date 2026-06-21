@@ -21,7 +21,7 @@ return new class extends Migration
             $table->dateTime('date_paiement');
             $table->string('status')->default('en_attente'); // 'en_attente', 'paye'
             $table->string('reference')->nullable();
-            $table->foreignId('account_id')->nullable()->constrained('comptes')->cascadeOnDelete();
+            $table->foreignId('account_id')->nullable()->constrained('cash_accounts')->cascadeOnDelete();
             $table->string('reference_paiement')->nullable();
             $table->string('type_payment')->nullable();
             $table->foreignId('confirmedBy')->nullable()->constrained('users')->cascadeOnDelete();

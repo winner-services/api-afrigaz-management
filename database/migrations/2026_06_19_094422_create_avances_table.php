@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('avances', function (Blueprint $table) {
             $table->id();
             $table->foreignId('agent_id')->constrained('agents');
-            $table->foreignId('account_id')->constrained('comptes');
+            $table->foreignId('account_id')->constrained('cash_accounts');
             $table->decimal('montant', 10, 2);
             $table->string('mois_concerne');
             $table->date('date_versement');
