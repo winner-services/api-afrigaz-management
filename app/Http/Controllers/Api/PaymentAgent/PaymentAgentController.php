@@ -122,7 +122,7 @@ class PaymentAgentController extends Controller
     public function validerPaiementAgent(Request $request)
     {
         $request->validate([
-            'detail_id'          => 'required|integer|exists:paiement_salaire_details,id',
+            'detail_id'          => 'required|integer|exists:payement_agent_details,id',
             'account_id'         => 'required|exists:cash_accounts,id',
             'date_paiement'      => 'nullable|date',
             'type_payment'       => 'nullable|string',
