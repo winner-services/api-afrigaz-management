@@ -147,7 +147,7 @@ class PaymentAgentController extends Controller
                 if ($about) {
                     $this->imageService->transform($about, ['logo', 'logo2']);
                 }
-
+                
                 $lastTransaction = CashTransaction::where('cash_account_id', $request->account_id)
                     ->latest('id')
                     ->lockForUpdate()
@@ -165,6 +165,8 @@ class PaymentAgentController extends Controller
                     'confirmedBy'        => Auth::user()->id,
                     'date_paiement'      => $request->date_paiement ?? Carbon::now()
                 ]);
+
+                $agent_name = Agent::find($detail->agent_id);
 
                 $paiementGlobal = PayementAgent::findOrFail($detail->paiement_id);
 
@@ -188,6 +190,8 @@ class PaymentAgentController extends Controller
                     'reason' => "Paiement salaire mois de {$paiementGlobal->mois_concerne}",
                     'reference_paiement' => $request->reference_paiement ?? '-'
                 ]);
+
+                $detail->setAttribute('agent_name', $agent_name ? $agent_name->name : null);
 
                 return response()->json([
                     'status'  => 200,
