@@ -15,6 +15,46 @@ use Illuminate\Support\Facades\Log;
 
 class DetteCylindreController extends Controller
 {
+    public function rapprotDetteCylindre(Request $request)
+    {
+        try {
+            $query = DetteCylindre::with(['details.product', 'details.product.unit', 'distributor', 'addedBy'])->latest();
+
+            if ($request->has('search') && !empty($request->search)) {
+                $search = $request->search;
+
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('distributor', function ($distributorQuery) use ($search) {
+                        $distributorQuery->where('name', 'like', "%{$search}%");
+                    })
+                        ->orWhere('status', 'like', "%{$search}%");
+                });
+            }
+
+            if ($request->has('status') && !empty($request->status)) {
+                $query->where('status', $request->status);
+            }
+
+            if ($request->has('start_date') && $request->has('end_date')) {
+                $query->whereBetween('transaction_date', [$request->start_date, $request->end_date]);
+            }
+
+            $dettes = $query->paginate(15);
+
+            return response()->json([
+                'status' => 200,
+                'success' => true,
+                'data' => $dettes
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'success' => false,
+                'message' => 'Impossible de récupérer la liste des dettes.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
     public function index(Request $request)
     {
         try {
