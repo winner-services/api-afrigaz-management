@@ -79,7 +79,7 @@ class AgentController extends Controller
                 'phone' => 'nullable|unique:agents,phone',
                 'email' => 'nullable|email|unique:agents,email',
                 'address' => 'nullable|string',
-                'fonction_id' => 'nullable|exists:fonction_agents,id'
+                'fonction_id' => 'nullable|exists:fonctions,id'
             ]);
 
             $agent = Agent::where('name', $request->name)->first();
@@ -130,7 +130,7 @@ class AgentController extends Controller
                 'phone' => 'nullable|unique:agents,phone,' . $id,
                 'email' => 'nullable|email|unique:agents,email,' . $id,
                 'address' => 'nullable|string',
-                'fonction_id' => 'nullable|exists:fonction_agents,id'
+                'fonction_id' => 'nullable|exists:fonctions,id'
             ]);
 
             $agent->update([
