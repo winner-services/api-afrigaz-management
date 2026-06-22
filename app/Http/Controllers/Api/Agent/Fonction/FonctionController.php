@@ -43,7 +43,10 @@ class FonctionController extends Controller
     {
         try {
             $search = request('q');
-            $devise = Currency::latest()->get();
+            $devise = Currency::where('status', 'created')
+                ->orderByRaw("currency_type = 'devise_principale' DESC")
+                ->latest()
+                ->get();
 
             $data = Fonction::with('addedBy')
                 ->when($search, function ($query) use ($search) {
