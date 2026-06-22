@@ -4,18 +4,21 @@ namespace App\Http\Controllers\Api\DettCylindre;
 
 use App\Http\Controllers\Controller;
 use App\Models\DetteCylindre;
+use App\Models\DetteCylindreDetail;
 use App\Models\Product;
 use App\Models\StockByBranch;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class DetteCylindreController extends Controller
 {
     public function index(Request $request)
     {
         try {
-            $query = DetteCylindre::with(['details.product','details.product.unit', 'distributor', 'addedBy'])->latest();
+            $query = DetteCylindre::with(['details.product', 'details.product.unit', 'distributor', 'addedBy'])->latest();
 
             if ($request->has('search') && !empty($request->search)) {
                 $search = $request->search;
@@ -196,6 +199,115 @@ class DetteCylindreController extends Controller
                 'message' => 'Une erreur est survenue lors de la modification.',
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    public function receiveCylindreRetour(Request $request): JsonResponse
+    {
+        try {
+            $data = $request->validate([
+                'items' => 'required|array|min:1',
+                'items.*.id' => 'required|integer|exists:dette_cylindre_details,id',
+                'items.*.received_quantity' => 'required|integer|min:1'
+            ]);
+
+            $branchId = 1;
+
+            return DB::transaction(function () use ($data, $branchId) {
+                $updatedDetails = [];
+
+                foreach ($data['items'] as $row) {
+                    $detail = DetteCylindreDetail::where('id', $row['id'])
+                        ->lockForUpdate()
+                        ->firstOrFail();
+
+                    if ($detail->status === 'completed') {
+                        throw new \Exception(
+                            "Le retour est déjà totalement complété pour le produit ID {$detail->product_id}"
+                        );
+                    }
+
+                    $alreadyReturned = $detail->returned_quantity ?? 0;
+                    $remaining = $detail->quantity - $alreadyReturned;
+
+                    if ($row['received_quantity'] > $remaining) {
+                        throw new \Exception(
+                            "La quantité retournée ({$row['received_quantity']}) dépasse le restant à recevoir ({$remaining}) pour la ligne ID {$detail->id}"
+                        );
+                    }
+
+                    $detail->returned_quantity = $alreadyReturned + $row['received_quantity'];
+
+                    if ($detail->returned_quantity >= $detail->quantity) {
+                        $detail->status = 'completed';
+                        $detail->date_retour = now();
+                    } else {
+                        $detail->status = 'partial';
+                    }
+
+                    $detail->save();
+
+                    $emptyStock = StockByBranch::where('branche_id', $branchId)
+                        ->where('product_id', $detail->product_id)
+                        ->where('is_empty', 1)
+                        ->where('condition_state', 'good')
+                        ->first();
+
+                    if ($emptyStock) {
+                        $emptyStock->increment('stock_quantity', $row['received_quantity']);
+                    } else {
+                        StockByBranch::create([
+                            'branche_id' => $branchId,
+                            'product_id' => $detail->product_id,
+                            'is_empty' => 1,
+                            'condition_state' => 'good',
+                            'stock_quantity' => $row['received_quantity'],
+                        ]);
+                    }
+
+                    $updatedDetails[] = $detail->fresh();
+                }
+
+                $detteIds = collect($updatedDetails)->pluck('dette_cylindre_id')->unique();
+
+                foreach ($detteIds as $detteId) {
+                    $dette = DetteCylindre::find($detteId);
+
+                    if (
+                        $dette &&
+                        $dette->details()->where('status', '!=', 'completed')->count() === 0
+                    ) {
+                        $dette->update([
+                            'status' => 'completed'
+                        ]);
+                    } else {
+                        $dette->update([
+                            'status' => 'partial'
+                        ]);
+                    }
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Retour de cylindres validé avec succès',
+                    'status' => 200,
+                    'data' => $updatedDetails
+                ]);
+            });
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Erreur de validation',
+                'errors' => $e->errors(),
+                'status' => 422
+            ], 422);
+        } catch (\Throwable $e) {
+            Log::error('Retour Cylindre Error', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'message' => 'Impossible de valider le retour',
+                'errors' => [$e->getMessage()],
+                'status' => 422
+            ], 422);
         }
     }
 }

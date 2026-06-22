@@ -18,6 +18,7 @@ return new class extends Migration
             $table->integer('quantity');
             $table->integer('returned_quantity')->default(0);
             $table->dateTime('date_retour')->nullable();
+            $table->string('status')->default('pending');
             $table->timestamps();
         });
     }
