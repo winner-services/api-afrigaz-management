@@ -115,7 +115,7 @@ class PaymentAgentController extends Controller
     {
         $request->validate([
             'detail_id'          => 'required|integer|exists:paiement_salaire_details,id',
-            'account_id'         => 'required|exists:comptes,id',
+            'account_id'         => 'required|exists:cash_accounts,id',
             'date_paiement'      => 'nullable|date',
             'type_payment'       => 'nullable|string',
             'reference_paiement' => 'nullable|string',
@@ -316,7 +316,6 @@ class PaymentAgentController extends Controller
 
             $agentsFormates = $detailsPaie->map(function ($detail) {
                 $agent = $detail->agent;
-
                 $sommeReelleAvances = $agent && $agent->avances ? (float) $agent->avances->sum('montant') : 0.0;
 
                 $salaireBase = (float) $detail->salaire_base;
