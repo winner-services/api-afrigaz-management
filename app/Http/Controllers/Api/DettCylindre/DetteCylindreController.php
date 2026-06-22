@@ -72,6 +72,7 @@ class DetteCylindreController extends Controller
                     'distributor_id'   => $validated['distributor_id'],
                     'transaction_date' => $validated['transaction_date'],
                     'addedBy'          => Auth::id(),
+                    'reference' => fake()->randomNumber(5),
                 ]);
 
                 $details = [];

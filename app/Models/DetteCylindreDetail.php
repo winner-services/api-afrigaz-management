@@ -9,7 +9,8 @@ use Illuminate\Database\Eloquent\Model;
     'dette_cylindre_id',
     'product_id',
     'quantity',
-    'date_retour'
+    'date_retour',
+    'returned_quantity'
 ])]
 class DetteCylindreDetail extends Model
 {

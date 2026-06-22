@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('dette_cylindre_id')->constrained('dette_cylindres')->cascadeOnDelete();
             $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
             $table->integer('quantity');
+            $table->integer('returned_quantity')->default(0);
             $table->dateTime('date_retour')->nullable();
             $table->timestamps();
         });

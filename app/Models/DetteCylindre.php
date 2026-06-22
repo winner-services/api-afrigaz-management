@@ -9,7 +9,8 @@ use Illuminate\Database\Eloquent\Model;
     'distributor_id',
     'transaction_date',
     'addedBy',
-    'status'
+    'status',
+    'reference'
 ])]
 class DetteCylindre extends Model
 {
@@ -19,7 +20,7 @@ class DetteCylindre extends Model
     }
     public function addedBy()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'addedBy');
     }
     public function distributor()
     {

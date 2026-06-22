@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('distributor_id')->nullable()->constrained('distributors')->cascadeOnDelete();
             $table->dateTime('transaction_date');
             $table->foreignId('addedBy')->nullable()->constrained('users')->cascadeOnDelete();
+            $table->string('reference')->nullable();
             $table->string('status')->default('pendid');
             $table->timestamps();
         });
