@@ -33,6 +33,7 @@ class PermissionSeeder extends Seeder
             'ressources-humaines',
             'fonctions',
             'agents',
+            'pret-cylindre',
             'avance-salire',
             'activation-salaire',
             'suivi-salaire',

@@ -43,6 +43,7 @@ class RoleSeeder extends Seeder
                 'payement-dette',
                 'transaction',
                 'dette-distributeur',
+                'pret-cylindre',
                 'comptes',
                 'devises',
                 'paramettre',

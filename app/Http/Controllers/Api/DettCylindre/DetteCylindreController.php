@@ -15,36 +15,15 @@ use Illuminate\Support\Facades\Log;
 
 class DetteCylindreController extends Controller
 {
-    public function rapprotDetteCylindre(Request $request)
+    public function rapprotDetteCylindre()
     {
         try {
-            $query = DetteCylindre::with(['details.product', 'details.product.unit', 'distributor', 'addedBy'])->latest();
-
-            if ($request->has('search') && !empty($request->search)) {
-                $search = $request->search;
-
-                $query->where(function ($q) use ($search) {
-                    $q->whereHas('distributor', function ($distributorQuery) use ($search) {
-                        $distributorQuery->where('name', 'like', "%{$search}%");
-                    })
-                        ->orWhere('status', 'like', "%{$search}%");
-                });
-            }
-
-            if ($request->has('status') && !empty($request->status)) {
-                $query->where('status', $request->status);
-            }
-
-            if ($request->has('start_date') && $request->has('end_date')) {
-                $query->whereBetween('transaction_date', [$request->start_date, $request->end_date]);
-            }
-
-            $dettes = $query->paginate(15);
+            $data = DetteCylindre::with(['details.product', 'details.product.unit', 'distributor', 'addedBy'])->latest()->get();
 
             return response()->json([
                 'status' => 200,
                 'success' => true,
-                'data' => $dettes
+                'data' => $data
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
