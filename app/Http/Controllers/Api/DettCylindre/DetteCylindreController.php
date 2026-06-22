@@ -15,7 +15,7 @@ class DetteCylindreController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = DetteCylindre::with(['details.product', 'distributor', 'addedBy'])->latest();
+            $query = DetteCylindre::with(['details.product','details.product.unit', 'distributor', 'addedBy'])->latest();
 
             if ($request->has('search') && !empty($request->search)) {
                 $search = $request->search;
