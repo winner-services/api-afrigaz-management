@@ -214,7 +214,10 @@ class PaymentAgentController extends Controller
     public function listerToutAvecDetails(Request $request)
     {
         try {
-            $devise = Currency::latest()->get();
+            $devise = Currency::where('status', 'created')
+                ->orderByRaw("currency_type = 'devise_principale' DESC")
+                ->latest()
+                ->get();
 
             $query = PayementAgent::with([
                 'details' => function ($q) {
@@ -299,7 +302,10 @@ class PaymentAgentController extends Controller
             if ($about) {
                 $this->imageService->transform($about, ['logo', 'logo2']);
             }
-            $devise = Currency::latest()->get();
+            $devise = Currency::where('status', 'created')
+                ->orderByRaw("currency_type = 'devise_principale' DESC")
+                ->latest()
+                ->get();
             $moisConcerne = request('mois_concerne');
 
             if (empty($moisConcerne)) {

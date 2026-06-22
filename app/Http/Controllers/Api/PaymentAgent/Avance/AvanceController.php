@@ -16,7 +16,10 @@ class AvanceController extends Controller
 {
     public function listeAvances()
     {
-        $devise = Currency::latest()->get();
+        $devise = Currency::where('status', 'created')
+                ->orderByRaw("currency_type = 'devise_principale' DESC")
+                ->latest()
+                ->get();
         $moisEnCours = \Carbon\Carbon::now()->format('Y-m');
 
         $mois = request('mois') ?: $moisEnCours;
