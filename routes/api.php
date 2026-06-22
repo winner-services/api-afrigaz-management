@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\MovementStock\MovementController;
 use App\Http\Controllers\Api\Oders\OdersController;
 use App\Http\Controllers\Api\Payment\PayementController;
 use App\Http\Controllers\Api\PaymentAgent\Avance\AvanceController;
+use App\Http\Controllers\Api\PaymentAgent\PaymentAgentController;
 use App\Http\Controllers\Api\Permission\PermissionController;
 use App\Http\Controllers\Api\Products\CategoryController;
 use App\Http\Controllers\Api\Products\ProductController;
@@ -471,7 +472,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/CreatepaieAvance', 'enregistrerAvance');
             Route::get('/paieAvancesListe', 'listeAvances');
         });
-        Route::controller(PayementController::class)->group(function () {
+        Route::controller(PaymentAgentController::class)->group(function () {
             Route::post('/genererPayementMensuel', 'genererMasseSalariale');
             Route::post('/validerPaiement', 'validerPaiementAgent');
             Route::get('/getGenerateSalaireData', 'listerToutAvecDetails');
