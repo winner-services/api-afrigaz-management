@@ -294,7 +294,8 @@ class TransactionController extends Controller
             }
 
 
-            $brancheId = request("branche_id", 1);
+            // $brancheId = request("branche_id", 1);
+            $brancheId = request("branche_id", 2);
             $accountId = request("account_id", 1);
 
             $perPage = request('per_page', 10);
@@ -302,7 +303,6 @@ class TransactionController extends Controller
             $sortField = request('sort_field', 'id');
             $sortDirection = request('sort_direction', 'desc');
 
-            // 🔒 Sécurité tri
             $allowedSortFields = ['id', 'amount', 'transaction_date', 'type'];
             if (!in_array($sortField, $allowedSortFields)) {
                 $sortField = 'id';
