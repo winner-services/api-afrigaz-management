@@ -49,7 +49,7 @@ class AvanceController extends Controller
     {
         $request->validate([
             'agent_id' => 'required|exists:agents,id',
-            'account_id' => 'required|exists:comptes,id',
+            'account_id' => 'required|exists:cash_accounts,id',
             'category_id' => 'nullable|integer',
             'montant' => 'required|numeric|min:1',
             'mois_concerne' => 'required|date_format:Y-m',
