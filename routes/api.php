@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\Customer\Bonus\BonuseController;
 use App\Http\Controllers\Api\Customer\CustomerController;
 use App\Http\Controllers\Api\Customer\DebtPayment\CustomerDebtPaymentController;
 use App\Http\Controllers\Api\DashBoard\DashBoardController;
+use App\Http\Controllers\Api\DettCylindre\DetteCylindreController;
 use App\Http\Controllers\Api\Dristributor\Category\CategoryDistribController;
 use App\Http\Controllers\Api\Dristributor\DeptPayment\PaymentDristributorController;
 use App\Http\Controllers\Api\Dristributor\DistributorController;
@@ -477,6 +478,11 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/validerPaiement', 'validerPaiementAgent');
             Route::get('/getGenerateSalaireData', 'listerToutAvecDetails');
             Route::get('/getListAgentApaye', 'listerDetailsAvancesAgentsEnAttente');
+        });
+
+        Route::controller(DetteCylindreController::class)->group(function () {
+            Route::post('/createDetteCylindre', 'store');
+            Route::put('/updateDetteCylindre/{id}', 'update');
         });
     });
 });
