@@ -18,7 +18,7 @@ return new class extends Migration
             $table->decimal('salaire_base', 15, 2);
             $table->decimal('total_avances', 15, 2);
             $table->decimal('net_a_payer', 15, 2);
-            $table->dateTime('date_paiement');
+            $table->dateTime('date_paiement')->nullable();
             $table->string('status')->default('en_attente'); // 'en_attente', 'paye'
             $table->string('reference')->nullable();
             $table->foreignId('account_id')->nullable()->constrained('cash_accounts')->cascadeOnDelete();

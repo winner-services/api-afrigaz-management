@@ -278,6 +278,7 @@ class PaymentAgentController extends Controller
     public function listerDetailsAvancesAgentsEnAttente()
     {
         try {
+            $devise = Currency::latest()->get();
             $moisConcerne = request('mois_concerne');
 
             if (empty($moisConcerne)) {
@@ -347,6 +348,7 @@ class PaymentAgentController extends Controller
             return response()->json([
                 'status'         => 200,
                 'success'        => true,
+                'devise' => $devise,
                 'mois_concerne'    => $moisConcerne,
                 'data'           => $agentsFormates
             ], 200);
