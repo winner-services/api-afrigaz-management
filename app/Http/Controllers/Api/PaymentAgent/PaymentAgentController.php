@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Api\PaymentAgent;
 
 use App\Http\Controllers\Controller;
+use App\Models\About;
 use App\Models\Agent;
 use App\Models\Avance;
 use App\Models\CashTransaction;
 use App\Models\Currency;
 use App\Models\PayementAgent;
 use App\Models\PayementAgentDetail;
+use App\Services\ImageService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,6 +19,12 @@ use Illuminate\Support\Facades\Validator;
 
 class PaymentAgentController extends Controller
 {
+    protected $imageService;
+
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
     public function genererMasseSalariale(Request $request)
     {
         $request->validate([
@@ -135,6 +143,10 @@ class PaymentAgentController extends Controller
             }
 
             return DB::transaction(function () use ($request, $detail) {
+                $about = About::first();
+                if ($about) {
+                    $this->imageService->transform($about, ['logo', 'logo2']);
+                }
 
                 $lastTransaction = CashTransaction::where('cash_account_id', $request->account_id)
                     ->latest('id')
@@ -181,6 +193,7 @@ class PaymentAgentController extends Controller
                     'status'  => 200,
                     'success' => true,
                     'message' => 'Le paiement de l\'agent a été validé avec succès !',
+                    'info_company' => $about,
                     'data'    => $detail
                 ], 200);
             });
@@ -322,6 +335,7 @@ class PaymentAgentController extends Controller
                 $netAPayerRecalcule = $salaireBase - $sommeReelleAvances;
 
                 return [
+                    'detail_id'               => $detail->id,
                     'agent_id'               => $detail->agent_id,
                     'nom_agent'              => $agent->name ?? 'Anonyme',
                     'fonction'               => $agent->fonction->designation ?? 'Aucune',
