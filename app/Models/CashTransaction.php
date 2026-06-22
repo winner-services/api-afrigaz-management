@@ -12,6 +12,7 @@ class CashTransaction extends Model
     {
         return $this->belongsTo(CashAccount::class, 'cash_account_id');
     }
+    
     public function addedBy()
     {
         return $this->belongsTo(User::class, 'addedBy');
