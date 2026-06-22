@@ -483,6 +483,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::controller(DetteCylindreController::class)->group(function () {
             Route::post('/createDetteCylindre', 'store');
             Route::put('/updateDetteCylindre/{id}', 'update');
+            Route::get('/getDetteCylindre', 'index');
         });
     });
 });

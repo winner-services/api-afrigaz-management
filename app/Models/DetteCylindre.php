@@ -17,4 +17,12 @@ class DetteCylindre extends Model
     {
         return $this->hasMany(DetteCylindreDetail::class, 'dette_cylindre_id');
     }
+    public function addedBy()
+    {
+        return $this->belongsTo(User::class);
+    }
+    public function distributor()
+    {
+        return $this->belongsTo(Distributor::class);
+    }
 }
