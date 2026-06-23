@@ -122,7 +122,7 @@ class ProductsController extends Controller
                 DB::raw("
         CASE
             WHEN products.category_id = 2
-            THEN " . ($gasProduct->wholesale_price ?? 0) . "
+            THEN " . ($gasProduct->retail_price ?? 0) . "
             WHEN products.category_id >= 3
             THEN products.retail_price
             ELSE 0
