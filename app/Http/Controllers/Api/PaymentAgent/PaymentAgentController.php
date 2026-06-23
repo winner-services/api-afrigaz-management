@@ -240,9 +240,9 @@ class PaymentAgentController extends Controller
                 $query->where('mois_concerne', $request->mois);
             }
 
-            $perPage = $request->get('per_page', 1);
+            // $perPage = $request->get('per_page', 15);
 
-            $historiquePaiements = $query->orderBy('mois_concerne', 'desc')->paginate($perPage);
+            $historiquePaiements = $query->orderBy('mois_concerne', 'desc')->paginate(10);
 
             $paginatedData = $historiquePaiements->through(function ($paiementGlobal) {
                 return [
