@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Log;
 
 class DetteCylindreController extends Controller
 {
-     protected $imageService;
+    protected $imageService;
 
     public function __construct(ImageService $imageService)
     {
@@ -36,7 +36,7 @@ class DetteCylindreController extends Controller
                 ? Carbon::parse(request('date_end'))->endOfDay()
                 : now()->endOfDay();
 
-                $about = About::first();
+            $about = About::first();
 
             if ($about) {
                 $this->imageService->transform($about, ['logo', 'logo2']);
