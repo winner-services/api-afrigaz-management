@@ -485,7 +485,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::put('/updateDetteCylindre/{id}', 'update');
             Route::get('/getDetteCylindre', 'index');
             Route::post('/receiveCylindreRetour', 'receiveCylindreRetour');
-            Route::get('/rapprotDetteCylindre','rapprotDetteCylindre');
+            Route::post('/rapprotDetteCylindre','rapprotDetteCylindre');
         });
     });
 });
