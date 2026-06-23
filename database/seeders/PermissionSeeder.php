@@ -34,7 +34,7 @@ class PermissionSeeder extends Seeder
             'fonctions',
             'agents',
             'pret-cylindre',
-            'avance-salire',
+            'avance-salaire',
             'activation-salaire',
             'suivi-salaire',
             'finance',

@@ -36,7 +36,7 @@ class RoleSeeder extends Seeder
                 'ressources-humaines',
                 'fonctions',
                 'agents',
-                'avance-salire',
+                'avance-salaire',
                 'activation-salaire',
                 'suivi-salaire',
                 'finance',
