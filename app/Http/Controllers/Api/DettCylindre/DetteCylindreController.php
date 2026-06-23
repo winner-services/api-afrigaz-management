@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\StockByBranch;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -19,7 +20,17 @@ class DetteCylindreController extends Controller
     public function rapprotDetteCylindre()
     {
         try {
-            $data = DetteCylindre::with(['details.product', 'details.product.unit', 'distributor', 'addedBy'])->latest()->get();
+            $startDate = request('date_start')
+                ? Carbon::parse(request('date_start'))->startOfDay()
+                : now()->startOfMonth();
+
+            $endDate = request('date_end')
+                ? Carbon::parse(request('date_end'))->endOfDay()
+                : now()->endOfDay();
+
+            $data = DetteCylindre::with(['details.product', 'details.product.unit', 'distributor', 'addedBy'])
+                ->whereBetween('transaction_date', [$startDate, $endDate])
+                ->latest()->get();
 
             return response()->json([
                 'status' => 200,
