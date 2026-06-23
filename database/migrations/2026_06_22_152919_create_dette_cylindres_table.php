@@ -17,7 +17,7 @@ return new class extends Migration
             $table->dateTime('transaction_date');
             $table->foreignId('addedBy')->nullable()->constrained('users')->cascadeOnDelete();
             $table->string('reference')->nullable();
-            $table->string('status')->default('pendid');
+            $table->string('status')->default('pending');
             $table->timestamps();
         });
     }
