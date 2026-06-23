@@ -214,6 +214,10 @@ class PaymentAgentController extends Controller
     public function listerToutAvecDetails(Request $request)
     {
         try {
+            $about = About::first();
+            if ($about) {
+                $this->imageService->transform($about, ['logo', 'logo2']);
+            }
             $devise = Currency::where('status', 'created')
                 ->orderByRaw("currency_type = 'devise_principale' DESC")
                 ->latest()
@@ -282,6 +286,7 @@ class PaymentAgentController extends Controller
             return response()->json([
                 'status'  => 200,
                 'success' => true,
+                'info_company' => $about,
                 'devise'  => $devise,
                 'data'    => $paginatedData
             ], 200);

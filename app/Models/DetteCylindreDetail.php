@@ -19,4 +19,8 @@ class DetteCylindreDetail extends Model
     {
         return $this->belongsTo(Product::class, 'product_id');
     }
+    public function detteCylindre()
+    {
+        return $this->belongsTo(DetteCylindre::class, 'dette_cylindre_id');
+    }
 }
