@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Api\DettCylindre;
 
 use App\Http\Controllers\Controller;
+use App\Models\About;
 use App\Models\DetteCylindre;
 use App\Models\DetteCylindreDetail;
 use App\Models\HistoriqueRetourDetteCylindre;
 use App\Models\Product;
 use App\Models\StockByBranch;
+use App\Services\ImageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -17,6 +19,12 @@ use Illuminate\Support\Facades\Log;
 
 class DetteCylindreController extends Controller
 {
+     protected $imageService;
+
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
     public function rapprotDetteCylindre()
     {
         try {
@@ -28,6 +36,12 @@ class DetteCylindreController extends Controller
                 ? Carbon::parse(request('date_end'))->endOfDay()
                 : now()->endOfDay();
 
+                $about = About::first();
+
+            if ($about) {
+                $this->imageService->transform($about, ['logo', 'logo2']);
+            }
+
             $data = DetteCylindre::with(['details.product', 'details.product.unit', 'distributor', 'addedBy'])
                 ->whereBetween('transaction_date', [$startDate, $endDate])
                 ->latest()->get();
@@ -35,6 +49,7 @@ class DetteCylindreController extends Controller
             return response()->json([
                 'status' => 200,
                 'success' => true,
+                'info_company' => $about,
                 'data' => $data
             ], 200);
         } catch (\Exception $e) {
