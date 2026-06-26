@@ -112,7 +112,7 @@ class DistributorController extends Controller
                         ->orWhere('phone', 'like', "%{$search}%");
                 });
             })
-            
+
             ->whereHas('debts', function ($query) {
                 $query->whereIn('status', ['pending', 'partial']);
             })
@@ -359,19 +359,23 @@ class DistributorController extends Controller
                     'category_distributor_id',
                     $item->category_distributor_id
                 )->first();
+                if ($caution) {
 
-                DebtDistributor::create([
-                    'distributor_id' => $item->id,
-                    'loan_amount' => $caution?->amount ?? 0,
-                    'paid_amount' => 0,
-                    'remaining_amount' => $caution?->amount ?? 0,
-                    'transaction_date' => now(),
-                    'date_echeance' => now()->addDays(7),
-                    'motif' => 'Caution initiale',
-                    'status' => 'pending',
-                    'reference' => $data['reference'],
-                    'user_id' => Auth::id(),
-                ]);
+                    $amount = $caution->amount ?? 0;
+
+                    DebtDistributor::create([
+                        'distributor_id'   => $item->id,
+                        'loan_amount'      => $amount,
+                        'paid_amount'      => 0,
+                        'remaining_amount' => $amount,
+                        'transaction_date' => now(),
+                        'date_echeance'    => now()->addDays(7),
+                        'motif'            => 'Caution initiale',
+                        'status'           => 'pending',
+                        'reference'        => $data['reference'] ?? null,
+                        'user_id'          => Auth::id(),
+                    ]);
+                }
 
                 return $item;
             });
