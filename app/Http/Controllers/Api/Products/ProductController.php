@@ -117,6 +117,11 @@ class ProductController extends Controller
 
         $gasPrice = Product::where('category_id', 1)->value('wholesale_price');
 
+        $user = Auth::user();
+        $brancheSel = $user ? Branche::where('user_id', $user->id)->first() : null;
+
+        $brancheId = $brancheSel ? $brancheSel->id : 1;
+
         $recharge = Product::where('status', 'created')
             ->where('category_id', 2)
             ->select(
@@ -135,7 +140,8 @@ class ProductController extends Controller
         $gasProduct = Product::where('category_id', 1)->first();
 
         $kit = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
-            ->where('stock_by_branches.branche_id', 1)
+            // ->where('stock_by_branches.branche_id', 1)
+            ->where('stock_by_branches.branche_id', $brancheId)
             ->where('products.status', 'created')
             ->whereIn('products.category_id', [2, 3])
             ->where('stock_by_branches.is_empty', 0)
@@ -154,7 +160,7 @@ class ProductController extends Controller
             )
             ->get();
         $echange = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
-            ->where('stock_by_branches.branche_id', 1)
+            ->where('stock_by_branches.branche_id', $brancheId)
             ->where('products.status', 'created')
             ->where('products.category_id', 2)
             ->where('stock_by_branches.is_empty', 0)
@@ -176,7 +182,7 @@ class ProductController extends Controller
             ->get();
 
         $accessoirs = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
-            ->where('stock_by_branches.branche_id', 1)
+            ->where('stock_by_branches.branche_id', $brancheId)
             ->where('products.status', 'created')
             ->where('products.category_id', '>=', 3)
             ->select('products.*', 'stock_by_branches.stock_quantity as stock_quantity')
