@@ -562,6 +562,9 @@ class SaleController extends Controller
                 $user1 = Auth::user();
                 $branche = Branche::where('user_id', $user1->id)->first();
 
+                // $branchId = $data['branch_id'] ?? 1;
+
+                // $branchId = $branche ? $branche->id : 1;
                 $branchId = $branche?->id ?? 1;
 
                 $type = $data['type'];
@@ -741,12 +744,10 @@ class SaleController extends Controller
                         }
 
                         $gasQty = $product->weight_kg * $qty;
-                        // $price = $gasProduct->wholesale_price;
-                        $price = $untPrc;
+                        $price = $gasProduct->wholesale_price;
                         $lineTotal = $price * $gasQty;
                         $unitPrice = $price * $product->weight_kg;
                         $totalGas += $gasQty;
-                        dd($unitPrice);
                     } else {
 
                         $unitPrice += $untPrc;
