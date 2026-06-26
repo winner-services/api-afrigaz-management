@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Account;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branche;
 use App\Models\CashAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -73,7 +74,9 @@ class AccountController extends Controller
     )]
     public function getAccountOptions()
     {
-        $data = CashAccount::where('status', 'created')->get();
+        $branche = Branche::where('user_id', Auth::user()->id)->first();
+        $data = CashAccount::where('status', 'created')
+            ->where('branche_id', $branche->id)->latest()->get();
 
         return response()->json([
             'status' => true,
