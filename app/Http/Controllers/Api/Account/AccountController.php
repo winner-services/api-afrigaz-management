@@ -75,6 +75,7 @@ class AccountController extends Controller
     public function getAccountOptions()
     {
         $branche = Branche::where('user_id', Auth::user()->id)->first();
+        $branchId = $branche?->id ?? 1;
         $data = CashAccount::where('status', 'created')
             ->where('branche_id', $branche->id)->latest()->get();
 
