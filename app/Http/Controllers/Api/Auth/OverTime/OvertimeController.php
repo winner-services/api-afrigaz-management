@@ -103,9 +103,9 @@ class OvertimeController extends Controller
 
                 'user_id' => Auth::id(),
 
-                'operation_date' => now(),
+                'operation_date' => now()->addHour(),
 
-                'requested_at' => now(),
+                'requested_at' => now()->addHour(),
 
                 'requested_minutes' => $request->minutes,
 
@@ -295,7 +295,7 @@ class OvertimeController extends Controller
                 ], 422);
             }
 
-            $approvedUntil = now()
+            $approvedUntil = now()->addHour()
                 ->addMinutes(
                     $overtime->requested_minutes
                 );
@@ -304,7 +304,7 @@ class OvertimeController extends Controller
 
                 'status' => 'approved',
 
-                'approved_at' => now(),
+                'approved_at' => now()->addHour(),
 
                 'approved_until' => $approvedUntil,
 
@@ -421,7 +421,7 @@ class OvertimeController extends Controller
 
                 'status' => 'rejected',
 
-                'rejected_at' => now(),
+                'rejected_at' => now()->addHour(),,
 
                 'rejected_by' => $admin->id
             ]);
