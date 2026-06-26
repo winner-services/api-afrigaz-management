@@ -421,7 +421,7 @@ class OvertimeController extends Controller
 
                 'status' => 'rejected',
 
-                'rejected_at' => now()->addHour(),,
+                'rejected_at' => now()->addHour(),
 
                 'rejected_by' => $admin->id
             ]);
