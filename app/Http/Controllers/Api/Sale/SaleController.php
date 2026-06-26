@@ -745,7 +745,7 @@ class SaleController extends Controller
 
                         $gasQty = $product->weight_kg * $qty;
                         // $price = $gasProduct->wholesale_price;
-                        $price = (float) $item['unit_price'];
+                        $price = $untPrc / $product->weight_kg;
                         $lineTotal = $price * $gasQty;
                         $unitPrice = $price * $product->weight_kg;
                         $totalGas += $gasQty;
