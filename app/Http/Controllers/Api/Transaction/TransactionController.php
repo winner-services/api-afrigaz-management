@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Transaction;
 
 use App\Http\Controllers\Controller;
 use App\Models\About;
+use App\Models\CashAccount;
 use App\Models\CashTransaction;
 use App\Models\Currency;
 use App\Models\TransactionHistory;
@@ -281,71 +282,6 @@ class TransactionController extends Controller
         ]
     )]
 
-    // public function indexByBranche()
-    // {
-    //     try {
-    //         $devise = Currency::where('status', 'created')
-    //             ->orderByRaw("currency_type = 'devise_principale' DESC")
-    //             ->latest()
-    //             ->get();
-    //         $about = About::first();
-    //         if ($about) {
-    //             $this->imageService->transform($about, ['logo', 'logo2']);
-    //         }
-
-
-    //         // $brancheId = request("branche_id", 1);
-    //         $brancheId = request("branche_id", 2);
-    //         $accountId = request("account_id", 1);
-
-    //         $perPage = request('per_page', 10);
-    //         $search = request('q', '');
-    //         $sortField = request('sort_field', 'id');
-    //         $sortDirection = request('sort_direction', 'desc');
-
-    //         $allowedSortFields = ['id', 'amount', 'transaction_date', 'type'];
-    //         if (!in_array($sortField, $allowedSortFields)) {
-    //             $sortField = 'id';
-    //         }
-
-    //         $query = CashTransaction::query()
-    //             ->with(['account:id,designation,branche_id', 'addedBy:id,name']);
-
-    //         if ($brancheId) {
-    //             $query->whereHas('account', function ($q) use ($brancheId) {
-    //                 $q->where('branche_id', $brancheId);
-    //             });
-    //         }
-
-    //         if ($accountId) {
-    //             $query->where('cash_account_id', $accountId);
-    //         }
-
-    //         if (!empty($search)) {
-    //             $query->where(function ($q) use ($search) {
-    //                 $q->where('reason', 'LIKE', "%$search%")
-    //                     ->orWhere('reference', 'LIKE', "%$search%")
-    //                     ->orWhere('type', 'LIKE', "%$search%");
-    //             });
-    //         }
-
-    //         $transactions = $query->orderBy($sortField, $sortDirection)
-    //             ->paginate($perPage);
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'info_company' => $about,
-    //             'data' => $transactions,
-    //             'devise' => $devise
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Erreur lors de la récupération des transactions',
-    //             'error' => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
     public function indexByBranche()
     {
         try {
@@ -518,9 +454,11 @@ class TransactionController extends Controller
                 'addedBy'         => $user->id,
                 'transaction_date' => $date
             ]);
+            $accountTo = CashAccount::find($request->to_account_id);
+            $accountFrom = CashAccount::find($request->from_account_id);
 
             $fromTransaction = CashTransaction::create([
-                'reason' => 'Transfert vers compte #' . $request->to_account_id,
+                'reason' => 'Transfert vers compte #' . $accountTo->designation,
                 'type' => 'Depense',
                 'amount' => $request->amount,
                 'transaction_date' => $date,
@@ -531,7 +469,7 @@ class TransactionController extends Controller
             ]);
 
             $toTransaction = CashTransaction::create([
-                'reason' => 'Réception depuis compte #' . $request->from_account_id,
+                'reason' => 'Régularisation du compte #' . $accountFrom->designation,
                 'type' => 'Revenue',
                 'amount' => $request->amount,
                 'transaction_date' => $date,
