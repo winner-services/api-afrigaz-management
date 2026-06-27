@@ -173,7 +173,10 @@ class SalesController extends Controller
                             throw new \Exception("Poids non défini pour {$product->name}");
                         }
                         $gasQty = $product->weight_kg * $qty;
-                        $unitPrice = $gasProduct->wholesale_price * $product->weight_kg;
+                        $price = $untPrc / $product->weight_kg;
+
+                        // $unitPrice = $gasProduct->wholesale_price * $product->weight_kg;
+                        $unitPrice = $price * $product->weight_kg;
                         $lineTotal = $unitPrice * $qty;
                         $totalGas += $gasQty;
                     } elseif ($categoryId >= 3) {
