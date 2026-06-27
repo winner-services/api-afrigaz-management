@@ -458,7 +458,7 @@ class TransactionController extends Controller
             $accountFrom = CashAccount::find($request->from_account_id);
 
             $fromTransaction = CashTransaction::create([
-                'reason' => 'Transfert vers compte #' . $accountTo->designation,
+                'reason' => 'Transfert vers le compte #' . $accountTo->designation,
                 'type' => 'Depense',
                 'amount' => $request->amount,
                 'transaction_date' => $date,
