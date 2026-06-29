@@ -108,6 +108,7 @@ class ProductController extends Controller
             new OA\Response(response: 200, description: "Liste")
         ]
     )]
+
     public function getProductOptionsRecharge()
     {
         $devise = Currency::where('status', 'created')
@@ -115,32 +116,25 @@ class ProductController extends Controller
             ->latest()
             ->get();
 
-        $gasPrice = Product::where('category_id', 1)->value('wholesale_price');
+        $gasProduct = Product::where('category_id', 1)->first();
+        $gasWholesalePrice = $gasProduct->wholesale_price ?? 0;
+        $gasRetailPrice = $gasProduct->retail_price ?? 0;
 
         $user = Auth::user();
         $brancheSel = $user ? Branche::where('user_id', $user->id)->first() : null;
-
         $brancheId = $brancheSel ? $brancheSel->id : 1;
 
         $recharge = Product::where('status', 'created')
             ->where('category_id', 2)
             ->select(
                 'products.*',
-                DB::raw("
-            CASE 
-        WHEN products.category_id = 2 
-        THEN " . ($gasPrice ?? 0) . "
-        ELSE 0
-    END AS gas_price
-        ")
+                DB::raw("CASE WHEN products.category_id = 2 THEN " . $gasWholesalePrice . " ELSE 0 END AS gas_price"),
+                DB::raw("CASE WHEN products.category_id = 2 THEN " . $gasRetailPrice . " ELSE 0 END AS retail_price")
             )
             ->latest()
             ->get();
 
-        $gasProduct = Product::where('category_id', 1)->first();
-
         $kit = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
-            // ->where('stock_by_branches.branche_id', 1)
             ->where('stock_by_branches.branche_id', $brancheId)
             ->where('products.status', 'created')
             ->whereIn('products.category_id', [2, 3])
@@ -149,35 +143,23 @@ class ProductController extends Controller
             ->select(
                 'products.*',
                 'stock_by_branches.stock_quantity',
-
-                DB::raw("
-    CASE 
-        WHEN products.category_id = 2 
-        THEN " . ($gasProduct->wholesale_price ?? 0) . "
-        ELSE 0
-    END AS gas_price
-")
+                DB::raw("CASE WHEN products.category_id = 2 THEN " . $gasWholesalePrice . " ELSE 0 END AS gas_price"),
+                DB::raw("CASE WHEN products.category_id = 2 THEN " . $gasRetailPrice . " ELSE 0 END AS retail_price")
             )
             ->get();
+
         $echange = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
             ->where('stock_by_branches.branche_id', $brancheId)
             ->where('products.status', 'created')
             ->where('products.category_id', 2)
             ->where('stock_by_branches.is_empty', 0)
             ->where('stock_by_branches.condition_state', 'good')
-
             ->select(
                 'products.*',
                 'stock_by_branches.stock_quantity as stock_quantity',
                 'stock_by_branches.is_empty',
-
-                DB::raw("
-            CASE 
-        WHEN products.category_id = 2 
-        THEN " . ($gasProduct->wholesale_price ?? 0) . "
-        ELSE 0
-    END AS gas_price
-        ")
+                DB::raw("CASE WHEN products.category_id = 2 THEN " . $gasWholesalePrice . " ELSE 0 END AS gas_price"),
+                DB::raw("CASE WHEN products.category_id = 2 THEN " . $gasRetailPrice . " ELSE 0 END AS retail_price")
             )
             ->get();
 
@@ -197,6 +179,94 @@ class ProductController extends Controller
             'status' => 200
         ]);
     }
+    //     public function getProductOptionsRecharge()
+    //     {
+    //         $devise = Currency::where('status', 'created')
+    //             ->orderByRaw("currency_type = 'devise_principale' DESC")
+    //             ->latest()
+    //             ->get();
+
+    //         $gasPrice = Product::where('category_id', 1)->value('wholesale_price');
+
+    //         $user = Auth::user();
+    //         $brancheSel = $user ? Branche::where('user_id', $user->id)->first() : null;
+
+    //         $brancheId = $brancheSel ? $brancheSel->id : 1;
+
+    //         $recharge = Product::where('status', 'created')
+    //             ->where('category_id', 2)
+    //             ->select(
+    //                 'products.*',
+    //                 DB::raw("
+    //             CASE 
+    //         WHEN products.category_id = 2 
+    //         THEN " . ($gasPrice ?? 0) . "
+    //         ELSE 0
+    //     END AS gas_price
+    //         ")
+    //             )
+    //             ->latest()
+    //             ->get();
+
+    //         $gasProduct = Product::where('category_id', 1)->first();
+
+    //         $kit = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
+    //             ->where('stock_by_branches.branche_id', $brancheId)
+    //             ->where('products.status', 'created')
+    //             ->whereIn('products.category_id', [2, 3])
+    //             ->where('stock_by_branches.is_empty', 0)
+    //             ->where('stock_by_branches.condition_state', 'good')
+    //             ->select(
+    //                 'products.*',
+    //                 'stock_by_branches.stock_quantity',
+
+    //                 DB::raw("
+    //     CASE 
+    //         WHEN products.category_id = 2 
+    //         THEN " . ($gasProduct->wholesale_price ?? 0) . "
+    //         ELSE 0
+    //     END AS gas_price
+    // ")
+    //             )
+    //             ->get();
+    //         $echange = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
+    //             ->where('stock_by_branches.branche_id', $brancheId)
+    //             ->where('products.status', 'created')
+    //             ->where('products.category_id', 2)
+    //             ->where('stock_by_branches.is_empty', 0)
+    //             ->where('stock_by_branches.condition_state', 'good')
+
+    //             ->select(
+    //                 'products.*',
+    //                 'stock_by_branches.stock_quantity as stock_quantity',
+    //                 'stock_by_branches.is_empty',
+
+    //                 DB::raw("
+    //             CASE 
+    //         WHEN products.category_id = 2 
+    //         THEN " . ($gasProduct->wholesale_price ?? 0) . "
+    //         ELSE 0
+    //     END AS gas_price
+    //         ")
+    //             )
+    //             ->get();
+
+    //         $accessoirs = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
+    //             ->where('stock_by_branches.branche_id', $brancheId)
+    //             ->where('products.status', 'created')
+    //             ->where('products.category_id', '>=', 3)
+    //             ->select('products.*', 'stock_by_branches.stock_quantity as stock_quantity')
+    //             ->get();
+
+    //         return response()->json([
+    //             'devise' => $devise,
+    //             'recharge' => $recharge,
+    //             'echange' => $echange,
+    //             'kit' => $kit,
+    //             'accessoirs' => $accessoirs,
+    //             'status' => 200
+    //         ]);
+    //     }
 
     #[OA\Get(
         path: "/api/v1/getTransfertProductOptionsData",
