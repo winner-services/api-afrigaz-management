@@ -103,6 +103,8 @@ class ProductsController extends Controller
             ->get();
 
         $gasProduct = Product::where('category_id', 1)->first();
+        $gasWholesalePrice = $gasProduct->wholesale_price ?? 0;
+        $gasRetailPrice = $gasProduct->retail_price ?? 0;
 
         $echange = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
             ->where('stock_by_branches.branche_id', $brancheId)
@@ -139,11 +141,26 @@ class ProductsController extends Controller
             )
             ->get();
 
+        $kit = StockByBranch::join('products', 'stock_by_branches.product_id', '=', 'products.id')
+            ->where('stock_by_branches.branche_id', $brancheId)
+            ->where('products.status', 'created')
+            ->whereIn('products.category_id', [2, 3])
+            ->where('stock_by_branches.is_empty', 0)
+            ->where('stock_by_branches.condition_state', 'good')
+            ->select(
+                'products.*',
+                'stock_by_branches.stock_quantity',
+                DB::raw("CASE WHEN products.category_id = 2 THEN " . $gasWholesalePrice . " ELSE 0 END AS gas_price"),
+                DB::raw("CASE WHEN products.category_id = 2 THEN " . $gasRetailPrice . " ELSE 0 END AS gas_retail_price")
+            )
+            ->get();
+
         return response()->json([
             'status' => 200,
             'success' => true,
             'devise' => $devise,
             'echange' => $echange,
+            'kit' => $kit,
         ]);
     }
 
