@@ -129,7 +129,7 @@ class ProductController extends Controller
             ->select(
                 'products.*',
                 DB::raw("CASE WHEN products.category_id = 2 THEN " . $gasWholesalePrice . " ELSE 0 END AS gas_price"),
-                DB::raw("CASE WHEN products.category_id = 2 THEN " . $gasRetailPrice . " ELSE 0 END AS retail_price")
+                DB::raw("CASE WHEN products.category_id = 2 THEN " . $gasRetailPrice . " ELSE 0 END AS gas_retail_price")
             )
             ->latest()
             ->get();
@@ -144,7 +144,7 @@ class ProductController extends Controller
                 'products.*',
                 'stock_by_branches.stock_quantity',
                 DB::raw("CASE WHEN products.category_id = 2 THEN " . $gasWholesalePrice . " ELSE 0 END AS gas_price"),
-                DB::raw("CASE WHEN products.category_id = 2 THEN " . $gasRetailPrice . " ELSE 0 END AS retail_price")
+                DB::raw("CASE WHEN products.category_id = 2 THEN " . $gasRetailPrice . " ELSE 0 END AS gas_retail_price")
             )
             ->get();
 
@@ -159,7 +159,7 @@ class ProductController extends Controller
                 'stock_by_branches.stock_quantity as stock_quantity',
                 'stock_by_branches.is_empty',
                 DB::raw("CASE WHEN products.category_id = 2 THEN " . $gasWholesalePrice . " ELSE 0 END AS gas_price"),
-                DB::raw("CASE WHEN products.category_id = 2 THEN " . $gasRetailPrice . " ELSE 0 END AS retail_price")
+                DB::raw("CASE WHEN products.category_id = 2 THEN " . $gasRetailPrice . " ELSE 0 END AS gas_retail_price")
             )
             ->get();
 
