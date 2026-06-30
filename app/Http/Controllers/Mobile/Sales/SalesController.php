@@ -324,9 +324,7 @@ class SalesController extends Controller
                             'addedBy' => Auth::id() ?? 1,
                             'status' => 'posted',
                         ]);
-                    } else {
-                        dd('winner');
-                        
+                    } else {                      
 
                         app(StockService::class)->decreaseKitStock(
                             $branchId,
