@@ -311,7 +311,7 @@ class PaymentAgentController extends Controller
                 ->orderByRaw("currency_type = 'devise_principale' DESC")
                 ->latest()
                 ->get();
-            $moisConcerne = request('mois_concerne');
+            $moisConcerne = request('month');
 
             if (empty($moisConcerne)) {
                 $dernierPaiement = PayementAgent::orderBy('mois_concerne', 'desc')->first();
