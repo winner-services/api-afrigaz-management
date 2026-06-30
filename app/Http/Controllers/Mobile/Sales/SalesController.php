@@ -253,7 +253,6 @@ class SalesController extends Controller
                     $total += $lineTotal;
 
                     if ($type === 'exchange') {
-                        dd('winner');
 
                         if ($categoryId !== 2) {
                             throw new \Exception("Seules les bouteilles (catégorie 2) sont autorisées pour un échange.");
@@ -326,6 +325,8 @@ class SalesController extends Controller
                             'status' => 'posted',
                         ]);
                     } else {
+                        dd('winner');
+                        
 
                         app(StockService::class)->decreaseKitStock(
                             $branchId,
