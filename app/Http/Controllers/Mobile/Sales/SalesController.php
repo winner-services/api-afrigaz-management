@@ -252,10 +252,9 @@ class SalesController extends Controller
 
                     $total += $lineTotal;
 
-                    // --- NOUVELLE GESTION DU STOCK CONDITIONNELLE ---
                     if ($type === 'exchange') {
+                        dd('winner');
 
-                        // 1. Logique exclusive pour le type 'exchange' (Bouteilles Pleines/Vides)
                         if ($categoryId !== 2) {
                             throw new \Exception("Seules les bouteilles (catégorie 2) sont autorisées pour un échange.");
                         }
@@ -328,17 +327,15 @@ class SalesController extends Controller
                         ]);
                     } else {
 
-                        // 2. Si le type n'est PAS 'exchange' (donc kit, refill, accessory, etc.)
                         app(StockService::class)->decreaseKitStock(
                             $branchId,
                             $product->id,
                             $qty,
-                            $type, // On passe dynamiquement le type actuel (ex: 'kit')
+                            $type,
                             $sale->id,
                             $data['date_vente']
                         );
                     }
-                    // --- FIN DE LA GESTION DU STOCK ---
 
                     ItemSale::create([
                         'sale_id' => $sale->id,
