@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api\PaymentAgent\Avance;
 
 use App\Http\Controllers\Controller;
+use App\Models\About;
 use App\Models\Agent;
 use App\Models\Avance;
 use App\Models\CashTransaction;
 use App\Models\Currency;
+use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -14,12 +16,18 @@ use Illuminate\Support\Facades\DB;
 
 class AvanceController extends Controller
 {
+    protected $imageService;
+
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
     public function listeAvances()
     {
         $devise = Currency::where('status', 'created')
-                ->orderByRaw("currency_type = 'devise_principale' DESC")
-                ->latest()
-                ->get();
+            ->orderByRaw("currency_type = 'devise_principale' DESC")
+            ->latest()
+            ->get();
         $moisEnCours = \Carbon\Carbon::now()->format('Y-m');
 
         $mois = request('mois') ?: $moisEnCours;
@@ -61,6 +69,12 @@ class AvanceController extends Controller
         ]);
 
         try {
+
+            $about = About::first();
+
+            if ($about) {
+                $this->imageService->transform($about, ['logo', 'logo2']);
+            }
             $agent = Agent::with('fonction')->findOrFail($request->agent_id);
             $salaireBase = $agent->fonction->montant ?? 0;
 
@@ -129,6 +143,7 @@ class AvanceController extends Controller
                 'status' => 201,
                 'success' => true,
                 'message' => 'Avance accordée avec succès !',
+                'info_company' => $about,
                 'data' => $avance
             ], 201);
         } catch (\Exception $e) {
