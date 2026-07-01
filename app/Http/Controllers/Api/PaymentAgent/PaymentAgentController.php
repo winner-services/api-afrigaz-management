@@ -8,6 +8,7 @@ use App\Models\Agent;
 use App\Models\Avance;
 use App\Models\CashTransaction;
 use App\Models\Currency;
+use App\Models\Fonction;
 use App\Models\PayementAgent;
 use App\Models\PayementAgentDetail;
 use App\Services\ImageService;
@@ -168,6 +169,10 @@ class PaymentAgentController extends Controller
 
                 $agent_name = Agent::find($detail->agent_id);
 
+                $fonction = Fonction::find($agent_name->fonction_id);
+
+                $agent_fonction = $fonction->designation ?? 'Aucune fonction';
+
                 $paiementGlobal = PayementAgent::findOrFail($detail->paiement_id);
 
                 $nouveauReste = $paiementGlobal->reste_a_payer - $montantPaye;
@@ -192,6 +197,7 @@ class PaymentAgentController extends Controller
                 ]);
 
                 $detail->setAttribute('agent_name', $agent_name ? $agent_name->name : null);
+                $detail->setAttribute('agent_fonction', $agent_fonction);
 
                 return response()->json([
                     'status'  => 200,
