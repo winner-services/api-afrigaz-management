@@ -30,7 +30,7 @@ class AvanceController extends Controller
             ->get();
         $moisEnCours = \Carbon\Carbon::now()->format('Y-m');
 
-        $mois = request('mois') ?: $moisEnCours;
+        $mois = request('month') ?: $moisEnCours;
 
         try {
             $query = Avance::with(['agent.fonction', 'user']);
