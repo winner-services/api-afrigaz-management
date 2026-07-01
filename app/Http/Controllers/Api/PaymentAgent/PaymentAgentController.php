@@ -175,6 +175,8 @@ class PaymentAgentController extends Controller
 
                 $paiementGlobal = PayementAgent::findOrFail($detail->paiement_id);
 
+                $mois = $detail->paiementGlobal->mois_concerne;
+
                 $nouveauReste = $paiementGlobal->reste_a_payer - $montantPaye;
 
                 $paiementGlobal->update([
@@ -198,6 +200,7 @@ class PaymentAgentController extends Controller
 
                 $detail->setAttribute('agent_name', $agent_name ? $agent_name->name : null);
                 $detail->setAttribute('agent_fonction', $agent_fonction);
+                $detail->setAttribute('mois_concerne', $mois);
 
                 return response()->json([
                     'status'  => 200,
