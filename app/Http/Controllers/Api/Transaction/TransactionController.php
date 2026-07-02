@@ -295,7 +295,8 @@ class TransactionController extends Controller
                 $this->imageService->transform($about, ['logo', 'logo2']);
             }
 
-            $brancheId = request('branche_id');
+            // $brancheId = request('branche_id') ?? 2;
+            $brancheId = request()->input('branche_id', 2);
             $accountId = request('account_id');
 
             if (!empty($brancheId)) {
