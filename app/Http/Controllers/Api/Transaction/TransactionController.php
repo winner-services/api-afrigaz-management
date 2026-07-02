@@ -401,6 +401,7 @@ class TransactionController extends Controller
         if ($about) {
             $this->imageService->transform($about, ['logo', 'logo2']);
         }
+
         $devise = Currency::where('status', 'created')
             ->orderByRaw("currency_type = 'devise_principale' DESC")
             ->latest()
@@ -489,6 +490,7 @@ class TransactionController extends Controller
                 'message' => 'Transfert effectué avec succès',
                 'reference' => $reference,
                 'devise' => $devise,
+                'info_company' => $about,
                 'data' => [
                     'transfer' => [
                         'amount' => $request->amount,
