@@ -105,7 +105,7 @@ class FonctionController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'designation' => 'required|string|max:255|unique:fonction_agents,designation,' . $id,
+            'designation' => 'required|string|max:255|unique:fonctions,designation,' . $id,
             'montant' => 'nullable|numeric|min:0'
         ]);
 
