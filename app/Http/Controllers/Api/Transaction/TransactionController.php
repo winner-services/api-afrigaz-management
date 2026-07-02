@@ -297,7 +297,7 @@ class TransactionController extends Controller
 
             // $brancheId = request('branche_id') ?? 2;
             $brancheId = request()->input('branche_id', 2);
-            $accountId = request()->input('account_id', 1);
+            $accountId = request('account_id');
 
             if (!empty($brancheId)) {
                 $account = CashAccount::where('branche_id', $brancheId)->first();
