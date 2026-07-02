@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
     'niveau_etude',
     'identity_document',
     'part_number',
+    'etat_civil',
 ])]
 class Agent extends Model
 {

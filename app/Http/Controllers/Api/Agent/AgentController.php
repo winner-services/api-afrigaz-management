@@ -82,6 +82,7 @@ class AgentController extends Controller
                 'niveau_etude' => 'nullable|string',
                 'identity_document' => 'nullable|string',
                 'part_number' => 'nullable|string',
+                'etat_civil' => 'nullable|string',
                 'fonction_id' => 'nullable|exists:fonctions,id'
             ]);
 
@@ -103,6 +104,7 @@ class AgentController extends Controller
                 'niveau_etude' => $request->niveau_etude,
                 'identity_document' => $request->identity_document,
                 'part_number' => $request->part_number,
+                'etat_civil' => $request->etat_civil,
                 'fonction_id' => $request->fonction_id,
                 'status' => 'created',
                 'addedBy' => Auth::user()->id
@@ -138,6 +140,7 @@ class AgentController extends Controller
                 'niveau_etude' => 'nullable|string',
                 'identity_document' => 'nullable|string',
                 'part_number' => 'nullable|string',
+                'etat_civil' => 'nullable|string',
                 'fonction_id' => 'nullable|exists:fonctions,id'
             ]);
 
@@ -149,6 +152,7 @@ class AgentController extends Controller
                 'niveau_etude' => $request->niveau_etude,
                 'identity_document' => $request->identity_document,
                 'part_number' => $request->part_number,
+                'etat_civil' => $request->etat_civil,
                 'fonction_id' => $request->fonction_id,
             ]);
 
