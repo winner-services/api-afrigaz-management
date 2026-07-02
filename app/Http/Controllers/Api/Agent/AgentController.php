@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api\Agent;
 
 use App\Http\Controllers\Controller;
+use App\Models\About;
 use App\Models\Agent;
+use App\Services\ImageService;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -11,9 +13,20 @@ use Illuminate\Support\Facades\Auth;
 
 class AgentController extends Controller
 {
+    protected $imageService;
+
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
     public function rapportAgent()
     {
         try {
+            $about = About::first();
+
+            if ($about) {
+                $this->imageService->transform($about, ['logo', 'logo2']);
+            }
 
             $agents = Agent::with('fonction')
 
@@ -22,6 +35,7 @@ class AgentController extends Controller
             return response()->json([
                 'success' => true,
                 'status' => 200,
+                'info_company' => $about,
                 'data' => $agents
             ]);
         } catch (Exception $e) {

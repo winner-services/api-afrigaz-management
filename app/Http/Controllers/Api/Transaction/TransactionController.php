@@ -65,14 +65,7 @@ class TransactionController extends Controller
     )]
     public function store(Request $request)
     {
-        $about = About::first();
-        if ($about) {
-            $this->imageService->transform($about, ['logo', 'logo2']);
-        }
-        $devise = Currency::where('status', 'created')
-            ->orderByRaw("currency_type = 'devise_principale' DESC")
-            ->latest()
-            ->get();
+
         $rules = [
             'reason' => ['nullable', 'string'],
             'type' => ['required', 'in:Revenue,Depense'],
@@ -81,6 +74,14 @@ class TransactionController extends Controller
             'account_id' => ['required', 'exists:cash_accounts,id'],
             'cash_categorie_id' => ['nullable', 'exists:cash_categories,id']
         ];
+        $about = About::first();
+        if ($about) {
+            $this->imageService->transform($about, ['logo', 'logo2']);
+        }
+        $devise = Currency::where('status', 'created')
+            ->orderByRaw("currency_type = 'devise_principale' DESC")
+            ->latest()
+            ->get();
 
         $validator = Validator::make($request->all(), $rules);
 
@@ -353,75 +354,6 @@ class TransactionController extends Controller
             ], 500);
         }
     }
-
-    // public function indexByBranche()
-    // {
-    //     try {
-    //         $devise = Currency::where('status', 'created')
-    //             ->orderByRaw("currency_type = 'devise_principale' DESC")
-    //             ->latest()
-    //             ->get();
-
-    //         $about = About::first();
-    //         if ($about) {
-    //             $this->imageService->transform($about, ['logo', 'logo2']);
-    //         }
-
-    //         $brancheId = request('branche_id');
-    //         $accountId = request('account_id');
-
-    //         $acount = CashAccount::where('branche_id', $brancheId)->first();
-
-    //         if (empty($brancheId) && empty($accountId)) {
-    //             $accountId = 1;
-    //         }
-
-    //         $perPage = request('per_page', 10);
-    //         $search = request('q', '');
-    //         $sortField = request('sort_field', 'id');
-    //         $sortDirection = request('sort_direction', 'desc');
-
-    //         $allowedSortFields = ['id', 'amount', 'transaction_date', 'type'];
-    //         if (!in_array($sortField, $allowedSortFields)) {
-    //             $sortField = 'id';
-    //         }
-
-    //         $query = CashTransaction::query()
-    //             ->with(['account:id,designation,branche_id', 'addedBy:id,name']);
-
-    //         if (!empty($accountId)) {
-    //             $query->where('cash_account_id', $accountId);
-    //         } elseif (!empty($brancheId)) {
-    //             $query->whereHas('account', function ($q) use ($brancheId) {
-    //                 $q->where('branche_id', $brancheId);
-    //             });
-    //         }
-
-    //         if (!empty($search)) {
-    //             $query->where(function ($q) use ($search) {
-    //                 $q->where('reason', 'LIKE', "%$search%")
-    //                     ->orWhere('reference', 'LIKE', "%$search%")
-    //                     ->orWhere('type', 'LIKE', "%$search%");
-    //             });
-    //         }
-
-    //         $transactions = $query->orderBy($sortField, $sortDirection)
-    //             ->paginate($perPage);
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'info_company' => $about,
-    //             'data' => $transactions,
-    //             'devise' => $devise
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Erreur lors de la récupération des transactions',
-    //             'error' => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
 
     #[OA\Post(
         path: '/api/v1/transferFundStore',
