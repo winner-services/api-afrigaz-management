@@ -19,6 +19,9 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->string('address')->nullable();
             $table->foreignId('fonction_id')->constrained('fonctions');
+            $table->string('niveau_etude')->nullable();
+            $table->string('identity_document')->nullable();
+            $table->string('part_number')->nullable();
             $table->string('status')->default('created');
             $table->foreignId('addedBy')->constrained('users');
             $table->timestamps();

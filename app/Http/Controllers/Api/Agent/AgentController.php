@@ -79,6 +79,9 @@ class AgentController extends Controller
                 'phone' => 'nullable|unique:agents,phone',
                 'email' => 'nullable|email|unique:agents,email',
                 'address' => 'nullable|string',
+                'niveau_etude' => 'nullable|string',
+                'identity_document' => 'nullable|string',
+                'part_number' => 'nullable|string',
                 'fonction_id' => 'nullable|exists:fonctions,id'
             ]);
 
@@ -97,6 +100,9 @@ class AgentController extends Controller
                 'phone' => $request->phone,
                 'email' => $request->email,
                 'address' => $request->address,
+                'niveau_etude' => $request->niveau_etude,
+                'identity_document' => $request->identity_document,
+                'part_number' => $request->part_number,
                 'fonction_id' => $request->fonction_id,
                 'status' => 'created',
                 'addedBy' => Auth::user()->id
@@ -129,7 +135,9 @@ class AgentController extends Controller
                 'gender' => 'nullable|string',
                 'phone' => 'nullable|unique:agents,phone,' . $id,
                 'email' => 'nullable|email|unique:agents,email,' . $id,
-                'address' => 'nullable|string',
+                'niveau_etude' => 'nullable|string',
+                'identity_document' => 'nullable|string',
+                'part_number' => 'nullable|string',
                 'fonction_id' => 'nullable|exists:fonctions,id'
             ]);
 
@@ -138,7 +146,9 @@ class AgentController extends Controller
                 'gender' => $request->gender,
                 'phone' => $request->phone,
                 'email' => $request->email,
-                'address' => $request->address,
+                'niveau_etude' => $request->niveau_etude,
+                'identity_document' => $request->identity_document,
+                'part_number' => $request->part_number,
                 'fonction_id' => $request->fonction_id,
             ]);
 

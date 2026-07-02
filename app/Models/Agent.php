@@ -12,7 +12,10 @@ use Illuminate\Database\Eloquent\Model;
     'address',
     'fonction_id',
     'status',
-    'addedBy'
+    'addedBy',
+    'niveau_etude',
+    'identity_document',
+    'part_number',
 ])]
 class Agent extends Model
 {
