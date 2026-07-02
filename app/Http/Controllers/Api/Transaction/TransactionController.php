@@ -478,39 +478,47 @@ class TransactionController extends Controller
 
             DB::commit();
 
+            // return response()->json([
+            //     'success' => true,
+            //     'type' => 'success',
+            //     'message' => 'Transfert effectué avec succès',
+            //     'reference' => $reference,
+            //     'devise' => $devise,
+            //     'info_company' => $about,
+            //     'data' => [
+            //         'transfer' => [
+            //             'amount' => $request->amount,
+            //             'date' => $date,
+            //             'description' => $request->description
+            //         ],
+
+            //         'entries' => [
+            //             'debit' => [
+            //                 'account_id' => $fromTransaction->cash_account_id,
+            //                 'account_name' => $fromTransaction->cashAccount->designation ?? null,
+            //                 'amount' => $fromTransaction->amount,
+            //                 'solde_before' => $solde_from,
+            //                 'solde_after' => $fromTransaction->solde
+            //             ],
+            //             'credit' => [
+            //                 'account_id' => $toTransaction->cash_account_id,
+            //                 'account_name' => $toTransaction->cashAccount->designation ?? null,
+            //                 'amount' => $toTransaction->amount,
+            //                 'solde_before' => $solde_to,
+            //                 'solde_after' => $toTransaction->solde
+            //             ]
+            //         ],
+
+            //         'history' => $history
+            //     ]
+            // ], 201);
             return response()->json([
+                'message' => "Transaction ajoutée avec succès",
                 'success' => true,
-                'type' => 'success',
-                'message' => 'Transfert effectué avec succès',
-                'reference' => $reference,
-                'devise' => $devise,
+                'status' => 201,
+                'data' => $fromTransaction,
                 'info_company' => $about,
-                'data' => [
-                    'transfer' => [
-                        'amount' => $request->amount,
-                        'date' => $date,
-                        'description' => $request->description
-                    ],
-
-                    'entries' => [
-                        'debit' => [
-                            'account_id' => $fromTransaction->cash_account_id,
-                            'account_name' => $fromTransaction->cashAccount->designation ?? null,
-                            'amount' => $fromTransaction->amount,
-                            'solde_before' => $solde_from,
-                            'solde_after' => $fromTransaction->solde
-                        ],
-                        'credit' => [
-                            'account_id' => $toTransaction->cash_account_id,
-                            'account_name' => $toTransaction->cashAccount->designation ?? null,
-                            'amount' => $toTransaction->amount,
-                            'solde_before' => $solde_to,
-                            'solde_after' => $toTransaction->solde
-                        ]
-                    ],
-
-                    'history' => $history
-                ]
+                'devise' => $devise
             ], 201);
         } catch (\Exception $e) {
 
