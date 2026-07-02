@@ -11,6 +11,29 @@ use Illuminate\Support\Facades\Auth;
 
 class AgentController extends Controller
 {
+    public function rapportAgent()
+    {
+        try {
+
+            $agents = Agent::with('fonction')
+
+                ->latest()->get();
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $agents
+            ]);
+        } catch (Exception $e) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des agents',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function getOptionData()
     {
         try {

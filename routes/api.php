@@ -468,6 +468,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/createAgent', 'store');
             Route::put('/updateAgent/{id}', 'update');
             Route::put('/deleteAgent/{id}', 'destroy');
+            Route::get('/getListAgent', 'rapportAgent');
         });
         Route::controller(AvanceController::class)->group(function () {
             Route::post('/CreatepaieAvance', 'enregistrerAvance');
@@ -485,7 +486,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::put('/updateDetteCylindre/{id}', 'update');
             Route::get('/getDetteCylindre', 'index');
             Route::post('/receiveCylindreRetour', 'receiveCylindreRetour');
-            Route::post('/rapprotDetteCylindre','rapprotDetteCylindre');
+            Route::post('/rapprotDetteCylindre', 'rapprotDetteCylindre');
         });
     });
 });
