@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
     'name',
     'gender',
     'phone',
+    'email',
     'address',
     'fonction_id',
     'status',
