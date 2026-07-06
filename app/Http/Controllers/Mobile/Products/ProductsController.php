@@ -113,8 +113,10 @@ class ProductsController extends Controller
                 $query->where(function ($q) {
                     $q->where('products.category_id', 2)
                         ->where('stock_by_branches.is_empty', 0)
-                        ->where('stock_by_branches.condition_state', 'good');
-                })->orWhere('products.category_id', '>=', 3);
+                        ->where('stock_by_branches.condition_state', 'good')
+                        ->where('stock_by_branches.stock_quantity', '>', 0);
+                });
+                // ->orWhere('products.category_id', '>=', 3);
             })
             ->select(
                 'products.*',
@@ -147,6 +149,7 @@ class ProductsController extends Controller
             ->whereIn('products.category_id', [2, 3])
             ->where('stock_by_branches.is_empty', 0)
             ->where('stock_by_branches.condition_state', 'good')
+            ->where('stock_by_branches.stock_quantity', '>', 0)
             ->select(
                 'products.*',
                 'stock_by_branches.stock_quantity',
