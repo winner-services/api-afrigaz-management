@@ -282,7 +282,6 @@ class TransactionController extends Controller
             new OA\Response(response: 200, description: "Liste")
         ]
     )]
-
     public function indexByBranche()
     {
         try {
@@ -296,16 +295,19 @@ class TransactionController extends Controller
                 $this->imageService->transform($about, ['logo', 'logo2']);
             }
 
-            $brancheId = request()->input('branche_id', 2);
-            $accountId = request('account_id');
+            // 1. On récupère les inputs sans imposer de valeur par défaut immédiatement
+            $brancheId = request()->input('branche_id');
+            $accountId = request()->input('account_id');
 
-            if (!empty($brancheId)) {
-                $account = CashAccount::where('branche_id', $brancheId)->first();
-                $accountId = $account ? $account->id : null;
+            // 2. Si les deux sont vides, on applique la logique par défaut (branche 2)
+            if (empty($brancheId) && empty($accountId)) {
+                $brancheId = 2;
             }
 
-            if (empty($brancheId) && empty($accountId)) {
-                $accountId = 1;
+            // 3. Si on a une branche mais PAS de compte spécifique, on cherche le premier compte de cette branche
+            if (!empty($brancheId) && empty($accountId)) {
+                $account = CashAccount::where('branche_id', $brancheId)->first();
+                $accountId = $account ? $account->id : null;
             }
 
             $perPage       = request('per_page', 10);
@@ -321,6 +323,7 @@ class TransactionController extends Controller
             $query = CashTransaction::query()
                 ->with(['account:id,designation,branche_id', 'addedBy:id,name']);
 
+            // 4. Application des filtres dans la requête SQL
             if (!empty($accountId)) {
                 $query->where('cash_account_id', $accountId);
             } elseif (!empty($brancheId)) {
@@ -354,6 +357,78 @@ class TransactionController extends Controller
             ], 500);
         }
     }
+
+    // public function indexByBranche()
+    // {
+    //     try {
+    //         $devise = Currency::where('status', 'created')
+    //             ->orderByRaw("currency_type = 'devise_principale' DESC")
+    //             ->latest()
+    //             ->get();
+
+    //         $about = About::first();
+    //         if ($about) {
+    //             $this->imageService->transform($about, ['logo', 'logo2']);
+    //         }
+
+    //         $brancheId = request()->input('branche_id', 2);
+    //         $accountId = request('account_id');
+
+    //         if (!empty($brancheId)) {
+    //             $account = CashAccount::where('branche_id', $brancheId)->first();
+    //             $accountId = $account ? $account->id : null;
+    //         }
+
+    //         if (empty($brancheId) && empty($accountId)) {
+    //             $accountId = 1;
+    //         }
+
+    //         $perPage       = request('per_page', 10);
+    //         $search        = request('q', '');
+    //         $sortField     = request('sort_field', 'id');
+    //         $sortDirection = request('sort_direction', 'desc');
+
+    //         $allowedSortFields = ['id', 'amount', 'transaction_date', 'type'];
+    //         if (!in_array($sortField, $allowedSortFields)) {
+    //             $sortField = 'id';
+    //         }
+
+    //         $query = CashTransaction::query()
+    //             ->with(['account:id,designation,branche_id', 'addedBy:id,name']);
+
+    //         if (!empty($accountId)) {
+    //             $query->where('cash_account_id', $accountId);
+    //         } elseif (!empty($brancheId)) {
+    //             $query->whereHas('account', function ($q) use ($brancheId) {
+    //                 $q->where('branche_id', $brancheId);
+    //             });
+    //         }
+
+    //         if (!empty($search)) {
+    //             $query->where(function ($q) use ($search) {
+    //                 $q->where('reason', 'LIKE', "%$search%")
+    //                     ->orWhere('reference', 'LIKE', "%$search%")
+    //                     ->orWhere('type', 'LIKE', "%$search%");
+    //             });
+    //         }
+
+    //         $transactions = $query->orderBy($sortField, $sortDirection)
+    //             ->paginate($perPage);
+
+    //         return response()->json([
+    //             'success'      => true,
+    //             'info_company' => $about,
+    //             'data'         => $transactions,
+    //             'devise'       => $devise
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Erreur lors de la récupération des transactions',
+    //             'error'   => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
     #[OA\Post(
         path: '/api/v1/transferFundStore',
