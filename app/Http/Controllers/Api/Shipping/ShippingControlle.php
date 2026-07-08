@@ -363,11 +363,11 @@ class ShippingControlle extends Controller
         responses: [
             new OA\Response(
                 response: 200,
-                description: 'Livraison exécutée avec succès',
+                description: 'Livraison effectuée avec succès',
                 content: new OA\JsonContent(
                     properties: [
                         new OA\Property(property: "success", type: "boolean", example: true),
-                        new OA\Property(property: "message", type: "string", example: "Livraison exécutée avec succès"),
+                        new OA\Property(property: "message", type: "string", example: "Livraison effectuée avec succès"),
                         new OA\Property(property: "status", type: "string", example: "partial"),
 
                         new OA\Property(
@@ -436,7 +436,7 @@ class ShippingControlle extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Livraison exécutée avec succès',
+                'message' => 'Livraison effectuée avec succès',
                 'status' => $result['status'],
                 'info_company' => $about,
                 'data' => [
@@ -445,7 +445,7 @@ class ShippingControlle extends Controller
                         'id' => $shipping->distributor->id ?? null,
                         'name' => $shipping->distributor->name ?? null,
                         'phone' => $shipping->distributor->phone ?? null,
-                        'address' => $shipping->distributor->address ?? null,
+                        'address' => $shipping->distributor->city . ', ' . $shipping->distributor->commune . ' ' . $shipping->distributor->quartier ?? null,
                     ]
                 ]
 

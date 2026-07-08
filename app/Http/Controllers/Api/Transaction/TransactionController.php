@@ -295,16 +295,13 @@ class TransactionController extends Controller
                 $this->imageService->transform($about, ['logo', 'logo2']);
             }
 
-            // 1. On récupère les inputs sans imposer de valeur par défaut immédiatement
             $brancheId = request()->input('branche_id');
             $accountId = request()->input('account_id');
 
-            // 2. Si les deux sont vides, on applique la logique par défaut (branche 2)
             if (empty($brancheId) && empty($accountId)) {
                 $brancheId = 2;
             }
 
-            // 3. Si on a une branche mais PAS de compte spécifique, on cherche le premier compte de cette branche
             if (!empty($brancheId) && empty($accountId)) {
                 $account = CashAccount::where('branche_id', $brancheId)->first();
                 $accountId = $account ? $account->id : null;
@@ -323,7 +320,6 @@ class TransactionController extends Controller
             $query = CashTransaction::query()
                 ->with(['account:id,designation,branche_id', 'addedBy:id,name']);
 
-            // 4. Application des filtres dans la requête SQL
             if (!empty($accountId)) {
                 $query->where('cash_account_id', $accountId);
             } elseif (!empty($brancheId)) {
