@@ -682,7 +682,6 @@ class SaleController extends Controller
                         }
 
                         $gasQty = $product->weight_kg * $qty;
-                        // $price = $gasProduct->wholesale_price;
                         $price = $untPrc / $product->weight_kg;
                         $lineTotal = $price * $gasQty;
                         $unitPrice = $price * $product->weight_kg;
@@ -754,7 +753,8 @@ class SaleController extends Controller
                         $totalGas,
                         'filling',
                         $sale->id,
-                        $data['date_vente']
+                        $data['date_vente'],
+                        'Remplissage des bouteilles pour la vente #' . $sale->id
                     );
                 }
 

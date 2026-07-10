@@ -111,7 +111,8 @@ class FillingService
                 $totalGas,
                 'filling',
                 $filling->id,
-                $operation_date
+                $operation_date,
+                'Remplissage des bouteilles pour le remplissage #' . $filling->id
             );
 
             return $filling->load(['items.product']);

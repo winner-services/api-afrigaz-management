@@ -84,7 +84,8 @@ class TankService
         $qty,
         $referenceType = null,
         $referenceId = null,
-        $operation_date = null
+        $operation_date = null,
+        $note = null
     ) {
 
         $tank = Tank::where('id', $tankId)
@@ -97,14 +98,11 @@ class TankService
 
         $operation_date = $operation_date ?? now();
 
-        // Déduction du niveau du tank
         $tank->decrement('current_level', $qty);
 
-        // Produit gaz
         $gaz = Product::where('category_id', 1)
             ->firstOrFail();
 
-        // Mouvement du tank
         TankMovement::create([
             'tank_id' => $tank->id,
             'type' => 'exit',
@@ -113,11 +111,10 @@ class TankService
             'reference_id' => $referenceId,
             'unit_price' => $gaz->wholesale_price,
             'addedBy' => Auth::id(),
-            'note' => 'Remplissage des bouteilles',
+            'note' => $note ?? 'Remplissage des bouteilles',
             'operation_date' => $operation_date
         ]);
 
-        // Stock gaz
         $stock = StockByBranch::firstOrCreate([
             'branche_id' => 1,
             'product_id' => $gaz->id,
