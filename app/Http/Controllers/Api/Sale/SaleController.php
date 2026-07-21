@@ -760,7 +760,6 @@ class SaleController extends Controller
             ], 500);
         }
     }
-
     // public function processSale(Request $request)
     // {
     //     try {

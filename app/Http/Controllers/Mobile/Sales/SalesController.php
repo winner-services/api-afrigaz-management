@@ -335,9 +335,15 @@ class SalesController extends Controller
                         );
                     }
                 }
-                if (bccomp((string)$paidAmount, (string)$total, 2) === 1) {
+                $total = round($total, 2);
+                $paidAmount = round($paidAmount, 2);
+
+                if ($paidAmount > $total) {
                     throw new \Exception("Le montant payé ({$paidAmount}) ne peut pas être supérieur au total ({$total}).");
                 }
+                // if (bccomp((string)$paidAmount, (string)$total, 2) === 1) {
+                //     throw new \Exception("Le montant payé ({$paidAmount}) ne peut pas être supérieur au total ({$total}).");
+                // }
 
                 if ($paidAmount > 0) {
                     $last = CashTransaction::where('cash_account_id', $data['account_id'])
