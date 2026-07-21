@@ -296,7 +296,8 @@ class SalesController extends Controller
                     'status' => $status
                 ]);
 
-                $remaining = $total - $paidAmount;
+                // $remaining = $total - $paidAmount;
+                $remaining = round($total - $paidAmount, 2);
 
                 if ($remaining > 0) {
                     if ($distributorId) {
@@ -334,8 +335,7 @@ class SalesController extends Controller
                         );
                     }
                 }
-                dd($paidAmount, $total);
-                if ($paidAmount > $total) {
+                if (bccomp((string)$paidAmount, (string)$total, 2) === 1) {
                     throw new \Exception("Le montant payé ({$paidAmount}) ne peut pas être supérieur au total ({$total}).");
                 }
 
