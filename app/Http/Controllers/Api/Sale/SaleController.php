@@ -499,21 +499,12 @@ class SaleController extends Controller
 
                 $user1 = Auth::user();
                 $branche = Branche::where('user_id', $user1->id)->first();
-
-                // $branchId = $data['branch_id'] ?? 1;
-
-                // $branchId = $branche ? $branche->id : 1;
                 $branchId = $branche?->id ?? 1;
 
                 $type = $data['type'];
                 $items = $data['items'];
                 $tankId = $data['tank_id'] ?? null;
-
-                $totalAmount = (float) $data['montant_total'];
-                $paidAmount = (float) $data['paid_amount'];
-
-                $total = 0;
-                $totalGas = 0;
+                $paidAmount = (float) ($data['paid_amount'] ?? 0);
 
                 $gasProduct = Product::where('category_id', 1)->first();
 
@@ -534,137 +525,8 @@ class SaleController extends Controller
                     'status' => 'pending',
                 ]);
 
-                $remaining = $totalAmount - $paidAmount;
-
-                $sale->status = match (true) {
-                    $paidAmount == 0 => 'pending',
-                    $paidAmount < $totalAmount => 'partial',
-                    default => 'completed',
-                };
-
-                $sale->save();
-
-                if ($remaining > 0) {
-
-                    if ($distributorId) {
-                        DebtDistributor::updateOrCreate(
-                            [
-                                'sale_id' => $sale->id,
-                            ],
-                            [
-                                'distributor_id' => $distributorId,
-                                'loan_amount' => $totalAmount,
-                                'remaining_amount' => $remaining,
-                                'paid_amount' => $paidAmount,
-                                'motif' => 'Dette Vente #' . $sale->id,
-                                'reference' => $sale->reference,
-                                'transaction_date' => now(),
-                                'status' => $sale->status,
-                                'date_echeance' => $data['date_echeance'] ?? null,
-                                'user_id' => Auth::id(),
-                            ]
-                        );
-                    }
-
-                    if ($customerId) {
-                        CustomerDebt::updateOrCreate(
-                            [
-                                'sale_id' => $sale->id,
-                            ],
-                            [
-                                'customer_id' => $customerId,
-                                'loan_amount' => $totalAmount,
-                                'remaining_amount' => $remaining,
-                                'paid_amount' => $paidAmount,
-                                'transaction_date' => now(),
-                                'motif' => 'Dette Vente #' . $sale->id,
-                                'status' => $sale->status,
-                                'date_echeance' => $data['date_echeance'] ?? null,
-                                'user_id' => Auth::id(),
-                            ]
-                        );
-                    }
-                }
-
-                if ($paidAmount > 0) {
-
-                    $last = CashTransaction::where('cash_account_id', $data['account_id'])
-                        ->latest('id')
-                        ->lockForUpdate()
-                        ->first();
-
-                    $solde = ($last->solde ?? 0) + $paidAmount;
-                    $paymentType = 'sale';
-                    $reference = $customerId ? 'CUST-' . $customerId : 'DIST-' . $distributorId;
-                    $label = $customerId ? 'Paiement vente' : 'Paiement Vente';
-
-                    CashTransaction::create([
-                        'reason' => 'Paiement vente #' . $sale->id,
-                        'type' => 'Revenue',
-                        'amount' => $paidAmount,
-                        'transaction_date' => now(),
-                        'solde' => $solde,
-                        'reference' => 'SALE-' . $sale->reference,
-                        'reference_id' => $sale->id,
-                        'cash_account_id' => $data['account_id'],
-                        'reference_paiement' => $data['reference_paiement'],
-                        'cash_categorie_id' => 4,
-                        'addedBy' => Auth::id()
-                    ]);
-
-                    $paymentMethod = 'cash';
-
-                    if ($paidAmount == 0) {
-                        $paymentMethod = 'credit';
-                    } elseif ($paidAmount < $sale->montant_total) {
-                        $paymentMethod = 'partie';
-                    } elseif ($paidAmount >= $sale->montant_total) {
-                        $paymentMethod = 'cash';
-                    }
-
-                    PaymentHistorie::create([
-
-                        'payment_type' => $paymentType,
-
-                        'reference_id' => $sale->id,
-
-                        'reference' => $sale->reference,
-
-                        'customer_id' => $customerId,
-
-                        'distributor_id' => $distributorId,
-
-                        'cash_account_id' => $data['account_id'],
-
-                        'paid_amount' => $paidAmount,
-
-                        'payment_method' => $paymentMethod,
-
-                        'payment_date' => $data['date_echeance'] ?? null,
-
-                        'reference_paiement' => $data['reference_paiement'],
-
-                        'addedBy' => Auth::id(),
-
-                        'status' => 'paid',
-
-                        'description' =>
-                        $label .
-                            ' - Dette #' .
-                            $sale->id
-                    ]);
-
-                    if ($distributorId) {
-                        PaymentDistributor::create([
-                            'distributor_id' => $distributorId,
-                            'paid_amount' => $paidAmount,
-                            'cash_account_id' => $data['account_id'],
-                            'operation_date' => now(),
-                            'reference' => $sale->reference,
-                            'addedBy' => Auth::id()
-                        ]);
-                    }
-                }
+                $total = 0;
+                $totalGas = 0;
 
                 foreach ($items as $item) {
 
@@ -688,7 +550,7 @@ class SaleController extends Controller
                         $totalGas += $gasQty;
                     } else {
 
-                        $unitPrice += $untPrc;
+                        $unitPrice = $untPrc;
                         if ($unitPrice <= 0) {
                             throw new \Exception("Prix non défini pour {$product->name}");
                         }
@@ -704,8 +566,8 @@ class SaleController extends Controller
                             $product->id,
                             $qty,
                             'exchange',
-                            $sale->id ?? null,
-                            $data['date_vente'],
+                            $sale->id,
+                            $data['date_vente']
                         );
 
                         app(StockService::class)->increaseStockExchange(
@@ -713,30 +575,21 @@ class SaleController extends Controller
                             $product->id,
                             $qty,
                             'exchange',
-                            $sale->id ?? null,
-                            $data['date_vente']
-                        );
-                    } elseif ($type === 'kit') {
-
-                        app(StockService::class)->decreaseKitStock(
-                            $branchId,
-                            $product->id,
-                            $qty,
-                            'kit',
                             $sale->id,
                             $data['date_vente']
                         );
-                    } elseif ($type === 'accessory') {
+                    } elseif (in_array($type, ['kit', 'accessory'])) {
 
                         app(StockService::class)->decreaseKitStock(
                             $branchId,
                             $product->id,
                             $qty,
-                            'kit',
+                            $type,
                             $sale->id,
                             $data['date_vente']
                         );
                     }
+
                     ItemSale::create([
                         'sale_id' => $sale->id,
                         'product_id' => $product->id,
@@ -746,8 +599,124 @@ class SaleController extends Controller
                     ]);
                 }
 
-                if ($type === 'refill' && $tankId) {
+                $total = round($total, 2);
+                $paidAmount = round($paidAmount, 2);
 
+                if ($paidAmount > $total) {
+                    throw new \Exception("Le montant payé ({$paidAmount}) ne peut pas être supérieur au total ({$total}).");
+                }
+
+                $remaining = round($total - $paidAmount, 2);
+
+                $status = match (true) {
+                    $paidAmount <= 0 => 'pending',
+                    $paidAmount < $total => 'partial',
+                    default => 'completed',
+                };
+
+                $sale->update([
+                    'total_amount' => $total,
+                    'status' => $status
+                ]);
+
+                if ($remaining > 0) {
+
+                    if ($distributorId) {
+                        DebtDistributor::updateOrCreate(
+                            ['sale_id' => $sale->id],
+                            [
+                                'distributor_id' => $distributorId,
+                                'loan_amount' => $total,
+                                'remaining_amount' => $remaining,
+                                'paid_amount' => $paidAmount,
+                                'motif' => 'Dette Vente #' . $sale->id,
+                                'reference' => $sale->reference,
+                                'transaction_date' => $data['date_vente'],
+                                'status' => $status,
+                                'date_echeance' => $data['date_echeance'] ?? null,
+                                'user_id' => Auth::id(),
+                            ]
+                        );
+                    }
+
+                    if ($customerId) {
+                        CustomerDebt::updateOrCreate(
+                            ['sale_id' => $sale->id],
+                            [
+                                'customer_id' => $customerId,
+                                'loan_amount' => $total,
+                                'remaining_amount' => $remaining,
+                                'paid_amount' => $paidAmount,
+                                'transaction_date' => $data['date_vente'],
+                                'motif' => 'Dette Vente #' . $sale->id,
+                                'status' => $status,
+                                'date_echeance' => $data['date_echeance'] ?? null,
+                                'user_id' => Auth::id(),
+                            ]
+                        );
+                    }
+                }
+
+                if ($paidAmount > 0) {
+
+                    $last = CashTransaction::where('cash_account_id', $data['account_id'])
+                        ->latest('id')
+                        ->lockForUpdate()
+                        ->first();
+
+                    $solde = ($last->solde ?? 0) + $paidAmount;
+                    $paymentType = 'sale';
+                    $label = $customerId ? 'Paiement vente' : 'Paiement Vente';
+
+                    CashTransaction::create([
+                        'reason' => 'Paiement vente #' . $sale->id,
+                        'type' => 'Revenue',
+                        'amount' => $paidAmount,
+                        'transaction_date' => now(),
+                        'solde' => $solde,
+                        'reference' => 'SALE-' . $sale->reference,
+                        'reference_id' => $sale->id,
+                        'cash_account_id' => $data['account_id'],
+                        'reference_paiement' => $data['reference_paiement'] ?? null,
+                        'cash_categorie_id' => 4,
+                        'addedBy' => Auth::id()
+                    ]);
+
+                    $paymentMethod = match (true) {
+                        $paidAmount <= 0 => 'credit',
+                        $paidAmount < $total => 'partie',
+                        default => 'cash',
+                    };
+
+                    PaymentHistorie::create([
+                        'payment_type' => $paymentType,
+                        'reference_id' => $sale->id,
+                        'reference' => $sale->reference,
+                        'customer_id' => $customerId,
+                        'distributor_id' => $distributorId,
+                        'cash_account_id' => $data['account_id'],
+                        'paid_amount' => $paidAmount,
+                        'payment_method' => $paymentMethod,
+                        'payment_date' => $data['date_echeance'] ?? now(),
+                        'reference_paiement' => $data['reference_paiement'] ?? null,
+                        'addedBy' => Auth::id(),
+                        'status' => 'paid',
+                        'description' => $label . ' - Dette #' . $sale->id
+                    ]);
+
+                    if ($distributorId) {
+                        PaymentDistributor::create([
+                            'distributor_id' => $distributorId,
+                            'paid_amount' => $paidAmount,
+                            'cash_account_id' => $data['account_id'],
+                            'operation_date' => now(),
+                            'reference' => $sale->reference,
+                            'addedBy' => Auth::id()
+                        ]);
+                    }
+                }
+
+                if ($type === 'refill' && $tankId) {
                     app(TankService::class)->consumeGas(
                         $tankId,
                         $totalGas,
@@ -762,17 +731,15 @@ class SaleController extends Controller
                     app(ReferralService::class)->handle($sale);
                 }
 
-                $sale->update([
-                    'total_amount' => $total
-                ]);
-
                 return $sale->load([
                     'items.product',
                     'customer:id,name',
                     'distributor:id,name'
                 ]);
             });
+
             $buyerName = $sale->customer->name ?? $sale->distributor->name ?? null;
+
             return response()->json([
                 'success' => true,
                 'status' => 201,
@@ -786,7 +753,6 @@ class SaleController extends Controller
                 'devise' => $devise
             ], 201);
         } catch (\Throwable $e) {
-
             return response()->json([
                 'success' => false,
                 'message' => 'Une erreur est survenue',
@@ -794,4 +760,335 @@ class SaleController extends Controller
             ], 500);
         }
     }
+
+    // public function processSale(Request $request)
+    // {
+    //     try {
+    //         $about = About::first();
+    //         if ($about) {
+    //             $this->imageService->transform($about, ['logo', 'logo2']);
+    //         }
+
+    //         $devise = Currency::where('status', 'created')
+    //             ->orderByRaw("currency_type = 'devise_principale' DESC")
+    //             ->latest()
+    //             ->get();
+
+    //         $data = $request->validate([
+    //             'montant_total' => 'nullable|numeric|min:0',
+    //             'paid_amount' => 'nullable|numeric|min:0',
+    //             'account_id' => 'nullable|exists:cash_accounts,id',
+    //             'customer_id' => 'nullable|exists:customers,id|required_without:distributor_id|prohibits:distributor_id',
+    //             'distributor_id' => 'nullable|exists:distributors,id|required_without:customer_id|prohibits:customer_id',
+    //             'date_vente' => 'required|date',
+    //             'date_echeance' => 'nullable|date',
+    //             'reference_paiement' => 'nullable|string|max:255',
+    //             'branch_id' => 'nullable|exists:branches,id',
+    //             'type' => 'required|in:exchange,kit,refill,accessory',
+    //             'tank_id' => 'nullable|exists:tanks,id',
+    //             'items' => 'required|array|min:1',
+    //             'items.*.product_id' => 'required|exists:products,id',
+    //             'items.*.quantity' => 'required|integer|min:1',
+    //             'items.*.unit_price' => 'required|numeric|min:0'
+    //         ]);
+
+    //         $sale = DB::transaction(function () use ($data) {
+
+    //             $customerId = $data['customer_id'] ?? null;
+    //             $distributorId = $data['distributor_id'] ?? null;
+
+    //             $user1 = Auth::user();
+    //             $branche = Branche::where('user_id', $user1->id)->first();
+
+    //             $branchId = $branche?->id ?? 1;
+
+    //             $type = $data['type'];
+    //             $items = $data['items'];
+    //             $tankId = $data['tank_id'] ?? null;
+
+    //             $totalAmount = (float) $data['montant_total'];
+    //             $paidAmount = (float) $data['paid_amount'];
+
+    //             $total = 0;
+    //             $totalGas = 0;
+
+    //             $gasProduct = Product::where('category_id', 1)->first();
+
+    //             if (in_array($type, ['refill', 'exchange']) && !$gasProduct) {
+    //                 throw new \Exception("Produit gaz introuvable");
+    //             }
+
+    //             $sale = Sale::create([
+    //                 'reference' => fake()->unique()->numerify('VENTE-#####'),
+    //                 'customer_id' => $customerId,
+    //                 'distributor_id' => $distributorId,
+    //                 'branch_id' => $branchId,
+    //                 'sale_type' => $type,
+    //                 'total_amount' => 0,
+    //                 'paid_amount' => $paidAmount,
+    //                 'addedBy' => Auth::id(),
+    //                 'transaction_date' => $data['date_vente'],
+    //                 'status' => 'pending',
+    //             ]);
+
+    //             $remaining = $totalAmount - $paidAmount;
+
+    //             $sale->status = match (true) {
+    //                 $paidAmount == 0 => 'pending',
+    //                 $paidAmount < $totalAmount => 'partial',
+    //                 default => 'completed',
+    //             };
+
+    //             $sale->save();
+
+    //             if ($remaining > 0) {
+
+    //                 if ($distributorId) {
+    //                     DebtDistributor::updateOrCreate(
+    //                         [
+    //                             'sale_id' => $sale->id,
+    //                         ],
+    //                         [
+    //                             'distributor_id' => $distributorId,
+    //                             'loan_amount' => $totalAmount,
+    //                             'remaining_amount' => $remaining,
+    //                             'paid_amount' => $paidAmount,
+    //                             'motif' => 'Dette Vente #' . $sale->id,
+    //                             'reference' => $sale->reference,
+    //                             'transaction_date' => now(),
+    //                             'status' => $sale->status,
+    //                             'date_echeance' => $data['date_echeance'] ?? null,
+    //                             'user_id' => Auth::id(),
+    //                         ]
+    //                     );
+    //                 }
+
+    //                 if ($customerId) {
+    //                     CustomerDebt::updateOrCreate(
+    //                         [
+    //                             'sale_id' => $sale->id,
+    //                         ],
+    //                         [
+    //                             'customer_id' => $customerId,
+    //                             'loan_amount' => $totalAmount,
+    //                             'remaining_amount' => $remaining,
+    //                             'paid_amount' => $paidAmount,
+    //                             'transaction_date' => now(),
+    //                             'motif' => 'Dette Vente #' . $sale->id,
+    //                             'status' => $sale->status,
+    //                             'date_echeance' => $data['date_echeance'] ?? null,
+    //                             'user_id' => Auth::id(),
+    //                         ]
+    //                     );
+    //                 }
+    //             }
+
+    //             if ($paidAmount > 0) {
+
+    //                 $last = CashTransaction::where('cash_account_id', $data['account_id'])
+    //                     ->latest('id')
+    //                     ->lockForUpdate()
+    //                     ->first();
+
+    //                 $solde = ($last->solde ?? 0) + $paidAmount;
+    //                 $paymentType = 'sale';
+    //                 $reference = $customerId ? 'CUST-' . $customerId : 'DIST-' . $distributorId;
+    //                 $label = $customerId ? 'Paiement vente' : 'Paiement Vente';
+
+    //                 CashTransaction::create([
+    //                     'reason' => 'Paiement vente #' . $sale->id,
+    //                     'type' => 'Revenue',
+    //                     'amount' => $paidAmount,
+    //                     'transaction_date' => now(),
+    //                     'solde' => $solde,
+    //                     'reference' => 'SALE-' . $sale->reference,
+    //                     'reference_id' => $sale->id,
+    //                     'cash_account_id' => $data['account_id'],
+    //                     'reference_paiement' => $data['reference_paiement'],
+    //                     'cash_categorie_id' => 4,
+    //                     'addedBy' => Auth::id()
+    //                 ]);
+
+    //                 $paymentMethod = 'cash';
+
+    //                 if ($paidAmount == 0) {
+    //                     $paymentMethod = 'credit';
+    //                 } elseif ($paidAmount < $sale->montant_total) {
+    //                     $paymentMethod = 'partie';
+    //                 } elseif ($paidAmount >= $sale->montant_total) {
+    //                     $paymentMethod = 'cash';
+    //                 }
+
+    //                 PaymentHistorie::create([
+
+    //                     'payment_type' => $paymentType,
+
+    //                     'reference_id' => $sale->id,
+
+    //                     'reference' => $sale->reference,
+
+    //                     'customer_id' => $customerId,
+
+    //                     'distributor_id' => $distributorId,
+
+    //                     'cash_account_id' => $data['account_id'],
+
+    //                     'paid_amount' => $paidAmount,
+
+    //                     'payment_method' => $paymentMethod,
+
+    //                     'payment_date' => $data['date_echeance'] ?? null,
+
+    //                     'reference_paiement' => $data['reference_paiement'],
+
+    //                     'addedBy' => Auth::id(),
+
+    //                     'status' => 'paid',
+
+    //                     'description' =>
+    //                     $label .
+    //                         ' - Dette #' .
+    //                         $sale->id
+    //                 ]);
+
+    //                 if ($distributorId) {
+    //                     PaymentDistributor::create([
+    //                         'distributor_id' => $distributorId,
+    //                         'paid_amount' => $paidAmount,
+    //                         'cash_account_id' => $data['account_id'],
+    //                         'operation_date' => now(),
+    //                         'reference' => $sale->reference,
+    //                         'addedBy' => Auth::id()
+    //                     ]);
+    //                 }
+    //             }
+
+    //             foreach ($items as $item) {
+
+    //                 $product = Product::findOrFail($item['product_id']);
+    //                 $qty = (int) $item['quantity'];
+    //                 $untPrc = (float) $item['unit_price'];
+
+    //                 $unitPrice = 0;
+    //                 $lineTotal = 0;
+
+    //                 if ($type === 'refill' || $type === 'exchange') {
+
+    //                     if (!$product->weight_kg) {
+    //                         throw new \Exception("Poids non défini pour {$product->name}");
+    //                     }
+
+    //                     $gasQty = $product->weight_kg * $qty;
+    //                     $price = $untPrc / $product->weight_kg;
+    //                     $lineTotal = $price * $gasQty;
+    //                     $unitPrice = $price * $product->weight_kg;
+    //                     $totalGas += $gasQty;
+    //                 } else {
+
+    //                     $unitPrice += $untPrc;
+    //                     if ($unitPrice <= 0) {
+    //                         throw new \Exception("Prix non défini pour {$product->name}");
+    //                     }
+
+    //                     $lineTotal = $unitPrice * $qty;
+    //                 }
+
+    //                 $total += $lineTotal;
+
+    //                 if ($type === 'exchange') {
+    //                     app(StockService::class)->decreaseExchangeStock(
+    //                         $branchId,
+    //                         $product->id,
+    //                         $qty,
+    //                         'exchange',
+    //                         $sale->id ?? null,
+    //                         $data['date_vente'],
+    //                     );
+
+    //                     app(StockService::class)->increaseStockExchange(
+    //                         $branchId,
+    //                         $product->id,
+    //                         $qty,
+    //                         'exchange',
+    //                         $sale->id ?? null,
+    //                         $data['date_vente']
+    //                     );
+    //                 } elseif ($type === 'kit') {
+
+    //                     app(StockService::class)->decreaseKitStock(
+    //                         $branchId,
+    //                         $product->id,
+    //                         $qty,
+    //                         'kit',
+    //                         $sale->id,
+    //                         $data['date_vente']
+    //                     );
+    //                 } elseif ($type === 'accessory') {
+
+    //                     app(StockService::class)->decreaseKitStock(
+    //                         $branchId,
+    //                         $product->id,
+    //                         $qty,
+    //                         'kit',
+    //                         $sale->id,
+    //                         $data['date_vente']
+    //                     );
+    //                 }
+    //                 ItemSale::create([
+    //                     'sale_id' => $sale->id,
+    //                     'product_id' => $product->id,
+    //                     'quantity' => $qty,
+    //                     'unit_price' => $unitPrice,
+    //                     'total_price' => $lineTotal
+    //                 ]);
+    //             }
+
+    //             if ($type === 'refill' && $tankId) {
+
+    //                 app(TankService::class)->consumeGas(
+    //                     $tankId,
+    //                     $totalGas,
+    //                     'filling',
+    //                     $sale->id,
+    //                     $data['date_vente'],
+    //                     'Remplissage des bouteilles pour la vente #' . $sale->id
+    //                 );
+    //             }
+
+    //             if ($type === 'kit' && $customerId) {
+    //                 app(ReferralService::class)->handle($sale);
+    //             }
+
+    //             $sale->update([
+    //                 'total_amount' => $total
+    //             ]);
+
+    //             return $sale->load([
+    //                 'items.product',
+    //                 'customer:id,name',
+    //                 'distributor:id,name'
+    //             ]);
+    //         });
+    //         $buyerName = $sale->customer->name ?? $sale->distributor->name ?? null;
+    //         return response()->json([
+    //             'success' => true,
+    //             'status' => 201,
+    //             'message' => 'Vente enregistrée avec succès',
+    //             'data' => [
+    //                 ...$sale->toArray(),
+    //                 'buyer_name' => $buyerName
+    //             ],
+    //             'info_company' => $about,
+    //             'point_vente' => $branche->name ?? null,
+    //             'devise' => $devise
+    //         ], 201);
+    //     } catch (\Throwable $e) {
+
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Une erreur est survenue',
+    //             'error' => config('app.debug') ? $e->getMessage() : null
+    //         ], 500);
+    //     }
+    // }
 }

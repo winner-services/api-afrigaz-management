@@ -112,7 +112,7 @@ class FillingService
                 'filling',
                 $filling->id,
                 $operation_date,
-                'Remplissage des bouteilles pour le remplissage #' . $filling->id
+                'Remplissage des bouteilles pour la Recharge #' . $filling->id
             );
 
             return $filling->load(['items.product']);
