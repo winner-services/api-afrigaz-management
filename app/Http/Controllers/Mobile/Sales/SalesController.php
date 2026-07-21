@@ -91,7 +91,7 @@ class SalesController extends Controller
             'data' => $sales
         ]);
     }
-    
+
     public function processSaleMobile(Request $request)
     {
         try {
@@ -334,10 +334,10 @@ class SalesController extends Controller
                         );
                     }
                 }
-
-                // if ($paidAmount > $total) {
-                //     throw new \Exception("Le montant payé ({$paidAmount}) ne peut pas être supérieur au total ({$total}).");
-                // }
+                dd($paidAmount, $total);
+                if ($paidAmount > $total) {
+                    throw new \Exception("Le montant payé ({$paidAmount}) ne peut pas être supérieur au total ({$total}).");
+                }
 
                 if ($paidAmount > 0) {
                     $last = CashTransaction::where('cash_account_id', $data['account_id'])
